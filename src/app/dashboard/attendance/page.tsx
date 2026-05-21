@@ -136,7 +136,7 @@ export default function AttendancePage() {
         lastActionTimestamp: Date.now()
       }, { merge: true });
       
-      await sendDiscordNotification(`⏱️ **${user.fullName || user.email}** clocked **IN** for the day.`);
+      await sendDiscordNotification(`⏱️ **${user.fullName || user.email}** clocked **IN** for the day.`, undefined, 'hr');
     } catch (err) {
       console.error("Error creating attendance clock-in:", err);
     }
@@ -166,7 +166,7 @@ export default function AttendancePage() {
         lastActionTimestamp: Date.now()
       });
       
-      await sendDiscordNotification(`☕ **${user.fullName || user.email}** started a **Lunch Break**.`);
+      await sendDiscordNotification(`☕ **${user.fullName || user.email}** started a **Lunch Break**.`, undefined, 'hr');
     } catch (err) {
       console.error("Error starting break:", err);
     }
@@ -196,7 +196,7 @@ export default function AttendancePage() {
         lastActionTimestamp: Date.now()
       });
       
-      await sendDiscordNotification(`💼 **${user.fullName || user.email}** ended break and **Resumed Work**.`);
+      await sendDiscordNotification(`💼 **${user.fullName || user.email}** ended break and **Resumed Work**.`, undefined, 'hr');
     } catch (err) {
       console.error("Error resuming work:", err);
     }
@@ -226,7 +226,7 @@ export default function AttendancePage() {
         lastActionTimestamp: Date.now()
       });
       
-      await sendDiscordNotification(`🏁 **${user.fullName || user.email}** clocked **OUT** for the day.`);
+      await sendDiscordNotification(`🏁 **${user.fullName || user.email}** clocked **OUT** for the day.`, undefined, 'hr');
     } catch (err) {
       console.error("Error clocking out:", err);
     }

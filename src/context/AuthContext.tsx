@@ -214,7 +214,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Removed host domain constraint so employees can sign in with any standard Gmail address!
     try {
       const result = await signInWithPopup(auth, provider);
-      await sendDiscordNotification(`🔓 **${result.user.displayName || result.user.email}** logged in to the ERP via Google.`);
+      await sendDiscordNotification(`🔓 **${result.user.displayName || result.user.email}** logged in to the ERP via Google.`, undefined, 'auth');
     } catch (error: any) {
       console.error("Login failed", error);
       throw error;
@@ -223,7 +223,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = async () => {
     if (user) {
-      await sendDiscordNotification(`🔒 **${user.fullName || user.email}** logged out of the ERP.`);
+      await sendDiscordNotification(`🔒 **${user.fullName || user.email}** logged out of the ERP.`, undefined, 'auth');
     }
     setSimulatedRole(null);
     await signOut(auth);

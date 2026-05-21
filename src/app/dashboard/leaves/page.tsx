@@ -125,7 +125,9 @@ export default function LeaveManagement() {
       });
       
       await sendDiscordNotification(
-        `📅 **New Leave Request**\n**${user.fullName || user.email}** requested **${daysCount} days** of ${newLeave.type} from ${newLeave.startDate} to ${newLeave.endDate}.\nReason: *${newLeave.reason}*`
+        `📅 **New Leave Request**\n**${user.fullName || user.email}** requested **${daysCount} days** of ${newLeave.type} from ${newLeave.startDate} to ${newLeave.endDate}.\nReason: *${newLeave.reason}*`,
+        undefined,
+        'hr'
       );
 
       setIsApplyOpen(false);

@@ -54,7 +54,7 @@ export default function LoginPage() {
       const finalEmail = email.includes("@") ? email.trim() : `${email.trim()}@mintsglobal.ae`;
       
       const cred = await signInWithEmailAndPassword(auth, finalEmail, password);
-      await sendDiscordNotification(`🔓 **${cred.user.displayName || finalEmail}** logged in to the ERP.`);
+      await sendDiscordNotification(`🔓 **${cred.user.displayName || finalEmail}** logged in to the ERP.`, undefined, 'auth');
     } catch (err: any) {
       setError("Invalid username or password.");
       setIsLoggingIn(false);

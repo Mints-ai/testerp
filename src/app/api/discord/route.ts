@@ -3,19 +3,30 @@ import { NextResponse } from 'next/server';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+    
+    let webhookUrl = process.env.DISCORD_WEBHOOK_URL; // Default
+
+    if (body.eventType === 'auth' && process.env.DISCORD_WEBHOOK_URL_AUTH) {
+      webhookUrl = process.env.DISCORD_WEBHOOK_URL_AUTH;
+    } else if (body.eventType === 'hr' && process.env.DISCORD_WEBHOOK_URL_HR) {
+      webhookUrl = process.env.DISCORD_WEBHOOK_URL_HR;
+    }
 
     if (!webhookUrl) {
-      console.warn("DISCORD_WEBHOOK_URL is not set in environment variables.");
+      console.warn("Discord webhook URL is not set in environment variables.");
       return NextResponse.json({ success: false, error: 'Discord webhook URL not configured.' }, { status: 500 });
     }
+
+    // Clean up eventType before sending to Discord
+    const discordPayload = { ...body };
+    delete discordPayload.eventType;
 
     const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(discordPayload),
     });
 
     if (!response.ok) {

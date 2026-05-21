@@ -12,12 +12,16 @@ export function getInitials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-export async function sendDiscordNotification(content: string, embeds?: any[]) {
+export async function sendDiscordNotification(
+  content: string, 
+  embeds?: any[],
+  eventType?: 'auth' | 'hr' | 'default'
+) {
   try {
     await fetch('/api/discord', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content, embeds }),
+      body: JSON.stringify({ content, embeds, eventType }),
     });
   } catch (err) {
     console.error("Failed to send discord notification", err);
