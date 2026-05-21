@@ -6,102 +6,237 @@ Welcome to the **Mints Global ERP**, a state-of-the-art enterprise resource plan
 
 ---
 
-## 🌟 Product Overview
+## 🏛️ Architecture & Flow Diagram
+Mints Global ERP utilizes a secure, serverless architecture powered by Next.js and Firebase. The client communicates directly with Firestore for real-time data sync using a customized React Context provider for Authentication and state management. Server-side API routes handle secure third-party integrations, such as Discord Webhooks.
 
-Mints Global ERP is designed as a secure "Command Center" for the executive and operational teams. It replaces disjointed spreadsheets and isolated SaaS tools by bringing everything under one unified roof. 
-
-### Key Capabilities:
-- **Centralized Data Hub**: Synchronized data across HR, Finance, and CRM, utilizing real-time Firebase Firestore databases.
-- **Role-Based Access Control (RBAC)**: Secure access gating based on hierarchy (Founders, C-Suite, Managers, Employees, Interns).
-- **Discord Automations**: Real-time push notifications for logins, logouts, and leave applications directly to your corporate Discord server.
-- **Global Base Architecture**: Built to scale globally without hardcoded regional constraints.
-
----
-
-## 🛠 Core Modules
-
-1. **HR Hub**: Manage the entire employee lifecycle. Onboard new hires with auto-generated secure credentials, assign multiple departments to cross-functional employees, and track intern progress.
-2. **Leave Management & Team Calendar**: Employees can apply for leave while managers review and approve requests. The visual Team Calendar automatically plots absences to prevent under-staffing.
-3. **CRM & Sales Pipeline**: Track leads and clients through a visual, drag-and-drop Kanban pipeline.
-4. **Projects & Capacity Planning**: Create active project scopes, assign team members dynamically, and monitor team workload capacity in real-time.
-5. **Finance & Invoicing**: Track revenue streams and generate dynamic PDF invoices/proposals directly from the browser.
-6. **Command Palette**: A globally accessible search bar (accessed via `Ctrl+K` or `Cmd+K`) to jump instantly to any page or tool.
-
----
-
-## 💻 Technical Stack
-
-- **Frontend**: Next.js 14 (App Router), React 19, TypeScript
-- **Styling**: Tailwind CSS v4, Framer Motion, shadcn/ui (Radix UI)
-- **Backend/Database**: Firebase Authentication, Cloud Firestore
-- **Integrations**: Discord Webhooks API, jsPDF (for document generation)
-
----
-
-## 📖 User Manual: How to Use the ERP
-
-### 1. Initial Setup & Environment Variables
-Before running the application, ensure your `.env.local` file is populated with your Firebase configuration and Discord webhook url:
-```env
-NEXT_PUBLIC_FIREBASE_API_KEY="your-api-key"
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN="your-project.firebaseapp.com"
-NEXT_PUBLIC_FIREBASE_PROJECT_ID="your-project"
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET="your-bucket"
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID="your-sender-id"
-NEXT_PUBLIC_FIREBASE_APP_ID="your-app-id"
-DISCORD_WEBHOOK_URL="your-discord-webhook"
+```mermaid
+graph TD;
+    Client[Next.js Client] -->|Real-time Sync| Firestore[(Firebase Firestore)];
+    Client -->|Auth State| FirebaseAuth[Firebase Auth];
+    Client -->|Server Actions| NextAPI[Next.js API Routes];
+    NextAPI -->|Webhooks| Discord[Discord Automations];
+    NextAPI -->|Third Party APIs| External[External Integrations];
 ```
 
-### 2. Logging In
-- Navigate to `http://localhost:3000/login`.
-- You can authenticate securely via your **Google Workspace Account** or by using an auto-generated internal static email (`username@mintsglobal.ae`) and temporary password provided by HR.
-- **Super Admins**: Pre-configured super admin emails will automatically be granted "Founder" level access upon first login to bypass manual permission gating.
+---
 
-### 3. Navigating the Command Center
-- Use the left-hand sidebar to switch between modules.
-- **Pro-Tip**: Press `Ctrl + K` (or `Cmd + K` on Mac) from anywhere in the application to open the **Command Palette**. Type "Leaves", "Settings", or "Finance" to instantly jump to that module.
+## 💻 Tech Stack
+The Mints Global ERP is built on a modern, robust foundation to ensure performance and scalability:
 
-### 4. Onboarding a New Employee (HR Hub)
-1. Go to **HR Hub** and click **+ Add Employee**.
-2. Enter their name. Click the "Static internal mail" button to auto-generate an internal email handle.
-3. Select their Role and check multiple **Departments** if they span across operations.
-4. Provide the employee with their auto-generated temporary password.
-5. Click **Onboard Employee**. The system securely registers their credentials in Firebase in the background without logging you out!
-
-### 5. Managing Leave Requests & Team Calendar
-- **Employees**: Go to **Leaves**, click **Apply for Leave**, select the dates, reason, and type. A Discord notification will instantly alert management.
-- **Managers**: Review the pending requests on the dashboard and click Approve/Reject.
-- **Team Calendar**: Switch to the "Calendar" tab to see a visual grid of who is absent on which days to aid in capacity planning.
-
-### 6. Managing the CRM Pipeline
-1. Navigate to **CRM**.
-2. Click **+ Add Lead** to create a new prospect.
-3. Drag and drop the lead card across the pipeline stages ("Pitch", "Negotiation", "Won", "Lost").
-4. If a deal is won, you can navigate to the **Clients** database to formalize their onboarding and generate contracts.
-
-### 7. Tracking Projects & Team Assignment
-1. Go to **Projects**.
-2. Click into a specific project to view its details.
-3. Use the **Manage Team** button to search for employees and assign them to the project. Their avatars will instantly appear on the project card.
-4. Monitor the **Capacity Planning** tab to see how many active projects each team member is currently juggling.
-
-### 8. Generating PDF Invoices (Finance)
-1. Navigate to **Finance**.
-2. In the Accounts Receivable section, you can initiate a new invoice.
-3. The system automatically fetches your "Global HQ" settings and branding.
-4. Click **Download PDF** to export a professional, client-ready invoice generated dynamically in the browser.
+- **Frontend**: Next.js 14 (App Router) + React 19 + TypeScript
+- **Backend/DB**: Firebase (Cloud Firestore + Authentication)
+- **Styling**: Tailwind CSS v4, Framer Motion, shadcn/ui (Radix UI)
+- **Hosting**: Vercel
+- **Other integrations**: Discord Webhooks API, Google Workspace (for SSO), jsPDF (for document generation)
 
 ---
 
-## 🚀 Deployment
+## 🚀 Getting Started
+This section is critical for setting up the local development environment for onboarding developers.
 
-The Mints Global ERP is optimized for immediate deployment on **Vercel**.
-1. Push your code to GitHub.
-2. Import the repository into Vercel.
-3. Add the Environment Variables (`NEXT_PUBLIC_FIREBASE_...` and `DISCORD_WEBHOOK_URL`) into the Vercel project settings.
-4. Click Deploy. 
+### Prerequisites
+- **Node.js** (v18.x or higher)
+- **npm** or **yarn**
+- **Firebase Project** setup (Firestore, Authentication enabled)
+- **Discord Server** (with Webhook integrations enabled)
 
-The build step `npm run build` will automatically type-check, compile, and statically generate the optimal pages.
+### Clone the repo
+```bash
+git clone https://github.com/Mints-ai/ERP.git
+cd ERP
+```
+
+### Install dependencies
+```bash
+npm install
+```
+
+### Environment variables
+Create a `.env.local` file in the root directory. You must include the following keys (do not reveal actual values in source control):
+
+```env
+NEXT_PUBLIC_FIREBASE_API_KEY=""
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=""
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=""
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=""
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=""
+NEXT_PUBLIC_FIREBASE_APP_ID=""
+DISCORD_WEBHOOK_URL=""
+```
+
+### Run locally
+```bash
+npm run dev
+```
+The application will start at `http://localhost:3000`.
 
 ---
-*Built securely for the Mints Global Corporate Operating Center.*
+
+## 📂 Project Structure
+```text
+/
+├── public/                 # Static assets, brand logos
+├── src/
+│   ├── app/                # Next.js App Router pages (Dashboard, Login, API)
+│   │   ├── api/            # Serverless API routes (Discord, OCR)
+│   │   ├── dashboard/      # All ERP modules (HR, Finance, Projects, CRM, etc.)
+│   │   └── login/          # Authentication entry point
+│   ├── components/         # Reusable UI components
+│   │   ├── layout/         # Navigation, Sidebar, RoleGuard, TopNav
+│   │   └── ui/             # shadcn/ui generic components
+│   ├── context/            # React Context (AuthContext, ToastContext)
+│   └── lib/                # Utility functions, Firebase init, Permissions
+├── .env.local              # Environment variables (git-ignored)
+└── tailwind.config.ts      # Tailwind CSS configuration
+```
+
+---
+
+## ✨ Features
+Mints Global ERP replaces disjointed spreadsheets and isolated SaaS tools by bringing everything under one unified roof. 
+
+### Modules currently built:
+- **Attendance tracking**: Real-time logging with Discord webhook notifications.
+- **Employee management (HR Hub)**: Onboard new hires, assign multiple departments, track intern progress.
+- **Leave management**: Apply for leave, view balance, and approval workflow integrated with Discord.
+- **CRM & Sales Pipeline**: Visual drag-and-drop Kanban pipeline for leads.
+- **Projects & Capacity Planning**: Active project scopes, team assignment, and capacity monitoring.
+- **Finance & Invoicing**: Track revenue streams and generate dynamic PDF invoices/proposals.
+- **Role-based access control (RBAC)**: Secure access gating based on hierarchy (Founders, C-Suite, Managers, Employees, Interns).
+- **Discord Bot Integration**: Real-time push notifications for logins, logouts, and leave applications.
+- **Global Command Palette**: Instantly search and navigate across the ERP (`Ctrl+K`).
+
+---
+
+## 🤝 Contributing Guidelines
+Since this is an internal project with interns and team members, please adhere to the following workflow:
+
+### Branch naming convention
+Use standard prefixes for branch names: `type/module-name`
+Examples:
+- `feature/attendance-system`
+- `fix/login-button`
+- `docs/update-readme`
+
+### Commit message format
+We use semantic commit messages:
+- `feat: add new reporting dashboard`
+- `fix: resolve responsive layout on mobile`
+- `chore: update dependencies`
+
+### PR review process
+1. Ensure your code builds locally (`npm run build`).
+2. Open a Pull Request targeting the `master` branch.
+3. Add a clear description of the changes.
+4. Request a review from at least one senior developer or admin.
+5. Once approved, the PR can be merged and deployed automatically via Vercel.
+
+---
+
+## 🗺️ Roadmap
+We follow a phased development approach:
+
+- **Phase 1: Foundation & HR (Done)** 
+  - User Authentication, RBAC, HR Hub, Attendance Tracking, Basic Discord Integrations.
+- **Phase 2: Operations & CRM (Done)**
+  - CRM Pipelines, Projects Module, Leave Management, Team Calendar, Global Base Migration.
+- **Phase 3: Advanced Integrations & Automations (In Progress)**
+  - Financial tracking, Invoicing, OCR features, Advanced Analytics & Reporting.
+- **Phase 4: Client Portal (Upcoming)**
+  - Dedicated access for external clients to view project progress and invoices.
+
+---
+
+## 📜 License
+**All rights reserved.** 
+This is a proprietary internal system and is **not open source**. All intellectual property and code rights belong to **Mints Global** (https://mintsglobal.tech/). Unauthorized copying, distribution, or usage of this codebase is strictly prohibited.
+
+---
+<br/>
+
+# 📖 User Manual
+
+This comprehensive ERP user manual serves users of all roles — from interns to admins — covering everything from first login to advanced workflows. 
+
+### 1. Introduction
+- **Purpose**: Mints Global ERP is a centralized command center to automate core business operations, replacing disjointed spreadsheets.
+- **Scope**: This manual covers HR, Attendance, Leaves, CRM, Projects, and Finance.
+- **Audience**: Admin, Manager, Employee, and Intern.
+- **Navigation Tips**: Use the sidebar for main modules, and the Command Palette (`Ctrl+K`) for quick actions.
+
+### 2. System Overview
+- **High-level overview**: A unified platform to manage staff, sales, projects, and finances.
+- **System architecture**: React-based frontend directly querying Firebase Firestore, secured by Role-Based Access Control.
+- **Supported browsers**: Modern browsers (Chrome, Edge, Firefox, Safari).
+- **System requirements**: Stable internet connection, desktop recommended for complex tables and CRM Kanban.
+
+### 3. Getting Started
+- **Access**: Navigate to `http://localhost:3000` (or production URL).
+- **Log in**: Use your Google Workspace Account or the internal static email (`username@mintsglobal.ae`) with a temporary password provided by HR.
+- **First-time login steps**: Verify your profile details in Settings.
+- **Dashboard Overview**: After login, you'll see a unified view of your department's key metrics.
+
+### 4. User Roles & Permissions
+A breakdown of what each role can see and do:
+
+| Feature | Intern/Employee | Manager | Founder/Admin |
+|---|---|---|---|
+| View own attendance | ✅ | ✅ | ✅ |
+| Apply for leave | ✅ | ✅ | ✅ |
+| Approve leave | ❌ | ✅ | ✅ |
+| View CRM & Finances | ❌ | ❌ | ✅ |
+| Manage employees | ❌ | ❌ | ✅ |
+| View all reports | ❌ | ✅ | ✅ |
+
+### 5. Module-by-Module Guides
+- **Attendance**: Go to **Attendance**, click **Check In/Out** to log hours. View logs in the table below.
+- **Leave Management**: Go to **Leaves**, click **Apply for Leave**. Wait for manager approval (triggers Discord notification).
+- **Employee Management**: Admins go to **HR Hub** -> **+ Add Employee**. Set roles, departments, and auto-generate credentials.
+- **Projects & Capacity**: Go to **Projects**, add team members. Monitor their load in the **Capacity** tab.
+- **Roles & Access Control**: Admins can change user roles directly in the HR Hub.
+- **Discord Bot**: Automated notifications are sent to designated channels for check-ins, leaves, and HR events.
+
+### 6. Navigation Guide
+- **Sidebar**: Primary navigation on the left.
+- **Switching Modules**: Click any item in the sidebar.
+- **Search & Filter**: Use the top-right search bars on tables to filter records.
+- **Command Palette**: Press `Ctrl+K` to search the entire application instantly.
+
+### 7. Forms & Data Entry
+- **Filling forms**: Required fields are marked with asterisks. Ensure emails are formatted correctly.
+- **Errors**: Red text indicates validation failures.
+- **Editing**: Click the edit (pencil) icon on any table row to modify data.
+- **Deletion**: Requires confirmation to prevent accidental data loss.
+
+### 8. Notifications & Alerts
+- **Triggers**: Leave applications, approvals, daily attendance, and new employee onboarding.
+- **Where they appear**: Directly in the corporate Discord server via Webhooks.
+
+### 9. Reports & Analytics
+- **Generating Reports**: Go to **Reports** to view company-wide analytics.
+- **Filters**: Filter by date range and department.
+- **Exporting**: Click **Download PDF** on relevant pages (like Finance invoices) to export data.
+
+### 10. Troubleshooting & FAQs
+- **Can't log in**: Check your credentials, ensure Caps Lock is off, or contact your HR Admin to reset your temporary password.
+- **Data not saving**: Check your internet connection or look for red validation errors in the form.
+- **Permission denied**: Your role doesn't have access to this page. Contact an Admin if you need access.
+- **Page not loading**: Hard refresh (`Ctrl+F5`) or clear your browser cache.
+
+### 11. Glossary
+- **ERP**: Enterprise Resource Planning.
+- **RBAC**: Role-Based Access Control.
+- **Firebase**: The backend database and authentication provider.
+- **Leave balance**: The number of paid days off you have remaining for the year.
+- **Pipeline**: The visual board in CRM representing the sales journey of a client.
+
+### 12. Contact & Support
+- **Technical Issues**: Contact the Dev Team or Admin via the internal Discord `#support` channel.
+- **Feature Requests**: Drop a message in the `#dev-requests` channel.
+
+### 13. Version History
+| Version | Date | Changes |
+|---|---|---|
+| v1.0 | May 2026 | Initial release (HR, Attendance, CRM) |
+| v1.1 | May 2026 | Added Leave Management, Multi-department, Discord Webhooks |
+| v1.2 | TBD | Advanced Financial Tracking & Client Portal |
