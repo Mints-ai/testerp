@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Play, Square, Coffee, Clock, CalendarIcon, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { cn, sendDiscordNotification } from "@/lib/utils";
 
 // Helpers for formatting time
 const formatTime = (date: Date) => {
@@ -127,14 +127,16 @@ export default function AttendancePage() {
       const { setDoc } = await import("firebase/firestore");
       await setDoc(docRef, {
         uid: user.uid,
-        employeeName: user.displayName || "Employee",
+        employeeName: user.fullName || user.email || "Employee",
         date: dateString,
         status: "in",
-        logs: [newLog],
-        totalWorkingSeconds: 0,
-        totalBreakSeconds: 0,
+        logs: [...logs, newLog], // Append if exists
+        totalWorkingSeconds: totalWorkingSeconds,
+        totalBreakSeconds: totalBreakSeconds,
         lastActionTimestamp: Date.now()
-      });
+      }, { merge: true });
+      
+      await sendDiscordNotification(`⏱️ **${user.fullName || user.email}** clocked **IN** for the day.`);
     } catch (err) {
       console.error("Error creating attendance clock-in:", err);
     }
@@ -163,6 +165,8 @@ export default function AttendancePage() {
         totalWorkingSeconds: totalWorkingSeconds + elapsedWorking,
         lastActionTimestamp: Date.now()
       });
+      
+      await sendDiscordNotification(`☕ **${user.fullName || user.email}** started a **Lunch Break**.`);
     } catch (err) {
       console.error("Error starting break:", err);
     }
@@ -191,6 +195,8 @@ export default function AttendancePage() {
         totalBreakSeconds: totalBreakSeconds + elapsedBreak,
         lastActionTimestamp: Date.now()
       });
+      
+      await sendDiscordNotification(`💼 **${user.fullName || user.email}** ended break and **Resumed Work**.`);
     } catch (err) {
       console.error("Error resuming work:", err);
     }
@@ -219,6 +225,8 @@ export default function AttendancePage() {
         totalWorkingSeconds: totalWorkingSeconds + elapsedWorking,
         lastActionTimestamp: Date.now()
       });
+      
+      await sendDiscordNotification(`🏁 **${user.fullName || user.email}** clocked **OUT** for the day.`);
     } catch (err) {
       console.error("Error clocking out:", err);
     }
