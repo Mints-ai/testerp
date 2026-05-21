@@ -4,6 +4,13 @@ Welcome to the **Mints Global ERP**, a state-of-the-art enterprise resource plan
 
 ![Mints Global ERP](public/brandlogo/logo.png)
 
+## 📸 Interface Preview
+<div align="center">
+  <img src="public/Screenshot1.png" alt="Mints Global ERP Dashboard Preview 1" width="49%" />
+  &nbsp;
+  <img src="public/Screenshot2.png" alt="Mints Global ERP Dashboard Preview 2" width="49%" />
+</div>
+
 ---
 
 ## 🏛️ Architecture & Flow Diagram
