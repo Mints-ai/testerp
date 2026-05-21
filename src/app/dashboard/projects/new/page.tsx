@@ -61,11 +61,17 @@ export default function CreateProject() {
     return () => unsubSettings();
   }, []);
   
-  const [clients] = useState([
-    { id: "client_1", name: "Al Safa Group" },
-    { id: "client_2", name: "Dubai Tech LLC" },
-    { id: "client_3", name: "Emirates Retail" }
-  ]);
+  const [clients, setClients] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchClients = async () => {
+      const q = query(collection(db, "clients"));
+      const snapshot = await getDocs(q);
+      const clis = snapshot.docs.map(doc => ({ id: doc.id, name: doc.data().companyName }));
+      setClients(clis);
+    };
+    fetchClients();
+  }, []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
