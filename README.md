@@ -64,6 +64,12 @@ NEXT_PUBLIC_FIREBASE_APP_ID=""
 DISCORD_WEBHOOK_URL=""
 ```
 
+### Discord Webhook Configuration
+To prevent HTTP 400 (`Cannot send an empty message`) errors when connecting GitHub or custom alerts to Discord:
+1. Generate a webhook in Discord (Server Settings -> Integrations -> Webhooks).
+2. Append `/github` to the end of the URL before saving it in your `.env.local` or GitHub settings.
+   - **Example:** `https://discord.com/api/webhooks/123/abc/github`
+
 ### Run locally
 ```bash
 npm run dev
@@ -89,6 +95,26 @@ The application will start at `http://localhost:3000`.
 ├── .env.local              # Environment variables (git-ignored)
 └── tailwind.config.ts      # Tailwind CSS configuration
 ```
+
+---
+
+## 🗄️ Database Architecture
+The application uses Firebase Firestore as a NoSQL document database. Key collections include:
+- `users`: Stores employee profiles, roles, departments, and static auth emails.
+- `attendance`: Records daily check-in/check-out timestamps linked to employee IDs.
+- `leaves`: Tracks leave requests, date ranges, types, and manager approval statuses.
+- `projects`: Contains active project scopes, team member arrays, and deadlines.
+- `clients`: Official client roster converted from the CRM pipeline.
+- `settings`: Global configuration documents (e.g., HQ address for finance invoices).
+
+---
+
+## 🌍 Production Deployment
+The ERP is optimized for Vercel. To deploy to production:
+1. Push your latest code to the `master` branch on GitHub.
+2. Log into [Vercel](https://vercel.com) and import the GitHub repository.
+3. In the Vercel project settings, navigate to **Environment Variables** and paste all your `.env.local` keys.
+4. Click **Deploy**. Vercel will automatically compile the Next.js app and assign a live production URL.
 
 ---
 
