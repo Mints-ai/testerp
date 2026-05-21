@@ -67,8 +67,8 @@ const NAV_GROUPS = [
 
 function SidebarContent({ isExpanded, onNavigate }: { isExpanded: boolean; onNavigate?: () => void }) {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
-  const roleMeta = ROLE_META[user?.role || "employee"];
+  const { user, role, logout } = useAuth();
+  const roleMeta = ROLE_META[role || "employee"];
 
   const getInitials = (name: string) =>
     name?.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "U";
@@ -96,7 +96,7 @@ function SidebarContent({ isExpanded, onNavigate }: { isExpanded: boolean; onNav
       <div className="flex-1 py-6 px-3 space-y-6 overflow-y-auto scrollbar-hide">
         {NAV_GROUPS.map((group, gi) => {
           const visible = group.items.filter(item =>
-            !item.permission || canAccess(user?.role, item.permission as any)
+            !item.permission || canAccess(role, item.permission as any)
           );
           if (!visible.length) return null;
           return (
@@ -150,9 +150,9 @@ function SidebarContent({ isExpanded, onNavigate }: { isExpanded: boolean; onNav
       <div className="p-4 border-t border-white/[0.06] bg-blue-950/40 shrink-0">
         <div className="flex items-center gap-3">
           <Avatar className="h-9 w-9 border border-white/10 ring-2 ring-blue-500/20 ring-offset-2 ring-offset-transparent shrink-0">
-            <AvatarImage src={user?.photoURL || undefined} alt={user?.displayName || "User"} />
+            <AvatarImage src={user?.photoURL || undefined} alt={user?.fullName || user?.displayName || "User"} />
             <AvatarFallback className="bg-blue-800 text-blue-200 text-[10px] font-bold">
-              {getInitials(user?.displayName || "")}
+              {getInitials(user?.fullName || user?.displayName || "")}
             </AvatarFallback>
           </Avatar>
           
@@ -162,8 +162,10 @@ function SidebarContent({ isExpanded, onNavigate }: { isExpanded: boolean; onNav
               animate={{ opacity: 1, width: "auto" }}
               className="flex-1 min-w-0"
             >
-              <p className="text-xs font-bold text-white truncate leading-tight">{user?.displayName || "User"}</p>
-              <p className="text-[10px] text-blue-400/80 font-medium capitalize truncate leading-none mt-0.5">{roleMeta?.label || user?.role}</p>
+              <p className="text-xs font-bold text-white truncate leading-tight">{user?.fullName || user?.displayName || "User"}</p>
+              <p className="text-[10px] text-blue-400/80 font-medium capitalize truncate leading-none mt-0.5">
+                {roleMeta?.label || role} {user?.role !== role && <span className="text-[9px] text-amber-400 font-bold ml-1 animate-pulse">(Sim)</span>}
+              </p>
             </motion.div>
           )}
 

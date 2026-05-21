@@ -10,26 +10,14 @@ import { Briefcase, Users, CheckCircle2, Clock, Check, X, AlertCircle, Heart, Za
 import { LineChart, Line, ResponsiveContainer, AreaChart, Area } from "recharts";
 import { motion } from "framer-motion";
 
-// Mock data for sparklines
-const taskData = [ { v: 4 }, { v: 7 }, { v: 3 }, { v: 8 }, { v: 12 }, { v: 9 }, { v: 14 } ];
-const projData = [ { v: 5 }, { v: 5 }, { v: 6 }, { v: 6 }, { v: 7 }, { v: 8 }, { v: 8 } ];
-const teamData = [ { v: 20 }, { v: 22 }, { v: 22 }, { v: 23 }, { v: 24 }, { v: 24 }, { v: 24 } ];
-const hoursData = [ { v: 6 }, { v: 7.5 }, { v: 8 }, { v: 7 }, { v: 8.5 }, { v: 6 }, { v: 8 } ];
+// Mock data for sparklines (Cleared for production)
+const taskData: any[] = [];
+const projData: any[] = [];
+const teamData: any[] = [];
+const hoursData: any[] = [];
 
-// Mock Attendance Heatmap Data (Last 12 weeks, 5 days a week)
-const generateHeatmap = () => {
-  const weeks = [];
-  for (let w = 0; w < 12; w++) {
-    const days = [];
-    for (let d = 0; d < 5; d++) {
-      const status = Math.random() > 0.9 ? 0 : Math.random() > 0.8 ? 1 : Math.random() > 0.7 ? 3 : 2;
-      days.push(status);
-    }
-    weeks.push(days);
-  }
-  return weeks;
-};
-const heatmapData = generateHeatmap();
+// Clean Attendance Heatmap Data (12 weeks, 5 days a week, all zeroes)
+const heatmapData: number[][] = Array(12).fill(Array(5).fill(0));
 
 export default function DashboardHome() {
   const { user, role } = useAuth();
@@ -40,6 +28,7 @@ export default function DashboardHome() {
     openTasks: 0,
     activeProjects: 0,
     teamSize: 0,
+    onlineCount: 0,
     pendingLeaves: 0,
     pendingApprovals: [] as any[]
   });
@@ -54,13 +43,25 @@ export default function DashboardHome() {
       try {
         const { collection, query, where, getDocs } = await import("firebase/firestore");
         
-        // 1. Active Employees Count
+        // 1. Active Employees Count & Online Users Count
         const employeesSnap = await getDocs(query(collection(db, "employees"), where("isActive", "==", true)));
         const empCount = employeesSnap.size;
         
+        let onlineUsers = 0;
+        const now = Date.now();
+        employeesSnap.docs.forEach(doc => {
+          const emp = doc.data();
+          if (emp.lastSeenAt) {
+            const lastSeenTime = new Date(emp.lastSeenAt).getTime();
+            if (now - lastSeenTime < 5 * 60 * 1000) {
+              onlineUsers++;
+            }
+          }
+        });
+        
         // 2. Open Tasks
-        const tasksSnap = await getDocs(query(collection(db, "tasks"), where("status", "!=", "completed")));
-        const taskCount = tasksSnap.size;
+        const tasksSnap = await getDocs(collection(db, "tasks"));
+        const taskCount = tasksSnap.docs.filter(doc => doc.data().status !== "completed").length;
         
         // 3. Active Projects Count
         const projectsSnap = await getDocs(query(collection(db, "projects")));
@@ -78,6 +79,7 @@ export default function DashboardHome() {
           openTasks: taskCount,
           activeProjects: projectCount,
           teamSize: empCount,
+          onlineCount: onlineUsers,
           pendingLeaves: leaveCount,
           pendingApprovals: approvals
         });
@@ -208,7 +210,15 @@ export default function DashboardHome() {
                   <Users className="h-4 w-4 text-violet-400" />
                 </CardHeader>
                 <CardContent className="z-10 relative pb-14">
-                  <div className="stat-number">{stats.teamSize}</div>
+                  <div className="stat-number flex items-baseline gap-2">
+                    <span>{stats.teamSize}</span>
+                    {stats.onlineCount > 0 && (
+                      <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1 animate-pulse">
+                        <span className="w-1 h-1 rounded-full bg-emerald-400"></span>
+                        {stats.onlineCount} Active
+                      </span>
+                    )}
+                  </div>
                   <p className="text-[10px] text-white/40 mt-1">Onboarded employees</p>
                 </CardContent>
                 <div className="absolute bottom-0 left-0 right-0 h-14 opacity-20 group-hover:opacity-40 transition-opacity">
@@ -234,7 +244,7 @@ export default function DashboardHome() {
               <Clock className="h-4 w-4 text-emerald-400" />
             </CardHeader>
             <CardContent className="z-10 relative pb-14">
-              <div className="stat-number">32.5<span className="text-xs text-white/30 font-sans ml-0.5">h</span></div>
+              <div className="stat-number">0<span className="text-xs text-white/30 font-sans ml-0.5">h</span></div>
               <p className="text-[10px] text-white/40 mt-1">Current operational week</p>
             </CardContent>
             <div className="absolute bottom-0 left-0 right-0 h-14 opacity-20 group-hover:opacity-40 transition-opacity">
@@ -256,18 +266,9 @@ export default function DashboardHome() {
               </CardHeader>
               <CardContent className="p-0">
                 <div className="divide-y divide-white/[0.04]">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="flex items-start gap-4 p-4 hover:bg-white/[0.01] transition-colors">
-                      <div className="mt-0.5 bg-blue-500/10 p-2 rounded-xl border border-blue-500/20 shadow-glow-blue">
-                        <Briefcase className="h-3.5 w-3.5 text-blue-400" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-xs font-bold text-white">Updated "Q4 Marketing Assets"</p>
-                        <p className="text-[11px] text-white/40 mt-1 leading-relaxed">Sarah attached 3 new Figma files to the project design asset folders.</p>
-                      </div>
-                      <span className="text-[9px] font-mono text-white/30 uppercase tracking-wider whitespace-nowrap mt-1">{i}h ago</span>
-                    </div>
-                  ))}
+                  <div className="p-8 text-center text-xs text-white/40 italic">
+                    No recent activity recorded.
+                  </div>
                 </div>
               </CardContent>
             </Card>

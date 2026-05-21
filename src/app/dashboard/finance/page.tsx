@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { generateInvoice } from "@/lib/pdfGenerator";
 import { useAuth } from "@/context/AuthContext";
 import { RoleGuard } from "@/components/layout/RoleGuard";
+import { canAccess } from "@/lib/permissions";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -14,26 +15,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { Banknote, FileText, Receipt, TrendingUp, AlertCircle, Plus, FileDown, ArrowUpRight, DollarSign, Upload, Loader2, Sparkles, Wallet } from "lucide-react";
+import { Banknote, FileText, Receipt, TrendingUp, AlertCircle, Plus, FileDown, ArrowUpRight, DollarSign, Upload, Loader2, Sparkles, Wallet, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { CHART_COLORS, CHART_STYLE } from "@/lib/chartTheme";
 import { cn } from "@/lib/utils";
 
-const mockFinancialData = [
-  { name: "Jan", revenue: 125000, expenses: 85000, profit: 40000 },
-  { name: "Feb", revenue: 142000, expenses: 90000, profit: 52000 },
-  { name: "Mar", revenue: 98000, expenses: 75000, profit: 23000 },
-  { name: "Apr", revenue: 185000, expenses: 110000, profit: 75000 },
-  { name: "May", revenue: 160000, expenses: 95000, profit: 65000 },
-  { name: "Jun", revenue: 210000, expenses: 125000, profit: 85000 },
-];
+const mockFinancialData: any[] = [];
 
-const mockExpenseData = [
-  { name: "Software", value: 15000 },
-  { name: "Marketing", value: 45000 },
-  { name: "Freelancers", value: 25000 },
-  { name: "Office", value: 8000 },
-];
+const mockExpenseData: any[] = [];
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "bg-white/5 text-white/50 border-white/10",
@@ -43,10 +32,20 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function FinanceDashboard() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const [invoices, setInvoices] = useState<any[]>([]);
   const [expenses, setExpenses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [compCurrency, setCompCurrency] = useState("USD");
+
+  useEffect(() => {
+    const unsubSettings = onSnapshot(doc(db, "settings", "company"), (docSnap) => {
+      if (docSnap.exists()) {
+        setCompCurrency(docSnap.data().currency || "USD");
+      }
+    });
+    return () => unsubSettings();
+  }, []);
 
   // OCR State
   const [isOcrModalOpen, setIsOcrModalOpen] = useState(false);
@@ -146,7 +145,7 @@ export default function FinanceDashboard() {
         vendor: manualVendor.trim(),
         category: manualCategory,
         amount: Number(manualAmount),
-        currency: "AED",
+        currency: compCurrency,
         status: "pending",
         date: manualDate,
         createdAt: serverTimestamp()
@@ -175,7 +174,7 @@ export default function FinanceDashboard() {
         vendor: ocrVendor.trim(),
         category: "Software", 
         amount: Number(ocrAmount),
-        currency: "AED",
+        currency: compCurrency,
         status: "pending",
         date: ocrDate,
         createdAt: serverTimestamp()
@@ -235,7 +234,7 @@ export default function FinanceDashboard() {
                     <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Gross Revenue</p>
                     <div className="p-1.5 bg-blue-500/10 text-blue-400 rounded-lg border border-blue-500/20"><DollarSign className="w-4 h-4" /></div>
                   </div>
-                  <h3 className="text-xl font-bold text-white tracking-tight font-mono">920.0K <span className="text-[10px] text-white/30 uppercase tracking-wider font-sans font-bold ml-1">AED</span></h3>
+                  <h3 className="text-xl font-bold text-white tracking-tight font-mono">920.0K <span className="text-[10px] text-white/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
                   <div className="flex items-center gap-1 mt-2 text-[10px] font-bold text-emerald-400">
                     <ArrowUpRight className="w-3.5 h-3.5" /> 12.5% YoY
                   </div>
@@ -248,7 +247,7 @@ export default function FinanceDashboard() {
                     <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Net Profit</p>
                     <div className="p-1.5 bg-emerald-500/10 text-emerald-400 rounded-lg border border-emerald-500/20"><TrendingUp className="w-4 h-4" /></div>
                   </div>
-                  <h3 className="text-xl font-bold text-white tracking-tight font-mono">340.0K <span className="text-[10px] text-white/30 uppercase tracking-wider font-sans font-bold ml-1">AED</span></h3>
+                  <h3 className="text-xl font-bold text-white tracking-tight font-mono">340.0K <span className="text-[10px] text-white/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
                   <div className="flex items-center gap-1 mt-2 text-[10px] font-bold text-emerald-400">
                     <ArrowUpRight className="w-3.5 h-3.5" /> 8.2% YoY
                   </div>
@@ -261,7 +260,7 @@ export default function FinanceDashboard() {
                     <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">AR (Outstanding)</p>
                     <div className="p-1.5 bg-amber-500/10 text-amber-400 rounded-lg border border-amber-500/20"><Banknote className="w-4 h-4" /></div>
                   </div>
-                  <h3 className="text-xl font-bold text-white tracking-tight font-mono">45.5K <span className="text-[10px] text-white/30 uppercase tracking-wider font-sans font-bold ml-1">AED</span></h3>
+                  <h3 className="text-xl font-bold text-white tracking-tight font-mono">45.5K <span className="text-[10px] text-white/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
                   <div className="flex items-center gap-1 mt-2 text-[10px] font-bold text-rose-400">
                     <AlertCircle className="w-3.5 h-3.5" /> 3 Overdue
                   </div>
@@ -274,7 +273,7 @@ export default function FinanceDashboard() {
                     <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Run Rate</p>
                     <div className="p-1.5 bg-violet-500/10 text-violet-400 rounded-lg border border-violet-500/20"><ArrowUpRight className="w-4 h-4" /></div>
                   </div>
-                  <h3 className="text-xl font-bold text-white tracking-tight font-mono">1.84M <span className="text-[10px] text-white/30 uppercase tracking-wider font-sans font-bold ml-1">AED</span></h3>
+                  <h3 className="text-xl font-bold text-white tracking-tight font-mono">1.84M <span className="text-[10px] text-white/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
                   <div className="text-[10px] font-semibold text-white/30 mt-2">
                     Projected FY2026
                   </div>
@@ -310,7 +309,7 @@ export default function FinanceDashboard() {
                           contentStyle={CHART_STYLE.tooltip.contentStyle}
                           labelStyle={CHART_STYLE.tooltip.labelStyle}
                           cursor={CHART_STYLE.tooltip.cursor}
-                          formatter={(value) => [`${Number(value).toLocaleString()} AED`, '']}
+                          formatter={(value) => [`${Number(value).toLocaleString()} ${compCurrency}`, '']}
                         />
                         <Area type="monotone" dataKey="revenue" stackId="1" stroke="#3b82f6" strokeWidth={2} fill="url(#colorRevenue)" name="Revenue" />
                         <Area type="monotone" dataKey="profit" stackId="2" stroke="#06b6d4" strokeWidth={2.5} fill="url(#colorProfit)" name="Profit" />
@@ -346,13 +345,13 @@ export default function FinanceDashboard() {
                         </Pie>
                         <RechartsTooltip 
                           contentStyle={CHART_STYLE.tooltip.contentStyle}
-                          formatter={(value) => [`${value} AED`, '']}
+                          formatter={(value) => [`${value} ${compCurrency}`, '']}
                         />
                       </PieChart>
                     </ResponsiveContainer>
                     {/* Inner Text for Donut */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-1">
-                      <span className="text-lg font-black text-white font-mono leading-none">93K</span>
+                      <span className="text-lg font-black text-white font-mono leading-none">0</span>
                       <span className="text-[8px] uppercase font-bold text-white/30 tracking-widest mt-1">Total Exp</span>
                     </div>
                   </div>
@@ -363,7 +362,7 @@ export default function FinanceDashboard() {
                           <div className="w-2.5 h-2.5 rounded-sm mr-2" style={{backgroundColor: CHART_COLORS[index % CHART_COLORS.length]}}></div>
                           {entry.name}
                         </div>
-                        <span className="text-white font-mono text-[11px]">{entry.value.toLocaleString()} AED</span>
+                        <span className="text-white font-mono text-[11px]">{entry.value.toLocaleString()} {compCurrency}</span>
                       </div>
                     ))}
                   </div>
@@ -407,7 +406,7 @@ export default function FinanceDashboard() {
                           <tr key={inv.id} className="hover:bg-white/[0.02] transition-colors">
                             <td className="font-bold text-white">{inv.invoiceNumber}</td>
                             <td className="text-white/60 font-semibold">{inv.clientId}</td>
-                            <td className="font-bold text-white font-mono text-xs">{inv.total?.toLocaleString()} {inv.currency || 'AED'}</td>
+                            <td className="font-bold text-white font-mono text-xs">{inv.total?.toLocaleString()} {inv.currency || compCurrency}</td>
                             <td className="text-white/40 font-semibold">{inv.dueDate}</td>
                             <td>
                               <Badge variant="outline" className={cn("font-bold text-[9px] py-0.5 tracking-wider uppercase shadow-none", STATUS_COLORS[inv.status] || STATUS_COLORS.draft)}>
@@ -415,19 +414,39 @@ export default function FinanceDashboard() {
                               </Badge>
                             </td>
                             <td className="text-right">
-                              <button 
-                                className="btn-ghost p-1.5 hover:text-white text-white/50 cursor-pointer rounded-lg border-white/5 border hover:border-white/10"
-                                onClick={() => generateInvoice({
-                                  invoiceNumber: inv.invoiceNumber,
-                                  date: inv.date || new Date().toISOString().split('T')[0],
-                                  clientName: inv.clientId || "Client",
-                                  items: inv.items || [{ description: "Services rendered", amount: inv.total || 0 }],
-                                  total: inv.total || 0,
-                                  status: inv.status
-                                })}
-                              >
-                                <FileDown className="h-4 w-4" />
-                              </button>
+                              <div className="flex justify-end gap-1.5">
+                                <button 
+                                  className="btn-ghost p-1.5 hover:text-white text-white/50 cursor-pointer rounded-lg border-white/5 border hover:border-white/10"
+                                  onClick={() => generateInvoice({
+                                    invoiceNumber: inv.invoiceNumber,
+                                    date: inv.date || new Date().toISOString().split('T')[0],
+                                    clientName: inv.clientId || "Client",
+                                    items: inv.items || [{ description: "Services rendered", amount: inv.total || 0 }],
+                                    total: inv.total || 0,
+                                    status: inv.status
+                                  })}
+                                >
+                                  <FileDown className="h-4 w-4" />
+                                </button>
+                                {canAccess(role, "DELETE_DATA") && (
+                                  <button 
+                                    onClick={async () => {
+                                      if (confirm(`Are you absolutely sure you want to permanently delete the invoice "${inv.invoiceNumber}"? This action cannot be undone.`)) {
+                                        try {
+                                          const { deleteDoc, doc } = await import("firebase/firestore");
+                                          await deleteDoc(doc(db, "invoices", inv.id));
+                                        } catch (err) {
+                                          console.error("Error deleting invoice:", err);
+                                        }
+                                      }
+                                    }}
+                                    className="p-1.5 text-white/40 hover:text-red-500 rounded-lg hover:bg-white/5 transition-colors border border-white/5 hover:border-white/10"
+                                    title="Delete Invoice"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -495,7 +514,7 @@ export default function FinanceDashboard() {
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                               <div className="grid gap-2">
-                                <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Amount (AED)</Label>
+                                <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Amount ({compCurrency})</Label>
                                 <Input 
                                   value={ocrAmount} 
                                   onChange={(e) => setOcrAmount(e.target.value)} 
@@ -565,7 +584,7 @@ export default function FinanceDashboard() {
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="grid gap-2">
-                            <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Amount (AED)</Label>
+                            <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Amount ({compCurrency})</Label>
                             <Input 
                               required 
                               type="number" 
@@ -626,7 +645,7 @@ export default function FinanceDashboard() {
                             <td className="font-bold text-white">{exp.submittedBy}</td>
                             <td className="text-white/60 font-semibold">{exp.vendor || 'General Vendor'}</td>
                             <td className="text-white/60 font-semibold">{exp.category}</td>
-                            <td className="font-bold text-white font-mono text-xs">{exp.amount?.toLocaleString()} {exp.currency || 'AED'}</td>
+                            <td className="font-bold text-white font-mono text-xs">{exp.amount?.toLocaleString()} {exp.currency || compCurrency}</td>
                             <td className="text-white/40 font-mono text-xs">
                               {exp.date || (exp.createdAt?.seconds ? new Date(exp.createdAt.seconds * 1000).toLocaleDateString() : 'N/A')}
                             </td>
@@ -640,24 +659,44 @@ export default function FinanceDashboard() {
                               </Badge>
                             </td>
                             <td className="text-right">
-                              {exp.status === 'pending' || !exp.status ? (
-                                <div className="flex justify-end gap-1.5">
+                              <div className="flex justify-end gap-2 items-center">
+                                {exp.status === 'pending' || !exp.status ? (
+                                  <div className="flex gap-1.5">
+                                    <button 
+                                      onClick={() => handleUpdateExpenseStatus(exp.id, "approved")}
+                                      className="h-7 px-3 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold rounded-lg transition-colors cursor-pointer shadow-glow-emerald"
+                                    >
+                                      Approve
+                                    </button>
+                                    <button 
+                                      onClick={() => handleUpdateExpenseStatus(exp.id, "rejected")}
+                                      className="h-7 px-3 bg-rose-600/10 hover:bg-rose-600/20 border border-rose-500/20 text-rose-300 text-[10px] font-bold rounded-lg transition-colors cursor-pointer"
+                                    >
+                                      Reject
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <span className="text-[10px] text-white/30 font-bold uppercase tracking-wider italic">Reviewed</span>
+                                )}
+                                {canAccess(role, "DELETE_DATA") && (
                                   <button 
-                                    onClick={() => handleUpdateExpenseStatus(exp.id, "approved")}
-                                    className="h-7 px-3 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold rounded-lg transition-colors cursor-pointer shadow-glow-emerald"
+                                    onClick={async () => {
+                                      if (confirm(`Are you absolutely sure you want to permanently delete the expense for "${exp.vendor || 'General Vendor'}" of amount ${exp.amount?.toLocaleString()} ${exp.currency}? This action is irreversible.`)) {
+                                        try {
+                                          const { deleteDoc, doc } = await import("firebase/firestore");
+                                          await deleteDoc(doc(db, "expenses", exp.id));
+                                        } catch (err) {
+                                          console.error("Error deleting expense:", err);
+                                        }
+                                      }
+                                    }}
+                                    className="p-1.5 text-white/40 hover:text-red-500 rounded-lg hover:bg-white/5 transition-colors border border-white/5 hover:border-white/10"
+                                    title="Delete Expense"
                                   >
-                                    Approve
+                                    <Trash2 className="h-4 w-4" />
                                   </button>
-                                  <button 
-                                    onClick={() => handleUpdateExpenseStatus(exp.id, "rejected")}
-                                    className="h-7 px-3 bg-rose-600/10 hover:bg-rose-600/20 border border-rose-500/20 text-rose-300 text-[10px] font-bold rounded-lg transition-colors cursor-pointer"
-                                  >
-                                    Reject
-                                  </button>
-                                </div>
-                              ) : (
-                                <span className="text-[10px] text-white/30 font-bold uppercase tracking-wider italic">Reviewed</span>
-                              )}
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))}

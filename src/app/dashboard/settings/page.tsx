@@ -45,11 +45,18 @@ export default function SettingsDashboard() {
   
   const [companySettings, setCompanySettings] = useState<any>({
     name: "Mints Global",
-    address: "Dubai, UAE",
+    address: "Global HQ",
     vatNumber: "100XXXXXXXXXX",
     currency: "AED",
     holidays: []
   });
+  
+  // Company Profile states
+  const [compName, setCompName] = useState("");
+  const [compVat, setCompVat] = useState("");
+  const [compCurrency, setCompCurrency] = useState("AED");
+  const [compAddress, setCompAddress] = useState("");
+  const [savingCompany, setSavingCompany] = useState(false);
   
   const [newHoliday, setNewHoliday] = useState({ date: "", name: "" });
 
@@ -120,7 +127,12 @@ export default function SettingsDashboard() {
     // Fetch Company Settings
     const unsubSettings = onSnapshot(doc(db, "settings", "company"), (docSnap) => {
       if (docSnap.exists()) {
-        setCompanySettings(docSnap.data());
+        const data = docSnap.data();
+        setCompanySettings(data);
+        setCompName(data.name || "");
+        setCompVat(data.vatNumber || "");
+        setCompCurrency(data.currency || "AED");
+        setCompAddress(data.address || "");
       }
     }, (error) => {
       console.error("Firestore onSnapshot error (settings company):", error);
@@ -222,6 +234,24 @@ export default function SettingsDashboard() {
     } catch (error) {
       console.error("Error saving preferences to database:", error);
       showToast("Failed to save preferences to database.", "error");
+    }
+  };
+
+  const handleSaveCompanySettings = async () => {
+    setSavingCompany(true);
+    try {
+      await updateDoc(doc(db, "settings", "company"), {
+        name: compName,
+        vatNumber: compVat,
+        currency: compCurrency,
+        address: compAddress
+      });
+      showToast("Company profile settings successfully updated across all corporate departments.", "success");
+    } catch (err) {
+      console.error("Error saving company settings:", err);
+      showToast("Failed to save company settings.", "error");
+    } finally {
+      setSavingCompany(false);
     }
   };
 
@@ -622,18 +652,18 @@ export default function SettingsDashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-2">
                     <Label className="text-olive-900 font-bold">Company Name</Label>
-                    <Input defaultValue={companySettings.name} className="border-olive-200 focus-visible:ring-olive-500 bg-olive-50/50 text-olive-950 font-bold" />
+                    <Input value={compName} onChange={e => setCompName(e.target.value)} className="border-olive-200 focus-visible:ring-olive-500 bg-olive-50/50 text-olive-950 font-bold" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-olive-900 font-bold">VAT / Tax Number</Label>
-                    <Input defaultValue={companySettings.vatNumber} className="border-olive-200 focus-visible:ring-olive-500 bg-olive-50/50 text-olive-950 font-bold" />
+                    <Input value={compVat} onChange={e => setCompVat(e.target.value)} className="border-olive-200 focus-visible:ring-olive-500 bg-olive-50/50 text-olive-950 font-bold" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-olive-900 font-bold">Default Currency</Label>
-                    <Select defaultValue={companySettings.currency}>
+                    <Select value={compCurrency} onValueChange={(val) => setCompCurrency(val || "AED")}>
                       <SelectTrigger className="border-olive-200 focus:ring-olive-500 bg-olive-50/50 text-olive-950 font-bold"><SelectValue /></SelectTrigger>
                       <SelectContent className="bg-white text-olive-950 font-semibold">
-                        <SelectItem value="AED">AED - UAE Dirham</SelectItem>
+                        <SelectItem value="AED">AED - Global Currency</SelectItem>
                         <SelectItem value="USD">USD - US Dollar</SelectItem>
                         <SelectItem value="EUR">EUR - Euro</SelectItem>
                         <SelectItem value="GBP">GBP - British Pound</SelectItem>
@@ -642,12 +672,14 @@ export default function SettingsDashboard() {
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <Label className="text-olive-900 font-bold">Headquarters Address</Label>
-                    <Input defaultValue={companySettings.address} className="border-olive-200 focus-visible:ring-olive-500 bg-olive-50/50 text-olive-950 font-bold" />
+                    <Input value={compAddress} onChange={e => setCompAddress(e.target.value)} className="border-olive-200 focus-visible:ring-olive-500 bg-olive-50/50 text-olive-950 font-bold" />
                   </div>
                 </div>
 
                 <div className="pt-6 flex justify-end">
-                  <Button className="bg-olive-600 hover:bg-olive-700 text-white shadow-md px-8 font-bold rounded-xl h-11">Save Changes</Button>
+                  <Button onClick={handleSaveCompanySettings} disabled={savingCompany} className="bg-olive-600 hover:bg-olive-700 text-white shadow-md px-8 font-bold rounded-xl h-11">
+                    {savingCompany ? "Saving Changes..." : "Save Changes"}
+                  </Button>
                 </div>
               </div>
             </div>

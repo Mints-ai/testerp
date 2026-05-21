@@ -24,6 +24,7 @@ export const PERMISSIONS = {
   VIEW_REPORTS:         ["founder", "c_suite", "manager"],
   SYSTEM_SETTINGS:      ["founder", "c_suite"],
   VIEW_AUDIT_LOG:       ["founder"],
+  DELETE_DATA:          ["founder", "c_suite"],
 } as const;
 
 export function canAccess(role: string | null | undefined, permission: keyof typeof PERMISSIONS): boolean {

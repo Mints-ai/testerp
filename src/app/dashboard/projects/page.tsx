@@ -315,8 +315,8 @@ export default function ProjectsList() {
             <div className="space-y-6">
               {filteredProjects.slice(0, 10).map((project, idx) => {
                 const serviceColor = SERVICE_COLORS[project.serviceType] || "bg-blue-500";
-                const startMargin = `${(idx % 4) * 15}%`;
-                const width = `${20 + (idx % 3) * 15}%`;
+                const startMargin = "0%";
+                const width = "10%";
                 
                 return (
                   <div key={project.id} className="flex items-center group cursor-pointer" onClick={() => window.location.href = `/dashboard/projects/${project.id}`}>
@@ -337,7 +337,7 @@ export default function ProjectsList() {
                         style={{ left: startMargin }}
                       >
                         <span className="text-[9px] text-white font-bold truncate opacity-0 group-hover:opacity-100 transition-opacity">
-                          {project.status === "completed" ? "100%" : `${40 + (idx * 5)}%`}
+                          {project.status === "completed" ? "100%" : "0%"}
                         </span>
                       </motion.div>
                     </div>

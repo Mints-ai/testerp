@@ -85,7 +85,7 @@ export const generateInvoice = (
   doc.setFontSize(10);
   doc.setTextColor(100, 100, 100);
   doc.text("123 Creative Avenue, Suite 100", 40, 95);
-  doc.text("Dubai, UAE", 40, 110);
+  doc.text("Global HQ", 40, 110);
 
   // Invoice Details
   doc.setFontSize(12);
@@ -151,7 +151,7 @@ export const generateQuote = (
   doc.setFontSize(10);
   doc.setTextColor(100, 100, 100);
   doc.text("123 Creative Avenue, Suite 100", 40, 95);
-  doc.text("Dubai, UAE", 40, 110);
+  doc.text("Global HQ", 40, 110);
 
   // Quote Details
   doc.setFontSize(12);
@@ -227,7 +227,7 @@ export const generatePayslip = (
   doc.setFontSize(10);
   doc.setTextColor(100, 100, 100);
   doc.text("123 Creative Avenue, Suite 100", 40, 95);
-  doc.text("Dubai, UAE", 40, 110);
+  doc.text("Global HQ", 40, 110);
 
   // Employee Details
   doc.setFontSize(12);

@@ -37,7 +37,7 @@ const formSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters."),
   email: z.string().email("Must be a valid email address."),
   role: z.string().min(1, "Role is required."),
-  department: z.string().min(1, "Department is required."),
+  departments: z.array(z.string()).min(1, "Select at least one department."),
   jobTitle: z.string().min(2, "Job title is required."),
   phone: z.string().optional(),
   isIntern: z.boolean(),
@@ -69,7 +69,7 @@ export default function AddEmployee() {
       fullName: "",
       email: "",
       role: "",
-      department: "",
+      departments: [],
       jobTitle: "",
       phone: "",
       isIntern: false,
@@ -131,7 +131,7 @@ export default function AddEmployee() {
         fullName: values.fullName.trim(),
         email: values.email.toLowerCase().trim(),
         role: values.role,
-        department: values.department,
+        departments: values.departments,
         jobTitle: values.jobTitle,
         phone: values.phone || "",
         isIntern: values.isIntern,
@@ -267,22 +267,47 @@ export default function AddEmployee() {
                   
                   <FormField
                     control={form.control}
-                    name="department"
-                    render={({ field }) => (
-                      <FormItem className="space-y-1.5">
-                        <FormLabel className="text-xs font-bold text-white/60 uppercase tracking-wider">Department</FormLabel>
-                        <FormControl>
-                          <select 
-                            onChange={field.onChange} 
-                            value={field.value || ""} 
-                            className="w-full h-10 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#0d1f3c] text-white"
-                          >
-                            <option value="">Select department...</option>
-                            {DEPARTMENTS.map(dept => (
-                              <option key={dept} value={dept}>{dept}</option>
-                            ))}
-                          </select>
-                        </FormControl>
+                    name="departments"
+                    render={() => (
+                      <FormItem className="space-y-3 col-span-1 md:col-span-2">
+                        <div className="mb-2">
+                          <FormLabel className="text-xs font-bold text-white/60 uppercase tracking-wider">Departments</FormLabel>
+                          <FormDescription className="text-[9px] text-white/30 uppercase tracking-wider">Select one or more departments for this employee.</FormDescription>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                          {DEPARTMENTS.map((dept) => (
+                            <FormField
+                              key={dept}
+                              control={form.control}
+                              name="departments"
+                              render={({ field }) => {
+                                return (
+                                  <FormItem
+                                    key={dept}
+                                    className="flex flex-row items-start space-x-2 space-y-0 rounded-md border border-white/5 bg-[#0d1f3c] p-2 hover:bg-white/5 transition-colors cursor-pointer"
+                                  >
+                                    <FormControl>
+                                      <Checkbox
+                                        checked={field.value?.includes(dept)}
+                                        onCheckedChange={(checked) => {
+                                          return checked
+                                            ? field.onChange([...(field.value || []), dept])
+                                            : field.onChange(
+                                                field.value?.filter((value) => value !== dept)
+                                              )
+                                        }}
+                                        className="mt-0.5"
+                                      />
+                                    </FormControl>
+                                    <FormLabel className="font-normal text-xs text-white/80 cursor-pointer">
+                                      {dept}
+                                    </FormLabel>
+                                  </FormItem>
+                                )
+                              }}
+                            />
+                          ))}
+                        </div>
                         <FormMessage className="text-rose-400 font-bold text-[10px]" />
                       </FormItem>
                     )}

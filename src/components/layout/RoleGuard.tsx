@@ -15,11 +15,11 @@ export function RoleGuard({
   children: React.ReactNode
   fallback?: React.ReactNode 
 }) {
-  const { user, loading } = useAuth();
+  const { role, loading } = useAuth();
 
   if (loading) return null; // or a tiny spinner
   
-  if (!canAccess(user?.role, permission)) return <>{fallback}</>;
+  if (!canAccess(role, permission)) return <>{fallback}</>;
   
   return <>{children}</>;
 }

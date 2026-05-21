@@ -1,17 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import { doc, onSnapshot } from "firebase/firestore";
+import { useParams, useRouter } from "next/navigation";
+import { doc, onSnapshot, deleteDoc, updateDoc, collection, query, getDocs, arrayUnion, arrayRemove } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CalendarIcon, Users, FileText, CheckSquare, MessageSquare, AlertCircle, Play, MoreVertical, Check } from "lucide-react";
+import { CalendarIcon, Users, FileText, CheckSquare, MessageSquare, AlertCircle, Play, MoreVertical, Check, Plus, Search, X } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { canAccess } from "@/lib/permissions";
 
 // Helper component for circular progress
 const ProgressRing = ({ progress, size = 120, strokeWidth = 8, colorClass = "text-blue-400" }: any) => {
@@ -58,9 +63,39 @@ const ProgressRing = ({ progress, size = 120, strokeWidth = 8, colorClass = "tex
 
 export default function ProjectDetail() {
   const { id } = useParams();
-  const { user, role } = useAuth();
+  const router = useRouter();
+  const { user, role, simulatedRole } = useAuth();
+  const currentRole = simulatedRole || role;
   const [project, setProject] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [compCurrency, setCompCurrency] = useState("USD");
+  const [employees, setEmployees] = useState<any[]>([]);
+  const [searchEmp, setSearchEmp] = useState("");
+
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      const q = query(collection(db, "employees"));
+      const snap = await getDocs(q);
+      setEmployees(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    };
+    fetchEmployees();
+  }, []);
+
+  const handleToggleMember = async (empId: string) => {
+    const isMember = project.memberIds?.includes(empId);
+    await updateDoc(doc(db, "projects", id as string), {
+      memberIds: isMember ? arrayRemove(empId) : arrayUnion(empId)
+    });
+  };
+
+  useEffect(() => {
+    const unsubSettings = onSnapshot(doc(db, "settings", "company"), (docSnap) => {
+      if (docSnap.exists()) {
+        setCompCurrency(docSnap.data().currency || "USD");
+      }
+    });
+    return () => unsubSettings();
+  }, []);
 
   useEffect(() => {
     if (!id) return;
@@ -105,8 +140,18 @@ export default function ProjectDetail() {
     cancelled: "bg-red-100 text-red-700 border-red-200",
   };
 
-  // Mock progress calculation
-  const progress = project.status === "completed" ? 100 : project.status === "pitch" ? 10 : 65;
+  const progress = 0;
+
+  const handleDeleteProject = async () => {
+    if (confirm("Are you sure you want to delete this project? This cannot be undone.")) {
+      try {
+        await deleteDoc(doc(db, "projects", id as string));
+        router.push("/dashboard/projects");
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
@@ -120,9 +165,24 @@ export default function ProjectDetail() {
                 <Badge variant="outline" className="text-xs uppercase tracking-wider font-bold bg-white/5 text-white/60 border-white/10">
                   {project.serviceType || "General"}
                 </Badge>
-                <Badge variant="outline" className={`text-xs uppercase tracking-wider font-bold shadow-none ${statusColors[project.status] || statusColors.pitch}`}>
-                  {project.status?.replace("_", " ")}
-                </Badge>
+                <Select 
+                  value={project.status || "pitch"} 
+                  onValueChange={async (val) => {
+                    await updateDoc(doc(db, "projects", id as string), { status: val });
+                  }}
+                  disabled={!canAccess(currentRole || "employee", "CREATE_PROJECT")}
+                >
+                  <SelectTrigger className={`h-7 w-32 text-xs uppercase tracking-wider font-bold shadow-none border-transparent rounded-full px-3 ${statusColors[project.status] || statusColors.pitch}`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#0d1f3c] border-white/10 text-white">
+                    <SelectItem value="pitch">Pitch</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="on_hold">On Hold</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white mb-2">{project.name}</h1>
@@ -141,11 +201,21 @@ export default function ProjectDetail() {
                 )}
               </div>
             </div>
-            
-            {/* Progress Ring */}
-            <div className="shrink-0 flex flex-col items-center justify-center bg-white/[0.02] p-6 rounded-2xl border border-white/[0.06] min-w-[200px]">
-              <ProgressRing progress={progress} />
-              <p className="text-xs font-bold text-white/40 uppercase tracking-wider mt-4">Project Health</p>
+            {/* Progress Ring and Actions */}
+            <div className="shrink-0 flex flex-col items-center justify-center gap-4">
+              <div className="bg-white/[0.02] p-6 rounded-2xl border border-white/[0.06] min-w-[200px] flex flex-col items-center">
+                <ProgressRing progress={progress} />
+                <p className="text-xs font-bold text-white/40 uppercase tracking-wider mt-4">Project Health</p>
+              </div>
+              
+              {currentRole === "founder" && (
+                <button 
+                  onClick={handleDeleteProject}
+                  className="w-full px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-bold uppercase tracking-wider rounded-xl border border-red-500/20 transition-colors"
+                >
+                  Delete Project
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -170,31 +240,8 @@ export default function ProjectDetail() {
                 </CardHeader>
                 <CardContent>
                   <div className="relative border-l-2 border-white/10 ml-4 space-y-8 pb-4">
-                    {/* Mock Milestones */}
                     <div className="relative pl-6">
-                      <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-green-500 ring-4 ring-[#0d1f3c]" />
-                      <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-1">Oct 12</p>
-                      <h4 className="text-sm font-bold text-white">Project Kickoff</h4>
-                      <p className="text-xs text-white/60 mt-1">Initial client meeting and requirements gathering completed.</p>
-                    </div>
-                    <div className="relative pl-6">
-                      <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-green-500 ring-4 ring-[#0d1f3c]" />
-                      <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-1">Nov 01</p>
-                      <h4 className="text-sm font-bold text-white">Design Phase Complete</h4>
-                      <p className="text-xs text-white/60 mt-1">Figma files approved by client.</p>
-                    </div>
-                    <div className="relative pl-6">
-                      <div className="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-[#0d1f3c] border-4 border-blue-500 ring-4 ring-[#0d1f3c] flex items-center justify-center">
-                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />
-                      </div>
-                      <p className="text-xs font-bold text-blue-400 uppercase tracking-wider mb-1">Current</p>
-                      <h4 className="text-sm font-bold text-white">Development Sprint 1</h4>
-                      <p className="text-xs text-white/60 mt-1">Building core frontend components.</p>
-                    </div>
-                    <div className="relative pl-6">
-                      <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-white/5 ring-4 ring-[#0d1f3c]" />
-                      <p className="text-xs font-bold text-white/40 uppercase tracking-wider mb-1">Dec 15</p>
-                      <h4 className="text-sm font-bold text-white/40">Final Delivery</h4>
+                      <p className="text-xs text-white/40 italic">No milestones defined yet.</p>
                     </div>
                   </div>
                 </CardContent>
@@ -205,7 +252,7 @@ export default function ProjectDetail() {
                   <CardContent className="p-6">
                     <div className="flex justify-between items-center mb-2">
                       <h3 className="text-sm font-bold text-white uppercase tracking-wider">Budget Tracking</h3>
-                      <span className="text-sm font-bold text-white">{parseInt(project.budget).toLocaleString()} AED</span>
+                      <span className="text-sm font-bold text-white">{parseInt(project.budget).toLocaleString()} {compCurrency}</span>
                     </div>
                     <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden mb-2">
                       <div className="h-full bg-blue-600 rounded-full" style={{ width: "45%" }}></div>
@@ -225,23 +272,7 @@ export default function ProjectDetail() {
                   </div>
                   
                   <div className="space-y-3">
-                    {[1, 2, 3].map(i => (
-                      <div key={i} className="flex items-center justify-between p-3 border border-white/5 rounded-xl hover:border-white/10 transition-colors cursor-pointer group bg-white/[0.01]">
-                        <div className="flex items-center gap-3">
-                          <div className="w-5 h-5 rounded border border-white/20 flex items-center justify-center group-hover:border-white/40 bg-white/[0.02]">
-                            {i === 1 && <Check className="w-3 h-3 text-emerald-400" />}
-                          </div>
-                          <div>
-                            <p className={cn("text-sm font-medium", i === 1 ? "text-white/40 line-through" : "text-white/80")}>
-                              {i === 1 ? "Setup repository" : i === 2 ? "Build TopNav component" : "Integrate Firebase"}
-                            </p>
-                          </div>
-                        </div>
-                        <Avatar className="w-6 h-6 border border-white/10">
-                          <AvatarFallback className="bg-white/5 text-[10px] text-white/60">S</AvatarFallback>
-                        </Avatar>
-                      </div>
-                    ))}
+                    <p className="text-xs text-white/40 italic p-3 text-center">No tasks linked to this project.</p>
                   </div>
                 </CardContent>
               </Card>
@@ -287,16 +318,76 @@ export default function ProjectDetail() {
               
               {/* Members */}
               <div>
-                <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider mb-2">Members</p>
+                <div className="flex justify-between items-center mb-2">
+                  <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Members</p>
+                  
+                  {canAccess(currentRole || "employee", "CREATE_PROJECT") && (
+                    <Dialog>
+                      <DialogTrigger className="text-[10px] bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 px-2 py-0.5 rounded-sm font-bold uppercase tracking-wider flex items-center gap-1 transition-colors">
+                        <Plus className="h-3 w-3" /> Assign
+                      </DialogTrigger>
+                      <DialogContent className="bg-[#0d1f3c] border-white/10 text-white sm:max-w-[425px]">
+                        <DialogHeader>
+                          <DialogTitle className="text-white">Assign Team Members</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          <div className="relative">
+                            <Search className="absolute left-3 top-2.5 h-4 w-4 text-white/40" />
+                            <Input 
+                              placeholder="Search employees..." 
+                              value={searchEmp}
+                              onChange={(e) => setSearchEmp(e.target.value)}
+                              className="pl-9 bg-white/[0.03] border-white/10 text-white placeholder:text-white/40" 
+                            />
+                          </div>
+                          <div className="max-h-[300px] overflow-y-auto space-y-2 pr-2">
+                            {employees.filter(e => e.fullName?.toLowerCase().includes(searchEmp.toLowerCase())).map(emp => {
+                              const isAssigned = project.memberIds?.includes(emp.id);
+                              return (
+                                <div key={emp.id} className="flex items-center justify-between p-2 rounded-lg bg-white/[0.02] border border-white/[0.05]">
+                                  <div className="flex items-center gap-3">
+                                    <Avatar className="h-8 w-8">
+                                      <AvatarFallback className="bg-blue-800 text-blue-200 text-xs">{emp.fullName?.charAt(0) || "U"}</AvatarFallback>
+                                    </Avatar>
+                                    <div>
+                                      <p className="text-sm font-bold text-white">{emp.fullName}</p>
+                                      <p className="text-[10px] text-white/40 uppercase tracking-wider">{emp.role}</p>
+                                    </div>
+                                  </div>
+                                  <button
+                                    onClick={() => handleToggleMember(emp.id)}
+                                    className={cn(
+                                      "px-3 py-1 rounded-md text-xs font-bold transition-colors",
+                                      isAssigned ? "bg-red-500/10 text-red-400 hover:bg-red-500/20" : "bg-blue-500/10 text-blue-400 hover:bg-blue-500/20"
+                                    )}
+                                  >
+                                    {isAssigned ? "Remove" : "Add"}
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  )}
+                </div>
+                
                 <div className="flex -space-x-2 overflow-hidden">
-                  {[1,2,3,4].map(i => (
-                    <Avatar key={i} className="inline-block border-2 border-[#0d1f3c] h-8 w-8 shadow-sm">
-                      <AvatarFallback className="bg-white/5 text-white/60 text-xs">U{i}</AvatarFallback>
-                    </Avatar>
-                  ))}
-                  <div className="inline-flex items-center justify-center h-8 w-8 rounded-full border-2 border-[#0d1f3c] bg-white/5 text-[10px] font-medium text-white/60 shadow-sm z-10">
-                    +2
-                  </div>
+                  {project.memberIds?.length > 0 ? (
+                    project.memberIds.slice(0, 4).map((id: string) => {
+                      const emp = employees.find(e => e.id === id);
+                      return (
+                        <Avatar key={id} className="inline-block border-2 border-[#0d1f3c] h-8 w-8 shadow-sm" title={emp?.fullName || "User"}>
+                          <AvatarFallback className="bg-blue-600 text-blue-100 text-xs font-bold">
+                            {emp?.fullName?.charAt(0) || "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                      );
+                    })
+                  ) : (
+                    <p className="text-xs text-white/40 italic mt-1">No members assigned.</p>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -309,23 +400,8 @@ export default function ProjectDetail() {
             </CardHeader>
             <CardContent className="p-0">
               <div className="divide-y divide-white/5">
-                <div className="p-4 flex gap-3 hover:bg-white/[0.01] transition-colors">
-                  <Avatar className="w-8 h-8 shrink-0">
-                    <AvatarFallback className="bg-white/5 text-white/60 text-xs">S</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-sm text-white/80"><span className="font-bold">Sarah</span> marked <span className="font-medium text-blue-400">Design Phase Complete</span></p>
-                    <p className="text-xs text-white/40 mt-1">2 hours ago</p>
-                  </div>
-                </div>
-                <div className="p-4 flex gap-3 hover:bg-white/[0.01] transition-colors">
-                  <Avatar className="w-8 h-8 shrink-0">
-                    <AvatarFallback className="bg-white/5 text-white/60 text-xs">M</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-sm text-white/80"><span className="font-bold">Manager</span> uploaded <span className="font-medium text-blue-400">brief.pdf</span></p>
-                    <p className="text-xs text-white/40 mt-1">Yesterday</p>
-                  </div>
+                <div className="p-6 text-center text-xs text-white/40 italic">
+                  No recent activity logged.
                 </div>
               </div>
             </CardContent>

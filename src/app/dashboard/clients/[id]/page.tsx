@@ -153,7 +153,7 @@ export default function ClientProfile({ params }: { params: Promise<{ id: string
             <div>
               <h1 className="text-3xl font-bold tracking-tight text-slate-900">{client.companyName}</h1>
               <p className="text-sm text-slate-500 font-medium flex items-center gap-1.5 mt-1">
-                <Globe className="h-4 w-4 text-slate-400" /> {client.country || "UAE"} · Timezone: {client.timezone || "GST"}
+                <Globe className="h-4 w-4 text-slate-400" /> {client.country || "Global"} · Timezone: {client.timezone || "GST"}
               </p>
             </div>
           </div>

@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
+import { canAccess } from "@/lib/permissions";
+import { CompanyOverview } from "./CompanyOverview";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +24,8 @@ const formatDate = (date: Date) => {
 };
 
 export default function AttendancePage() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
+  const [activeTab, setActiveTab] = useState<"personal" | "company">("personal");
   const [currentTime, setCurrentTime] = useState(new Date());
   
   // Attendance State Machine Variables
@@ -235,9 +238,38 @@ export default function AttendancePage() {
         </div>
       </div>
 
-      {loadingDoc ? (
-        <div className="flex-1 flex flex-col justify-center items-center text-olive-600 font-medium gap-2">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-olive-600"></div>
+      {canAccess(role, "VIEW_ALL_EMPLOYEES") && (
+        <div className="flex gap-2 bg-white/[0.03] p-1 rounded-xl border border-white/[0.08] shadow-inner mb-6 w-fit shrink-0">
+          <button 
+            onClick={() => setActiveTab("personal")}
+            className={cn("px-4 py-2 rounded-lg text-sm font-semibold flex items-center transition-all cursor-pointer", 
+              activeTab === "personal" 
+                ? "bg-blue-600 text-white shadow-glow-blue" 
+                : "text-white/40 hover:text-white/80"
+            )}
+          >
+            My Tracker
+          </button>
+          <button 
+            onClick={() => setActiveTab("company")}
+            className={cn("px-4 py-2 rounded-lg text-sm font-semibold flex items-center transition-all cursor-pointer", 
+              activeTab === "company" 
+                ? "bg-blue-600 text-white shadow-glow-blue" 
+                : "text-white/40 hover:text-white/80"
+            )}
+          >
+            Company Overview
+          </button>
+        </div>
+      )}
+
+      {activeTab === "company" ? (
+        <div className="flex-1 overflow-y-auto">
+          <CompanyOverview />
+        </div>
+      ) : loadingDoc ? (
+        <div className="flex-1 flex flex-col justify-center items-center text-white/60 font-medium gap-3">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
           <span>Syncing with secure attendance terminal...</span>
         </div>
       ) : (
@@ -333,7 +365,9 @@ export default function AttendancePage() {
                   </Avatar>
                   <div>
                     <h3 className="font-bold text-xl">{user?.displayName || "Mints Team Member"}</h3>
-                    <p className="text-olive-400 font-bold uppercase tracking-wider text-xs mt-0.5">{user?.role?.replace("_", " ") || "EMPLOYEE"}</p>
+                    <p className="text-olive-400 font-bold uppercase tracking-wider text-xs mt-0.5">
+                      {role?.replace("_", " ") || "EMPLOYEE"} {user?.role !== role && <span className="text-[10px] text-amber-400 font-bold ml-1 animate-pulse">(Simulated)</span>}
+                    </p>
                   </div>
                 </div>
 

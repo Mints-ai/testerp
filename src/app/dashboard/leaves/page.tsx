@@ -15,7 +15,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CalendarIcon, Clock, CheckCircle2, XCircle } from "lucide-react";
+import { CalendarIcon, Clock, CheckCircle2, XCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from "date-fns";
+import { cn, sendDiscordNotification } from "@/lib/utils";
 
 const LEAVE_TYPES = [
   "Annual Leave", "Sick Leave", "Unpaid Leave", "Emergency Leave", "Maternity/Paternity"
@@ -36,10 +38,12 @@ export default function LeaveManagement() {
   const [balance, setBalance] = useState({ totalAnnual: 30, usedAnnual: 0, usedSick: 0 });
   const [loading, setLoading] = useState(true);
   
-  // Modal state
   const [isApplyOpen, setIsApplyOpen] = useState(false);
   const [newLeave, setNewLeave] = useState({ type: "", startDate: "", endDate: "", reason: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Calendar state
+  const [currentDate, setCurrentDate] = useState(new Date());
 
   useEffect(() => {
     if (!user) return;
@@ -110,7 +114,7 @@ export default function LeaveManagement() {
     try {
       await addDoc(collection(db, "leaves"), {
         employeeId: user.uid,
-        employeeName: user.displayName, // Denormalized for easy viewing by manager
+        employeeName: user.fullName || user.email || "Employee", // Denormalized for easy viewing by manager
         leaveType: newLeave.type,
         startDate: newLeave.startDate,
         endDate: newLeave.endDate,
@@ -119,6 +123,11 @@ export default function LeaveManagement() {
         status: "pending",
         createdAt: serverTimestamp(),
       });
+      
+      await sendDiscordNotification(
+        `📅 **New Leave Request**\n**${user.fullName || user.email}** requested **${daysCount} days** of ${newLeave.type} from ${newLeave.startDate} to ${newLeave.endDate}.\nReason: *${newLeave.reason}*`
+      );
+
       setIsApplyOpen(false);
       setNewLeave({ type: "", startDate: "", endDate: "", reason: "" });
     } catch (err) {
@@ -143,6 +152,16 @@ export default function LeaveManagement() {
 
   const daysRequested = calculateDays(newLeave.startDate, newLeave.endDate);
   const annualPercentage = (balance.usedAnnual / balance.totalAnnual) * 100;
+
+  const getDaysInMonth = () => {
+    const start = startOfMonth(currentDate);
+    const end = endOfMonth(currentDate);
+    return eachDayOfInterval({ start, end });
+  };
+  
+  const days = getDaysInMonth();
+  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const approvedLeaves = leaves.filter(l => l.status === "approved");
 
   return (
     <div className="space-y-6">
@@ -217,7 +236,7 @@ export default function LeaveManagement() {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg">Annual Leave Balance</CardTitle>
-                <CardDescription>UAE Labor Law standard</CardDescription>
+                <CardDescription>Global Standard</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex justify-between items-end mb-2">
@@ -366,12 +385,69 @@ export default function LeaveManagement() {
 
           <TabsContent value="calendar">
             <Card>
-              <CardContent className="py-12 flex flex-col items-center justify-center border-dashed">
-                <CalendarIcon className="h-12 w-12 text-muted-foreground mb-4 opacity-50" />
-                <h3 className="text-lg font-medium text-muted-foreground">Team Calendar View Pending</h3>
-                <p className="text-sm text-muted-foreground text-center mt-2 max-w-md">
-                  This feature will display a monthly grid showing who is on leave on which days, color-coded by leave type.
-                </p>
+              <CardHeader className="flex flex-row items-center justify-between pb-2 border-b border-border/50">
+                <CardTitle className="text-lg">Team Leave Calendar</CardTitle>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => setCurrentDate(subMonths(currentDate, 1))}>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="font-semibold text-sm w-36 text-center">
+                    {format(currentDate, "MMMM yyyy")}
+                  </span>
+                  <Button variant="outline" size="sm" className="h-8 w-8 p-0" onClick={() => setCurrentDate(addMonths(currentDate, 1))}>
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="grid grid-cols-7 gap-1.5 text-center">
+                  {weekDays.map(day => (
+                    <div key={day} className="text-xs font-bold text-muted-foreground py-2">{day}</div>
+                  ))}
+                  
+                  {Array.from({ length: days[0].getDay() }).map((_, i) => (
+                    <div key={`empty-${i}`} className="h-28 bg-muted/10 rounded-xl border border-border/30"></div>
+                  ))}
+                  
+                  {days.map(day => {
+                    const dayLeaves = approvedLeaves.filter(leave => {
+                      const start = new Date(leave.startDate);
+                      const end = new Date(leave.endDate);
+                      start.setHours(0,0,0,0);
+                      end.setHours(23,59,59,999);
+                      return day >= start && day <= end;
+                    });
+                    
+                    const isToday = isSameDay(day, new Date());
+                    
+                    return (
+                      <div key={day.toString()} className={cn(
+                        "h-28 p-1.5 flex flex-col rounded-xl border overflow-hidden",
+                        isToday ? "border-olive-500 bg-olive-500/5 shadow-sm" : "border-border/50 bg-card hover:bg-muted/20 transition-colors"
+                      )}>
+                        <div className="flex justify-between items-start w-full">
+                          <span className="text-[10px] text-muted-foreground font-medium pl-1">
+                            {dayLeaves.length > 0 ? `${dayLeaves.length} away` : ""}
+                          </span>
+                          <span className={cn(
+                            "text-xs font-bold h-6 w-6 flex items-center justify-center rounded-full shrink-0",
+                            isToday ? "bg-olive-500 text-white" : "text-foreground/70"
+                          )}>
+                            {format(day, 'd')}
+                          </span>
+                        </div>
+                        
+                        <div className="flex-1 overflow-y-auto space-y-1 mt-1 pr-1 scrollbar-hide">
+                          {dayLeaves.map((leave, idx) => (
+                            <div key={`${leave.id}-${idx}`} className="text-[10px] px-1.5 py-1 rounded bg-indigo-500/10 text-indigo-700 border border-indigo-500/20 truncate font-semibold text-left" title={`${leave.employeeName} - ${leave.leaveType}`}>
+                              {leave.employeeName?.split(" ")[0]}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

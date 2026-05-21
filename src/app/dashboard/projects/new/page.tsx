@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { collection, addDoc, serverTimestamp, getDocs, query, where } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, getDocs, query, where, doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { RoleGuard } from "@/components/layout/RoleGuard";
@@ -50,6 +50,16 @@ export default function CreateProject() {
   const { user, role } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [managers, setManagers] = useState<any[]>([]);
+  const [compCurrency, setCompCurrency] = useState("USD");
+
+  useEffect(() => {
+    const unsubSettings = onSnapshot(doc(db, "settings", "company"), (docSnap) => {
+      if (docSnap.exists()) {
+        setCompCurrency(docSnap.data().currency || "USD");
+      }
+    });
+    return () => unsubSettings();
+  }, []);
   
   const [clients] = useState([
     { id: "client_1", name: "Al Safa Group" },
@@ -226,7 +236,7 @@ export default function CreateProject() {
                       render={({ field }) => (
                         <FormItem className="space-y-1.5">
                           <div className="flex justify-between items-center">
-                            <FormLabel className="text-xs font-bold text-white/60 uppercase tracking-wider">Approved Budget (AED)</FormLabel>
+                            <FormLabel className="text-xs font-bold text-white/60 uppercase tracking-wider">Approved Budget ({compCurrency})</FormLabel>
                             <span className="text-[9px] text-white/30 uppercase tracking-wider font-bold">Optional</span>
                           </div>
                           <FormControl>

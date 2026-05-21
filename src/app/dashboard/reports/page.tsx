@@ -18,29 +18,9 @@ import {
 import { motion } from "framer-motion";
 import { CHART_COLORS, CHART_STYLE } from "@/lib/chartTheme";
 
-const defaultMonthlyPerformance = [
-  { month: "Jan", revenue: 45000, expenses: 32000, projects: 12 },
-  { month: "Feb", revenue: 52000, expenses: 34000, projects: 15 },
-  { month: "Mar", revenue: 61000, expenses: 38000, projects: 18 },
-  { month: "Apr", revenue: 58000, expenses: 41000, projects: 16 },
-  { month: "May", revenue: 73000, expenses: 45000, projects: 22 },
-  { month: "Jun", revenue: 89000, expenses: 49000, projects: 26 },
-];
-
-const defaultProjectStatusData = [
-  { name: "In Progress", value: 12 },
-  { name: "Completed", value: 8 },
-  { name: "On Hold", value: 3 },
-  { name: "Not Started", value: 2 },
-];
-
-const defaultDeptTeamData = [
-  { name: "Executive Office", count: 2 },
-  { name: "Operations", count: 5 },
-  { name: "Software Development", count: 8 },
-  { name: "SEO & Marketing", count: 6 },
-  { name: "Creative & Photo", count: 4 },
-];
+const defaultMonthlyPerformance: any[] = [];
+const defaultProjectStatusData: any[] = [];
+const defaultDeptTeamData: any[] = [];
 
 export default function ReportsAndIntelligence() {
   const { user } = useAuth();
@@ -202,7 +182,7 @@ export default function ReportsAndIntelligence() {
           <div>
             <p className="font-bold text-xs uppercase tracking-wider">No Live Financial Data Found</p>
             <p className="text-[11px] text-white/40 leading-relaxed mt-1 font-semibold">
-              The metrics below are currently showing mock preview values because there are no invoices or logged expenses in your database yet. 
+              There are no invoices or logged expenses in your database yet. 
               Once you generate invoices or log expenses, this intelligence dashboard will automatically switch to displaying your live data.
             </p>
           </div>
@@ -221,10 +201,10 @@ export default function ReportsAndIntelligence() {
             </div>
             <div className="mt-4">
               <h3 className="text-xl font-bold text-white font-mono">
-                AED {(financialKPIs.totalBilled || 376000).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                AED {(financialKPIs.totalBilled || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </h3>
               <p className="text-[10px] text-emerald-400 flex items-center mt-2 font-bold uppercase tracking-wider">
-                <TrendingUp className="w-3.5 h-3.5 mr-1" /> +12.4% vs previous Q
+                <TrendingUp className="w-3.5 h-3.5 mr-1" /> Revenue
               </p>
             </div>
           </CardContent>
@@ -240,10 +220,10 @@ export default function ReportsAndIntelligence() {
             </div>
             <div className="mt-4">
               <h3 className="text-xl font-bold text-white font-mono">
-                AED {(financialKPIs.totalExpenses || 135000).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                AED {(financialKPIs.totalExpenses || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </h3>
               <p className="text-[10px] text-rose-400 flex items-center mt-2 font-bold uppercase tracking-wider">
-                <TrendingDown className="w-3.5 h-3.5 mr-1" /> Within optimal limit
+                <TrendingDown className="w-3.5 h-3.5 mr-1" /> Expenses
               </p>
             </div>
           </CardContent>
@@ -259,10 +239,10 @@ export default function ReportsAndIntelligence() {
             </div>
             <div className="mt-4">
               <h3 className="text-xl font-bold text-white font-mono">
-                AED {(financialKPIs.netProfit || 241000).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                AED {(financialKPIs.netProfit || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
               </h3>
               <p className="text-[10px] text-emerald-400 mt-2 font-bold uppercase tracking-wider">
-                Margin: {financialKPIs.profitMargin > 0 ? financialKPIs.profitMargin.toFixed(1) : "64.1"}%
+                Margin: {financialKPIs.profitMargin > 0 ? financialKPIs.profitMargin.toFixed(1) : "0.0"}%
               </p>
             </div>
           </CardContent>
@@ -278,10 +258,10 @@ export default function ReportsAndIntelligence() {
             </div>
             <div className="mt-4">
               <h3 className="text-xl font-bold text-white tracking-tight">
-                {projectMetrics.totalCount || 23} Active Projects
+                {projectMetrics.totalCount || 0} Active Projects
               </h3>
               <p className="text-[10px] text-white/30 mt-2 font-semibold">
-                Avg. Budget: AED {((projectMetrics.activeBudget / (projectMetrics.totalCount || 1)) || 35000).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                Avg. Budget: AED {((projectMetrics.activeBudget / (projectMetrics.totalCount || 1)) || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
               </p>
             </div>
           </CardContent>
@@ -349,15 +329,15 @@ export default function ReportsAndIntelligence() {
                 <div className="border border-white/[0.06] rounded-xl p-4 bg-white/[0.01] space-y-4">
                   <div className="flex items-center justify-between text-xs font-semibold">
                     <span className="text-white/40">Monthly Burn Rate</span>
-                    <span className="text-white font-mono">AED 34,500</span>
+                    <span className="text-white font-mono">AED 0</span>
                   </div>
                   <div className="flex items-center justify-between text-xs font-semibold">
                     <span className="text-white/40">Estimated Runaway</span>
-                    <span className="badge bg-blue-500/10 border border-blue-500/20 text-blue-300 font-bold uppercase tracking-wider text-[9px] py-0.5">18 Months</span>
+                    <span className="badge bg-blue-500/10 border border-blue-500/20 text-blue-300 font-bold uppercase tracking-wider text-[9px] py-0.5">N/A</span>
                   </div>
                   <div className="flex items-center justify-between text-xs font-semibold">
                     <span className="text-white/40">Invoiced Unpaid Balance</span>
-                    <span className="text-amber-400 font-mono">AED {((financialKPIs.totalBilled * 0.15) || 56000).toLocaleString(undefined, {maximumFractionDigits:0})}</span>
+                    <span className="text-amber-400 font-mono">AED {((financialKPIs.totalBilled * 0.15) || 0).toLocaleString(undefined, {maximumFractionDigits:0})}</span>
                   </div>
                 </div>
 
@@ -366,7 +346,7 @@ export default function ReportsAndIntelligence() {
                   <div className="flex gap-2.5 p-3.5 rounded-xl bg-blue-950/30 border border-blue-500/10 text-white/70 text-xs">
                     <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
                     <p className="leading-relaxed font-semibold text-[11px]">
-                      Your net margin is highly solid at <strong>{financialKPIs.profitMargin > 0 ? financialKPIs.profitMargin.toFixed(1) : "64.1"}%</strong>. Consider allocating budget to Software Engineering to increase automation capacity.
+                      Your net margin is <strong>{financialKPIs.profitMargin > 0 ? financialKPIs.profitMargin.toFixed(1) : "0.0"}%</strong>. Add data to generate insights.
                     </p>
                   </div>
                 </div>
@@ -471,7 +451,7 @@ export default function ReportsAndIntelligence() {
                       <Users className="w-5 h-5" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-white text-xs">{employees.length || 25} Employees</h4>
+                      <h4 className="font-bold text-white text-xs">{employees.length || 0} Employees</h4>
                       <p className="text-[10px] text-white/40 mt-0.5 font-semibold">Active personnel directory</p>
                     </div>
                   </div>
@@ -484,8 +464,7 @@ export default function ReportsAndIntelligence() {
                     Workforce Health Assessment
                   </h4>
                   <ul className="space-y-2 list-disc pl-4 text-white/60 font-semibold text-[11px]">
-                    <li>Avg. employee attendance is maintained highly at <strong>98.4%</strong>.</li>
-                    <li>Intern segment represents only <strong>10%</strong> of overall headcount, ensuring highly senior output.</li>
+                    <li>Not enough data to calculate attendance metrics.</li>
                   </ul>
                 </div>
               </CardContent>

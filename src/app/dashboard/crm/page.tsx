@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, orderBy, onSnapshot, addDoc, doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, addDoc, doc, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { RoleGuard } from "@/components/layout/RoleGuard";
@@ -11,18 +11,24 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Plus, PhoneCall, Mail, Building, DollarSign, FileText, MoreHorizontal } from "lucide-react";
+import { Search, Plus, PhoneCall, Mail, Building, DollarSign, FileText, MoreHorizontal, User } from "lucide-react";
 import { generateQuote } from "@/lib/pdfGenerator";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Textarea } from "@/components/ui/textarea";
 
 const STAGES = ["Lead", "Meeting", "Negotiation", "Won", "Lost"];
 
 export default function CRMDashboard() {
-  const { user } = useAuth();
+  const { user, role, simulatedRole } = useAuth();
+  const currentRole = simulatedRole || role;
   const [leads, setLeads] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [selectedLead, setSelectedLead] = useState<any>(null);
+  const [emailText, setEmailText] = useState("");
+  const [leadEmails, setLeadEmails] = useState<any[]>([]);
 
   // New Lead Form
   const [company, setCompany] = useState("");
@@ -39,6 +45,15 @@ export default function CRMDashboard() {
     });
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!selectedLead) return;
+    const q = query(collection(db, `leads/${selectedLead.id}/emails`), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setLeadEmails(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    });
+    return () => unsubscribe();
+  }, [selectedLead]);
 
   const handleAddLead = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,9 +81,63 @@ export default function CRMDashboard() {
     setIsSubmitting(false);
   };
 
-  const updateLeadStage = async (id: string, newStage: string) => {
+  const updateLeadStage = async (lead: any, newStage: string) => {
     try {
-      await updateDoc(doc(db, "leads", id), { stage: newStage });
+      await updateDoc(doc(db, "leads", lead.id), { stage: newStage });
+      
+      if (newStage === "Won" && lead.stage !== "Won") {
+        // 1. Create Client
+        const clientRef = await addDoc(collection(db, "clients"), {
+          companyName: lead.company,
+          contactPerson: lead.contactName,
+          email: lead.email,
+          status: "Active",
+          createdAt: serverTimestamp()
+        });
+        
+        // 2. Create Project
+        await addDoc(collection(db, "projects"), {
+          name: `${lead.company} Implementation`,
+          clientId: clientRef.id,
+          status: "pitch",
+          budget: lead.value || 0,
+          serviceType: "General",
+          createdAt: serverTimestamp()
+        });
+        
+        // 3. Create Deposit Invoice (50%)
+        const depositAmount = (lead.value || 0) * 0.5;
+        if (depositAmount > 0) {
+          await addDoc(collection(db, "invoices"), {
+            invoiceNumber: `INV-${Math.floor(1000 + Math.random() * 9000)}`,
+            clientId: clientRef.id,
+            clientName: lead.company,
+            amount: depositAmount,
+            status: "pending",
+            issueDate: new Date().toISOString(),
+            dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+            createdAt: serverTimestamp()
+          });
+        }
+        
+        // 4. Create System Notification
+        await addDoc(collection(db, "notifications"), {
+          userId: "global",
+          title: "New Client Won! 🎉",
+          message: `${lead.company} has been moved to Won. Project and deposit invoice generated.`,
+          read: false,
+          createdAt: serverTimestamp()
+        });
+        
+        // 5. Discord Webhook Notification
+        fetch('/api/discord', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            content: `🎉 **Deal Won!**\n**Client:** ${lead.company}\n**Value:** ${lead.value || 0} AED\n**Closed By:** ${user?.displayName || 'Team'}`
+          })
+        }).catch(err => console.error("Discord error:", err));
+      }
     } catch (err) {
       console.error(err);
     }
@@ -85,6 +154,31 @@ export default function CRMDashboard() {
       ],
       total: lead.value || 5000
     });
+  };
+
+  const handleDeleteLead = async (id: string) => {
+    if (confirm("Are you sure you want to delete this lead? This cannot be undone.")) {
+      try {
+        await deleteDoc(doc(db, "leads", id));
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
+  const handleLogEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!emailText || !selectedLead) return;
+    try {
+      await addDoc(collection(db, `leads/${selectedLead.id}/emails`), {
+        text: emailText,
+        sender: user?.displayName || "User",
+        createdAt: serverTimestamp()
+      });
+      setEmailText("");
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const filteredLeads = leads.filter(l => 
@@ -180,7 +274,8 @@ export default function CRMDashboard() {
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.95 }}
                           key={lead.id}
-                          className="glass-card p-4 rounded-xl group hover:border-blue-500/30 transition-colors relative"
+                          className="glass-card p-4 rounded-xl group hover:border-blue-500/30 transition-colors relative cursor-pointer"
+                          onClick={() => setSelectedLead(lead)}
                         >
                           <div className="flex justify-between items-start mb-2">
                             <h4 className="font-bold text-white truncate pr-6">{lead.company}</h4>
@@ -196,10 +291,15 @@ export default function CRMDashboard() {
                                     <FileText className="mr-2 h-4 w-4 text-blue-400" /> Generate Quote
                                   </DropdownMenuItem>
                                   {STAGES.map(s => s !== stage && (
-                                    <DropdownMenuItem key={s} onClick={() => updateLeadStage(lead.id, s)}>
+                                    <DropdownMenuItem key={s} onClick={(e) => { e.stopPropagation(); updateLeadStage(lead, s); }}>
                                       Move to {s}
                                     </DropdownMenuItem>
                                   ))}
+                                  {currentRole === "founder" && (
+                                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDeleteLead(lead.id); }} className="text-red-400 focus:text-red-300">
+                                      Delete Lead
+                                    </DropdownMenuItem>
+                                  )}
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </div>
@@ -229,6 +329,60 @@ export default function CRMDashboard() {
           </div>
         </div>
       </div>
+      {/* Lead Detail Sheet */}
+      <Sheet open={!!selectedLead} onOpenChange={(open) => !open && setSelectedLead(null)}>
+        <SheetContent side="right" className="w-[400px] p-6 border-l border-white/[0.08] bg-[#0d1f3c] text-white flex flex-col h-full overflow-y-auto">
+          {selectedLead && (
+            <>
+              <SheetHeader className="border-b border-white/[0.06] pb-4 mb-4 shrink-0">
+                <SheetTitle className="text-xl font-bold text-white flex items-center gap-2">
+                  <Building className="h-5 w-5 text-blue-400" />
+                  {selectedLead.company}
+                </SheetTitle>
+                <div className="flex items-center gap-4 text-xs text-white/60 mt-2">
+                  <span className="flex items-center gap-1.5"><User className="h-3 w-3" /> {selectedLead.contactName}</span>
+                  <span className="flex items-center gap-1.5"><DollarSign className="h-3 w-3 text-emerald-400" /> {selectedLead.value} AED</span>
+                </div>
+              </SheetHeader>
+              
+              <div className="flex-1 flex flex-col min-h-0">
+                <h4 className="font-bold text-sm text-white mb-3">Email Tracking & Activity</h4>
+                <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-1">
+                  <AnimatePresence>
+                    {leadEmails.length === 0 ? (
+                      <p className="text-xs text-white/40 italic text-center py-4">No activity logged yet.</p>
+                    ) : (
+                      leadEmails.map(msg => (
+                        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} key={msg.id} className="bg-white/[0.03] border border-white/[0.06] p-3 rounded-xl text-xs">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="font-bold text-blue-300">{msg.sender}</span>
+                            <span className="text-[9px] text-white/40 uppercase font-mono tracking-wider">
+                              {msg.createdAt?.toDate().toLocaleDateString() || 'Just now'}
+                            </span>
+                          </div>
+                          <p className="text-white/80 whitespace-pre-wrap">{msg.text}</p>
+                        </motion.div>
+                      ))
+                    )}
+                  </AnimatePresence>
+                </div>
+                
+                <form onSubmit={handleLogEmail} className="shrink-0 space-y-3 bg-white/[0.02] p-3 rounded-xl border border-white/[0.05]">
+                  <Textarea 
+                    placeholder="Log an email or meeting note..." 
+                    className="text-xs bg-black/20 border-white/10 resize-none h-20 text-white placeholder:text-white/30"
+                    value={emailText}
+                    onChange={(e) => setEmailText(e.target.value)}
+                  />
+                  <Button type="submit" disabled={!emailText} className="w-full bg-blue-600 hover:bg-blue-700 text-xs h-8">
+                    <Plus className="h-3 w-3 mr-1.5" /> Log Activity
+                  </Button>
+                </form>
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </RoleGuard>
   );
 }

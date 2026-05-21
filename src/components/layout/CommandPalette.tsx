@@ -16,6 +16,8 @@ import {
   Banknote,
   FileText
 } from "lucide-react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 import {
   CommandDialog,
@@ -30,6 +32,23 @@ import {
 
 export function CommandPalette({ open, setOpen }: { open: boolean, setOpen: (open: boolean) => void }) {
   const router = useRouter();
+  const [projects, setProjects] = useState<any[]>([]);
+  const [employees, setEmployees] = useState<any[]>([]);
+  const [invoices, setInvoices] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (open) {
+      Promise.all([
+        getDocs(collection(db, "projects")),
+        getDocs(collection(db, "employees")),
+        getDocs(collection(db, "invoices"))
+      ]).then(([projSnap, empSnap, invSnap]) => {
+        setProjects(projSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setEmployees(empSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setInvoices(invSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+      });
+    }
+  }, [open]);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -88,6 +107,48 @@ export function CommandPalette({ open, setOpen }: { open: boolean, setOpen: (ope
             <CommandShortcut>⌘S</CommandShortcut>
           </CommandItem>
         </CommandGroup>
+        
+        {employees.length > 0 && (
+          <>
+            <CommandSeparator />
+            <CommandGroup heading="Employees">
+              {employees.map(emp => (
+                <CommandItem key={emp.id} onSelect={() => runCommand(() => router.push(`/dashboard/hr/${emp.uid || emp.id}`))}>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>{emp.displayName || emp.name || emp.email}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </>
+        )}
+
+        {projects.length > 0 && (
+          <>
+            <CommandSeparator />
+            <CommandGroup heading="Active Projects">
+              {projects.map(proj => (
+                <CommandItem key={proj.id} onSelect={() => runCommand(() => router.push(`/dashboard/projects/${proj.id}`))}>
+                  <Briefcase className="mr-2 h-4 w-4" />
+                  <span>{proj.name}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </>
+        )}
+
+        {invoices.length > 0 && (
+          <>
+            <CommandSeparator />
+            <CommandGroup heading="Invoices">
+              {invoices.map(inv => (
+                <CommandItem key={inv.id} onSelect={() => runCommand(() => router.push(`/dashboard/finance`))}>
+                  <FileText className="mr-2 h-4 w-4" />
+                  <span>{inv.invoiceNumber} - {inv.clientName}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </>
+        )}
       </CommandList>
     </CommandDialog>
   );

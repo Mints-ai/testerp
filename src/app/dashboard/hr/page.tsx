@@ -3,14 +3,15 @@
 import { useState, useEffect } from "react";
 import { collection, query, where, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { ROLE_META } from "@/lib/permissions";
+import { useAuth } from "@/context/AuthContext";
+import { ROLE_META, canAccess } from "@/lib/permissions";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Building2, LayoutGrid, Network, Mail, MessageSquare, Calendar, Briefcase, Zap, Users } from "lucide-react";
+import { Search, Plus, Building2, LayoutGrid, Network, Mail, MessageSquare, Calendar, Briefcase, Zap, Users, Trash2 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -18,6 +19,7 @@ import { RoleGuard } from "@/components/layout/RoleGuard";
 import { cn } from "@/lib/utils";
 
 export default function EmployeeDirectory() {
+  const { role } = useAuth();
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -25,6 +27,7 @@ export default function EmployeeDirectory() {
   const [roleFilter, setRoleFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"grid" | "tree">("grid");
   const [selectedEmployee, setSelectedEmployee] = useState<any | null>(null);
+  const selectedEmployeeIsOnline = selectedEmployee?.lastSeenAt && (Date.now() - new Date(selectedEmployee.lastSeenAt).getTime() < 5 * 60 * 1000);
 
   useEffect(() => {
     const q = query(
@@ -161,7 +164,7 @@ export default function EmployeeDirectory() {
           <AnimatePresence>
             {filteredEmployees.map((emp) => {
               const roleMeta = ROLE_META[emp.role] || { label: "Employee", color: "bg-white/5 text-white border-white/10" };
-              const isOnline = Math.random() > 0.3; // Mock online status
+              const isOnline = emp.lastSeenAt && (Date.now() - new Date(emp.lastSeenAt).getTime() < 5 * 60 * 1000);
               
               return (
                 <motion.div
@@ -190,8 +193,8 @@ export default function EmployeeDirectory() {
                           </Avatar>
                           {/* Status Dot */}
                           <div className={cn("absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-[#0a1628]", 
-                            isOnline ? "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.8)]" : "bg-white/20"
-                          )} title={isOnline ? "Active today" : "Offline"} />
+                            isOnline ? "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.8)] animate-pulse" : "bg-white/20"
+                          )} title={isOnline ? "Active now" : emp.lastSeenAt ? `Last active ${new Date(emp.lastSeenAt).toLocaleString()}` : "Offline"} />
                         </div>
                       </div>
                       
@@ -206,12 +209,12 @@ export default function EmployeeDirectory() {
                         </div>
 
                         <div className="flex flex-col items-center gap-1.5">
-                          {emp.department && (
-                            <span className="badge bg-white/5 border border-white/10 text-white/60 font-semibold text-[9px] py-0.5 uppercase tracking-wider">
+                          {(emp.departments || (emp.department ? [emp.department] : [])).map((dept: string, i: number) => (
+                            <span key={i} className="badge bg-white/5 border border-white/10 text-white/60 font-semibold text-[9px] py-0.5 uppercase tracking-wider">
                               <Building2 className="w-2.5 h-2.5 mr-1 text-blue-400" />
-                              {emp.department}
+                              {dept}
                             </span>
-                          )}
+                          ))}
                           <Badge variant="outline" className={cn("font-bold shadow-none text-[9px] py-0.5 uppercase tracking-wider", roleMeta.color)}>
                             {roleMeta.label}
                           </Badge>
@@ -309,11 +312,11 @@ export default function EmployeeDirectory() {
                     <Badge variant="outline" className="border-white/10 text-white/60 bg-white/5 text-[9px] uppercase tracking-wider font-bold shadow-none">
                       {ROLE_META[selectedEmployee.role]?.label || "Employee"}
                     </Badge>
-                    {selectedEmployee.department && (
-                      <Badge variant="outline" className="border-white/10 text-white/60 bg-white/5 text-[9px] uppercase tracking-wider font-bold shadow-none">
-                        {selectedEmployee.department}
+                    {(selectedEmployee.departments || (selectedEmployee.department ? [selectedEmployee.department] : [])).map((dept: string, i: number) => (
+                      <Badge key={i} variant="outline" className="border-white/10 text-white/60 bg-white/5 text-[9px] uppercase tracking-wider font-bold shadow-none">
+                        {dept}
                       </Badge>
-                    )}
+                    ))}
                   </div>
                 </div>
               </SheetHeader>
@@ -338,15 +341,15 @@ export default function EmployeeDirectory() {
                   <Card className="border-white/[0.06] bg-white/[0.01]">
                     <CardContent className="p-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.8)] animate-pulse"></div>
+                        <div className={cn("w-3 h-3 rounded-full", 
+                          selectedEmployeeIsOnline ? "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.8)] animate-pulse" : "bg-white/20"
+                        )}></div>
                         <div>
-                          <p className="text-xs font-bold text-white">Clocked In</p>
-                          <p className="text-[10px] text-white/40 mt-0.5">Since 09:00 AM AST</p>
+                          <p className="text-xs font-bold text-white">{selectedEmployeeIsOnline ? "Active Now" : "Offline"}</p>
+                          <p className="text-[10px] text-white/40 mt-0.5">
+                            {selectedEmployeeIsOnline ? "Active on Mints ERP" : selectedEmployee.lastSeenAt ? `Last active ${new Date(selectedEmployee.lastSeenAt).toLocaleString()}` : "Offline"}
+                          </p>
                         </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs font-mono font-bold text-white">4h 23m</p>
-                        <p className="text-[10px] text-white/40 mt-0.5">Today</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -360,14 +363,14 @@ export default function EmployeeDirectory() {
                   <div className="space-y-2">
                     <div className="flex justify-between text-xs font-bold">
                       <span className="text-white/60">Used</span>
-                      <span className="text-white">8 days</span>
+                      <span className="text-white">0 days</span>
                     </div>
                     <div className="glass-progress w-full">
-                      <div className="glass-progress-fill" style={{ width: `${(8/24)*100}%` }}></div>
+                      <div className="glass-progress-fill" style={{ width: `0%` }}></div>
                     </div>
                     <div className="flex justify-between text-xs font-bold">
                       <span className="text-white/30">Remaining</span>
-                      <span className="text-blue-400">16 days</span>
+                      <span className="text-blue-400">24 days</span>
                     </div>
                   </div>
                 </div>
@@ -375,19 +378,31 @@ export default function EmployeeDirectory() {
                 <div>
                   <h4 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.12em] mb-2.5">Active Projects</h4>
                   <div className="space-y-2">
-                    {[1, 2].map((i) => (
-                      <div key={i} className="flex items-center gap-3 p-3 rounded-xl border border-white/[0.06] bg-white/[0.01] hover:bg-white/[0.03] transition-colors cursor-pointer">
-                        <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
-                          <Briefcase className="w-3.5 h-3.5" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-xs font-bold text-white">Al Safa Marketing</p>
-                          <p className="text-[10px] text-white/40 mt-0.5">Brand Redesign</p>
-                        </div>
-                      </div>
-                    ))}
+                    <div className="p-4 text-center text-xs text-white/40 italic bg-white/[0.01] rounded-xl border border-white/[0.06]">
+                      No active projects assigned.
+                    </div>
                   </div>
                 </div>
+                {canAccess(role, "DELETE_DATA") && (
+                  <div className="pt-4 border-t border-white/[0.06] mt-6">
+                    <button 
+                      onClick={async () => {
+                        if (confirm(`WARNING: Are you absolutely sure you want to permanently delete the employee profile for "${selectedEmployee.fullName}"? This will disable their login credentials and wipe their HR record from all departments. This is a destructive action.`)) {
+                          try {
+                            const { deleteDoc, doc } = await import("firebase/firestore");
+                            await deleteDoc(doc(db, "employees", selectedEmployee.id));
+                            setSelectedEmployee(null);
+                          } catch (err) {
+                            console.error("Error deleting employee:", err);
+                          }
+                        }
+                      }}
+                      className="w-full py-2 bg-rose-600/10 hover:bg-rose-600 border border-rose-500/20 hover:border-rose-500 text-rose-300 hover:text-white text-xs font-bold rounded-xl transition-all duration-300 cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> Deprovision Employee Profile
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           )}

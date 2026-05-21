@@ -6,12 +6,13 @@ import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { RoleGuard } from "@/components/layout/RoleGuard";
+import { canAccess } from "@/lib/permissions";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
-import { Search, Plus, Building2, Globe, Phone, Mail, User, Image as ImageIcon } from "lucide-react";
+import { Search, Plus, Building2, Globe, Phone, Mail, User, Image as ImageIcon, Trash2 } from "lucide-react";
 
 const AVAILABLE_SERVICES = [
   "SEO Campaign", 
@@ -29,7 +30,7 @@ const AVAILABLE_SERVICES = [
 ];
 
 export default function ClientsCRM() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const router = useRouter();
   const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,7 +42,7 @@ export default function ClientsCRM() {
   const [contactPerson, setContactPerson] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [country, setCountry] = useState("UAE");
+  const [country, setCountry] = useState("Global");
   const [timezone, setTimezone] = useState("GST");
   const [healthScore, setHealthScore] = useState(5);
   const [servicesSubscribed, setServicesSubscribed] = useState<string[]>([]);
@@ -117,7 +118,7 @@ export default function ClientsCRM() {
       setContactPerson("");
       setEmail("");
       setPhone("");
-      setCountry("UAE");
+      setCountry("Global");
       setTimezone("GST");
       setHealthScore(5);
       setServicesSubscribed([]);
@@ -201,7 +202,7 @@ export default function ClientsCRM() {
                     <div className="space-y-2">
                       <label className="text-xs font-bold text-olive-800 uppercase">HQ Country</label>
                       <Input 
-                        placeholder="UAE" 
+                        placeholder="Global" 
                         value={country}
                         onChange={(e) => setCountry(e.target.value)}
                         className="rounded-xl border-slate-200 focus:border-olive-500 focus:ring-olive-500"
@@ -340,11 +341,32 @@ export default function ClientsCRM() {
                             {client.companyName}
                           </CardTitle>
                           <CardDescription className="flex items-center gap-1 mt-1 text-slate-500 font-medium">
-                            <Globe className="h-3 w-3 shrink-0" /> {client.country || "UAE"} ({client.timezone || "GST"})
+                            <Globe className="h-3 w-3 shrink-0" /> {client.country || "Global"} ({client.timezone || "GST"})
                           </CardDescription>
                         </div>
                       </div>
-                      {getHealthBadge(client.healthScore || 5)}
+                      <div className="flex items-center gap-2 shrink-0">
+                        {getHealthBadge(client.healthScore || 5)}
+                        {canAccess(role, "DELETE_DATA") && (
+                          <button 
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              if (confirm(`Are you absolutely sure you want to permanently delete the client "${client.companyName}" and all associated CRM data? This action is irreversible.`)) {
+                                try {
+                                  const { deleteDoc, doc } = await import("firebase/firestore");
+                                  await deleteDoc(doc(db, "clients", client.id));
+                                } catch (err) {
+                                  console.error("Error deleting client:", err);
+                                }
+                              }
+                            }}
+                            className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-slate-100 transition-colors border border-transparent hover:border-slate-200"
+                            title="Delete Client"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">

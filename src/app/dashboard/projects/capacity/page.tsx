@@ -30,7 +30,7 @@ export default function CapacityPlanning() {
   useEffect(() => {
     const fetchData = async () => {
       // Fetch users
-      const usersSnap = await getDocs(collection(db, "users"));
+      const usersSnap = await getDocs(collection(db, "employees"));
       const usersMap = new Map();
       usersSnap.forEach(doc => {
         usersMap.set(doc.id, { ...doc.data(), id: doc.id });

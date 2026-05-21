@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Zap } from "lucide-react";
+import { sendDiscordNotification } from "@/lib/utils";
 
 export default function LoginPage() {
   const { user, loginWithGoogle, loading, authError, setAuthError } = useAuth();
@@ -52,7 +53,8 @@ export default function LoginPage() {
       
       const finalEmail = email.includes("@") ? email.trim() : `${email.trim()}@mintsglobal.ae`;
       
-      await signInWithEmailAndPassword(auth, finalEmail, password);
+      const cred = await signInWithEmailAndPassword(auth, finalEmail, password);
+      await sendDiscordNotification(`🔓 **${cred.user.displayName || finalEmail}** logged in to the ERP.`);
     } catch (err: any) {
       setError("Invalid username or password.");
       setIsLoggingIn(false);

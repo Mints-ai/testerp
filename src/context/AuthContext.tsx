@@ -4,15 +4,20 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, User, signInWithPopup, GoogleAuthProvider, signOut, signInWithEmailAndPassword } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
 import { doc, getDoc, setDoc, collection, query, where, getDocs, deleteDoc, updateDoc } from "firebase/firestore";
+import { sendDiscordNotification } from "@/lib/utils";
 
 interface AppUser extends User {
   role?: string;
   department?: string;
+  departments?: string[];
+  fullName?: string;
 }
 
 interface AuthContextType {
   user: AppUser | null;
   role: string | null;
+  simulatedRole: string | null;
+  setSimulatedRole: (role: string | null) => void;
   loading: boolean;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
@@ -23,6 +28,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   role: null,
+  simulatedRole: null,
+  setSimulatedRole: () => {},
   loading: true,
   loginWithGoogle: async () => {},
   logout: async () => {},
@@ -34,6 +41,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [simulatedRole, setSimulatedRoleState] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = sessionStorage.getItem("simulatedRole");
+      if (saved) {
+        setSimulatedRoleState(saved);
+      }
+    }
+  }, []);
+
+  const setSimulatedRole = (role: string | null) => {
+    setSimulatedRoleState(role);
+    if (typeof window !== "undefined") {
+      if (role) {
+        sessionStorage.setItem("simulatedRole", role);
+      } else {
+        sessionStorage.removeItem("simulatedRole");
+      }
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -44,7 +72,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                              emailLower === "admin@mintsgloabal.ae" || 
                              emailLower === "admin@mintsglobal.ae";
         
-        let userDocRef = doc(db, "employees", firebaseUser.uid);
+        const userDocRef = doc(db, "employees", firebaseUser.uid);
         let userDoc = await getDoc(userDocRef);
         
         let appUser: AppUser = firebaseUser;
@@ -56,6 +84,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               email: emailLower,
               role: "founder",
               department: "Executive Office",
+              departments: ["Executive Office"],
               jobTitle: "Super Admin",
               phone: "",
               isIntern: false,
@@ -113,7 +142,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             await signOut(auth);
             setUser(null);
           } else {
-            appUser = { ...firebaseUser, role: data.role, department: data.department };
+            appUser = { ...firebaseUser, role: data.role, department: data.department, departments: data.departments || (data.department ? [data.department] : []), fullName: data.fullName };
             setUser(appUser);
 
             // Fetch public IP address and record login trace asynchronously
@@ -125,7 +154,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
                 await updateDoc(userDocRef, {
                   lastLoginIP: userIp,
-                  lastLoginAt: new Date().toISOString()
+                  lastLoginAt: new Date().toISOString(),
+                  lastSeenAt: new Date().toISOString()
                 });
 
                 // Record audit trace
@@ -158,11 +188,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => unsubscribe();
   }, []);
 
+  // Periodic Heartbeat to mark the user as online/active
+  useEffect(() => {
+    if (!user) return;
+    
+    const updateHeartbeat = async () => {
+      try {
+        const userDocRef = doc(db, "employees", user.uid);
+        await updateDoc(userDocRef, {
+          lastSeenAt: new Date().toISOString()
+        });
+      } catch (err) {
+        console.error("Heartbeat error:", err);
+      }
+    };
+    
+    updateHeartbeat();
+    
+    const interval = setInterval(updateHeartbeat, 120000); // once every 2 minutes
+    return () => clearInterval(interval);
+  }, [user]);
+
   const loginWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     // Removed host domain constraint so employees can sign in with any standard Gmail address!
     try {
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      await sendDiscordNotification(`🔓 **${result.user.displayName || result.user.email}** logged in to the ERP via Google.`);
     } catch (error: any) {
       console.error("Login failed", error);
       throw error;
@@ -170,11 +222,27 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const logout = async () => {
+    if (user) {
+      await sendDiscordNotification(`🔒 **${user.fullName || user.email}** logged out of the ERP.`);
+    }
+    setSimulatedRole(null);
     await signOut(auth);
   };
 
+  const activeRole = simulatedRole !== null ? simulatedRole : (user?.role || null);
+
   return (
-    <AuthContext.Provider value={{ user, role: user?.role || null, loading, loginWithGoogle, logout, authError, setAuthError }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      role: activeRole, 
+      simulatedRole, 
+      setSimulatedRole, 
+      loading, 
+      loginWithGoogle, 
+      logout, 
+      authError, 
+      setAuthError 
+    }}>
       {children}
     </AuthContext.Provider>
   );

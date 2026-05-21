@@ -11,3 +11,15 @@ export function getInitials(name: string): string {
   if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
+
+export async function sendDiscordNotification(content: string, embeds?: any[]) {
+  try {
+    await fetch('/api/discord', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content, embeds }),
+    });
+  } catch (err) {
+    console.error("Failed to send discord notification", err);
+  }
+}

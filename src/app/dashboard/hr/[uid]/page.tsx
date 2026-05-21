@@ -2,15 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { doc, onSnapshot } from "firebase/firestore";
+import { doc, onSnapshot, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { ROLE_META } from "@/lib/permissions";
+import { ROLE_META, canAccess } from "@/lib/permissions";
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, Mail, Phone, Calendar, UserRound, ArrowLeft, Shield } from "lucide-react";
+import { Building2, Mail, Phone, Calendar, UserRound, ArrowLeft, Shield, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function EmployeeProfile() {
@@ -19,6 +19,7 @@ export default function EmployeeProfile() {
   const { user, role } = useAuth();
   const [employee, setEmployee] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (!uid) return;
@@ -62,16 +63,40 @@ export default function EmployeeProfile() {
   const isManagerOrAbove = ["founder", "c_suite", "manager"].includes(role || "");
   const isSelf = user?.uid === uid;
 
+  const handleDeleteEmployee = async () => {
+    if (!window.confirm(`Are you sure you want to completely delete ${employee.fullName}? This cannot be undone.`)) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteDoc(doc(db, "employees", uid as string));
+      router.push('/dashboard/hr');
+    } catch (err) {
+      console.error("Error deleting employee:", err);
+      alert("Failed to delete employee.");
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-5xl pb-12 text-white pl-4 lg:pl-0">
-      {/* Back to list */}
-      <div>
+      {/* Top Actions */}
+      <div className="flex justify-between items-center">
         <button 
           onClick={() => router.push('/dashboard/hr')} 
           className="btn-ghost h-8 py-0 px-3 text-xs font-bold flex items-center gap-1.5 cursor-pointer text-white/50 hover:text-white"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back to HR Hub
         </button>
+
+        {canAccess(role, "DELETE_DATA") && !isSelf && (
+          <button 
+            onClick={handleDeleteEmployee} 
+            disabled={isDeleting}
+            className="btn-ghost bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 h-8 py-0 px-3 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+          >
+            <Trash2 className="h-3.5 w-3.5" /> {isDeleting ? "Deleting..." : "Delete Employee"}
+          </button>
+        )}
       </div>
 
       {/* Header Profile Card */}
@@ -108,12 +133,12 @@ export default function EmployeeProfile() {
                 <Badge className={cn("font-bold text-[9px] shadow-none uppercase tracking-wider py-0.5", roleMeta.color)}>
                   {roleMeta.label}
                 </Badge>
-                {employee.department && (
-                  <Badge variant="outline" className="bg-white/[0.02] border-white/10 text-white/50 text-[9px] font-bold uppercase tracking-wider py-0.5">
+                {(employee.departments || (employee.department ? [employee.department] : [])).map((dept: string, idx: number) => (
+                  <Badge key={idx} variant="outline" className="bg-white/[0.02] border-white/10 text-white/50 text-[9px] font-bold uppercase tracking-wider py-0.5">
                     <Building2 className="w-3 h-3 mr-1 text-white/30" />
-                    {employee.department}
+                    {dept}
                   </Badge>
-                )}
+                ))}
                 <div className="text-[10px] font-mono font-bold text-blue-400/80 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20 tracking-wider md:ml-auto">
                   EMP ID: {employee.employeeId || "No ID"}
                 </div>
@@ -201,7 +226,7 @@ export default function EmployeeProfile() {
           <Card className="glass-card border-white/[0.08] bg-white/[0.02] overflow-hidden">
             <CardHeader className="p-5 border-b border-white/[0.06]">
               <CardTitle className="text-xs font-bold text-white uppercase tracking-wider">Onboard Documents Ledger</CardTitle>
-              <CardDescription className="text-xs text-white/40 mt-1">Passport copies, UAE Visas, Emirates ID, and Corporate Contracts.</CardDescription>
+              <CardDescription className="text-xs text-white/40 mt-1">Passport copies, Global Visas, National ID, and Corporate Contracts.</CardDescription>
             </CardHeader>
             <CardContent className="p-6">
               <div className="text-center py-12 border-2 border-dashed border-white/10 rounded-2xl bg-white/[0.01]">
