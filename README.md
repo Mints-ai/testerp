@@ -176,25 +176,47 @@ This comprehensive ERP user manual serves users of all roles — from interns to
 - **First-time login steps**: Verify your profile details in Settings.
 - **Dashboard Overview**: After login, you'll see a unified view of your department's key metrics.
 
-### 4. User Roles & Permissions
-A breakdown of what each role can see and do:
+### 4. Comprehensive Role-Based Capabilities
+Mints Global ERP enforces strict Role-Based Access Control (RBAC). Here is a detailed breakdown of what each role can accomplish within the platform:
 
-| Feature | Intern/Employee | Manager | Founder/Admin |
-|---|---|---|---|
-| View own attendance | ✅ | ✅ | ✅ |
-| Apply for leave | ✅ | ✅ | ✅ |
-| Approve leave | ❌ | ✅ | ✅ |
-| View CRM & Finances | ❌ | ❌ | ✅ |
-| Manage employees | ❌ | ❌ | ✅ |
-| View all reports | ❌ | ✅ | ✅ |
+#### 🟢 Interns & Employees
+**The core workforce. Access is limited to personal data and assigned tasks.**
+- **Dashboard**: View personal quick stats, recent announcements, and upcoming company holidays.
+- **Attendance**: Check-in and check-out daily. View personal historical attendance logs and total hours worked.
+- **Leaves**: Apply for sick, casual, or annual leave. Check remaining leave balances and view personal leave history and approval status.
+- **Projects**: View projects they are explicitly assigned to.
+- **Settings**: Update personal profile information and change passwords.
 
-### 5. Module-by-Module Guides
-- **Attendance**: Go to **Attendance**, click **Check In/Out** to log hours. View logs in the table below.
-- **Leave Management**: Go to **Leaves**, click **Apply for Leave**. Wait for manager approval (triggers Discord notification).
-- **Employee Management**: Admins go to **HR Hub** -> **+ Add Employee**. Set roles, departments, and auto-generate credentials.
-- **Projects & Capacity**: Go to **Projects**, add team members. Monitor their load in the **Capacity** tab.
-- **Roles & Access Control**: Admins can change user roles directly in the HR Hub.
-- **Discord Bot**: Automated notifications are sent to designated channels for check-ins, leaves, and HR events.
+#### 🔵 Managers
+**Department leaders. Access includes operational oversight but excludes sensitive financials and HR configurations.**
+- **Everything Employees can do**, plus:
+- **Attendance**: View attendance logs for all employees within their assigned department(s).
+- **Leaves**: Review, approve, or reject leave requests from their department staff. Access the global Team Calendar to foresee capacity shortages.
+- **Projects**: Create new projects, assign team members, and monitor the "Capacity Planning" tab to balance workloads across the team.
+- **Reports**: Generate and export operational reports (e.g., Attendance and Leave metrics) for their department.
+
+#### 🔴 Founders & Admins (C-Suite)
+**Executive control. Unrestricted access to all modules, sensitive data, and system configurations.**
+- **Everything Managers can do**, plus:
+- **HR Hub (Full Access)**: 
+  - Onboard new employees and auto-generate credentials.
+  - Terminate or suspend employee accounts.
+  - Reassign roles and change department allocations.
+- **CRM (Client Relationship Management)**:
+  - Add, edit, and move leads through the Kanban sales pipeline.
+  - Convert won leads into official Clients in the database.
+- **Finance**:
+  - View overarching company revenue and expense analytics.
+  - Generate, download, and manage professional PDF invoices and proposals.
+- **Settings & Config**: Edit global company settings (like HQ address used on invoices).
+
+### 5. Module-by-Module Workflows
+- **Attendance**: Go to **Attendance**. Use the primary button to **Check In** at the start of your shift, and **Check Out** when finished. Your daily hours are automatically calculated and pushed to the Discord tracking channel.
+- **Leave Management**: Go to **Leaves**. Click **Apply for Leave**, select the date range, and specify the type. This immediately notifies Managers in Discord. Managers can click the **Approve/Reject** buttons directly in the Leaves table.
+- **Employee Onboarding (Admin Only)**: Go to **HR Hub** -> **+ Add Employee**. Fill in their details, assign their Role (e.g., Manager) and Department(s). The system will automatically generate a secure static email and password for them to log in.
+- **Project Capacity (Managers/Admins)**: Go to **Projects**. Create a scope, then click into the project to **Manage Team**. Adding a team member updates their load in the **Capacity** tab, ensuring no employee is assigned to too many active projects at once.
+- **CRM Pipeline (Admins Only)**: Navigate to **CRM**. Click **+ Add Lead**. As negotiations progress, drag and drop the lead card across stages ("Pitch" -> "Negotiation" -> "Won"). 
+- **Invoicing (Admins Only)**: Navigate to **Finance**. Click **Create Invoice**, fill in the line items and client details, and click **Download PDF**. The browser dynamically generates a branded invoice using your Global HQ settings.
 
 ### 6. Navigation Guide
 - **Sidebar**: Primary navigation on the left.
