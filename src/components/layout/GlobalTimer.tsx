@@ -200,10 +200,10 @@ export function GlobalTimer() {
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-slate-500 uppercase">Project</label>
                   <Select value={selectedProjectId} onValueChange={(val) => setSelectedProjectId(val || "")}>
-                    <SelectTrigger className="h-8 text-sm">
+                    <SelectTrigger className="h-8 text-sm text-slate-900 bg-white border-slate-200">
                       <SelectValue placeholder="Select a project..." />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white text-slate-900 border-slate-200">
                       <SelectItem value="internal">Internal / General</SelectItem>
                       {projects.map(p => (
                         <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
@@ -218,7 +218,7 @@ export function GlobalTimer() {
                     value={taskDescription}
                     onChange={(e) => setTaskDescription(e.target.value)}
                     placeholder="E.g., Keyword research for SEO..." 
-                    className="h-8 text-sm"
+                    className="h-8 text-sm text-slate-900 bg-white placeholder:text-slate-400 border-slate-200"
                   />
                 </div>
               </div>
@@ -229,7 +229,7 @@ export function GlobalTimer() {
                   size="sm" 
                   onClick={handleDiscard}
                   disabled={elapsedSeconds === 0}
-                  className="w-full text-xs h-8"
+                  className="w-full text-xs h-8 text-slate-700 hover:text-slate-900 hover:bg-slate-100 border-slate-200"
                 >
                   Discard
                 </Button>

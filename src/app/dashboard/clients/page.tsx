@@ -162,7 +162,7 @@ export default function ClientsCRM() {
                         value={companyName}
                         onChange={(e) => setCompanyName(e.target.value)}
                         required
-                        className="rounded-xl border-slate-200 focus:border-olive-500 focus:ring-olive-500"
+                        className="rounded-xl border-slate-200 focus:border-olive-500 focus:ring-olive-500 text-slate-900 bg-white placeholder:text-slate-400"
                       />
                     </div>
                     <div className="space-y-2">
@@ -171,7 +171,7 @@ export default function ClientsCRM() {
                         placeholder="e.g., Tariq Ahmad" 
                         value={contactPerson}
                         onChange={(e) => setContactPerson(e.target.value)}
-                        className="rounded-xl border-slate-200 focus:border-olive-500 focus:ring-olive-500"
+                        className="rounded-xl border-slate-200 focus:border-olive-500 focus:ring-olive-500 text-slate-900 bg-white placeholder:text-slate-400"
                       />
                     </div>
                   </div>
@@ -184,7 +184,7 @@ export default function ClientsCRM() {
                         placeholder="partner@futtaim.ae" 
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="rounded-xl border-slate-200 focus:border-olive-500 focus:ring-olive-500"
+                        className="rounded-xl border-slate-200 focus:border-olive-500 focus:ring-olive-500 text-slate-900 bg-white placeholder:text-slate-400"
                       />
                     </div>
                     <div className="space-y-2">
@@ -193,7 +193,7 @@ export default function ClientsCRM() {
                         placeholder="+971 4 123 4567" 
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        className="rounded-xl border-slate-200 focus:border-olive-500 focus:ring-olive-500"
+                        className="rounded-xl border-slate-200 focus:border-olive-500 focus:ring-olive-500 text-slate-900 bg-white placeholder:text-slate-400"
                       />
                     </div>
                   </div>
@@ -205,7 +205,7 @@ export default function ClientsCRM() {
                         placeholder="Global" 
                         value={country}
                         onChange={(e) => setCountry(e.target.value)}
-                        className="rounded-xl border-slate-200 focus:border-olive-500 focus:ring-olive-500"
+                        className="rounded-xl border-slate-200 focus:border-olive-500 focus:ring-olive-500 text-slate-900 bg-white placeholder:text-slate-400"
                       />
                     </div>
                     <div className="space-y-2">
@@ -214,7 +214,7 @@ export default function ClientsCRM() {
                         placeholder="GST (GMT+4)" 
                         value={timezone}
                         onChange={(e) => setTimezone(e.target.value)}
-                        className="rounded-xl border-slate-200 focus:border-olive-500 focus:ring-olive-500"
+                        className="rounded-xl border-slate-200 focus:border-olive-500 focus:ring-olive-500 text-slate-900 bg-white placeholder:text-slate-400"
                       />
                     </div>
                     <div className="space-y-2">
@@ -222,7 +222,7 @@ export default function ClientsCRM() {
                       <select 
                         value={healthScore}
                         onChange={(e) => setHealthScore(Number(e.target.value))}
-                        className="w-full h-10 px-3 border border-slate-200 rounded-xl text-sm focus:border-olive-500 focus:ring-olive-500 bg-white"
+                        className="w-full h-10 px-3 border border-slate-200 rounded-xl text-sm focus:border-olive-500 focus:ring-olive-500 bg-white text-slate-900"
                       >
                         <option value={5}>5 - Excellent Relationship</option>
                         <option value={4}>4 - Good Standing</option>
