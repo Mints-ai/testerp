@@ -88,7 +88,7 @@ export default function ProjectsList() {
   const statuses = ["pitch", "active", "on_hold", "completed"];
 
   return (
-    <div className="space-y-6 pb-12 h-full flex flex-col text-white pl-4 lg:pl-0">
+    <div className="space-y-4 sm:space-y-6 pb-12 h-full flex flex-col text-white pl-4 pr-4 lg:pl-0 lg:pr-0">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
@@ -97,8 +97,8 @@ export default function ProjectsList() {
           <p className="text-xs text-white/40 mt-1">Manage client projects, pipelines, and timelines.</p>
         </div>
         
-        <div className="flex items-center gap-4">
-          <div className="flex gap-1 bg-white/[0.03] p-1 rounded-xl border border-white/[0.08] shadow-inner hidden md:flex">
+        <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0 no-scrollbar">
+          <div className="flex gap-1 bg-white/[0.03] p-1 rounded-xl border border-white/[0.08] shadow-inner shrink-0">
             <button 
               onClick={() => setView("kanban")}
               className={cn("px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center transition-all cursor-pointer", 
@@ -132,8 +132,8 @@ export default function ProjectsList() {
           </div>
           
           <RoleGuard permission="CREATE_PROJECT">
-            <Link href="/dashboard/projects/new" className="cursor-pointer">
-              <button className="btn-primary h-9 py-0 px-4 text-xs font-bold flex items-center justify-center">
+            <Link href="/dashboard/projects/new" className="cursor-pointer shrink-0">
+              <button className="btn-primary h-9 py-0 px-4 text-xs font-bold flex items-center justify-center whitespace-nowrap">
                 <Plus className="mr-1.5 h-4 w-4" /> New Project
               </button>
             </Link>
@@ -153,9 +153,9 @@ export default function ProjectsList() {
         </div>
         
         {view !== "kanban" && (
-          <div className="flex gap-4 md:w-auto">
+          <div className="flex gap-4 w-full md:w-auto mt-2 md:mt-0">
             <Select value={statusFilter} onValueChange={(val) => setStatusFilter(val || "all")}>
-              <SelectTrigger className="w-[180px] bg-white/[0.03] border-white/10 text-white placeholder:text-white/20 focus:ring-blue-500/60 h-9 text-xs rounded-xl">
+              <SelectTrigger className="w-full md:w-[180px] bg-white/[0.03] border-white/10 text-white placeholder:text-white/20 focus:ring-blue-500/60 h-9 text-xs rounded-xl">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent className="bg-[#0d1f3c] border-white/[0.08] text-white">
@@ -181,12 +181,12 @@ export default function ProjectsList() {
           <p className="text-xs text-white/30 mt-1">Create a new project or adjust your filters.</p>
         </div>
       ) : view === "kanban" ? (
-        <div className="flex-1 overflow-x-auto pb-4">
-          <div className="flex gap-6 min-w-max h-full">
+        <div className="flex-1 overflow-x-auto pb-4 snap-x snap-mandatory">
+          <div className="flex gap-4 md:gap-6 min-w-max h-full">
             {statuses.map(status => {
               const columnProjects = filteredProjects.filter(p => p.status === status);
               return (
-                <div key={status} className="w-80 flex flex-col bg-white/[0.02] rounded-2xl border border-white/[0.06] p-4 shrink-0 h-[600px] overflow-hidden">
+                <div key={status} className="w-[85vw] max-w-[320px] md:w-80 flex flex-col bg-white/[0.02] rounded-2xl border border-white/[0.06] p-3 md:p-4 shrink-0 h-[65vh] md:h-[600px] overflow-hidden snap-center">
                   <div className="flex justify-between items-center mb-4 shrink-0">
                     <h3 className="font-bold text-white uppercase tracking-[0.12em] text-xs flex items-center">
                       <span className={cn("w-2 h-2 rounded-full mr-2", 
@@ -302,10 +302,10 @@ export default function ProjectsList() {
         </motion.div>
       ) : (
         /* Timeline / Gantt View */
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white/[0.02] rounded-2xl border border-white/[0.06] backdrop-blur-[24px] p-6 overflow-x-auto flex-1">
-          <div className="min-w-[800px]">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white/[0.02] rounded-2xl border border-white/[0.06] backdrop-blur-[24px] p-4 sm:p-6 overflow-x-auto flex-1">
+          <div className="min-w-[600px] sm:min-w-[800px]">
             {/* Timeline Header - Months */}
-            <div className="flex border-b border-white/[0.06] pb-2 mb-6 ml-48">
+            <div className="flex border-b border-white/[0.06] pb-2 mb-6 ml-24 sm:ml-48">
               {['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'].map(m => (
                 <div key={m} className="flex-1 text-[9px] font-bold text-white/30 uppercase tracking-widest pl-2">{m}</div>
               ))}
@@ -320,7 +320,7 @@ export default function ProjectsList() {
                 
                 return (
                   <div key={project.id} className="flex items-center group cursor-pointer" onClick={() => window.location.href = `/dashboard/projects/${project.id}`}>
-                    <div className="w-48 shrink-0 pr-4">
+                    <div className="w-24 sm:w-48 shrink-0 pr-2 sm:pr-4">
                       <p className="text-xs font-bold text-white truncate group-hover:text-blue-400 transition-colors">{project.name}</p>
                       <p className="text-[10px] text-white/40 font-semibold mt-0.5 truncate">{project.serviceType}</p>
                     </div>
