@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, where, onSnapshot, doc, updateDoc } from "firebase/firestore";
+import { collection, query, where, onSnapshot, doc, updateDoc, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Clock, MessageSquare, CheckSquare, Target, Lock, Play, Kanban as KanbanIcon } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 type TaskStatus = "backlog" | "in_progress" | "review" | "done";
 type TaskPriority = "low" | "normal" | "high" | "urgent";
@@ -53,6 +55,36 @@ export default function TaskBoard() {
   const [loading, setLoading] = useState(true);
   const [myTasksOnly, setMyTasksOnly] = useState(role === "intern");
   const [focusMode, setFocusMode] = useState(false);
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newTask, setNewTask] = useState({ title: "", priority: "normal" as TaskPriority, dueDate: "" });
+  const [addingToStatus, setAddingToStatus] = useState<TaskStatus>("backlog");
+
+  const handleAddTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !newTask.title.trim()) return;
+    
+    setIsSubmitting(true);
+    try {
+      await addDoc(collection(db, "tasks"), {
+        title: newTask.title.trim(),
+        projectId: "general", // Default or fetch from somewhere
+        projectName: "General",
+        assignedTo: user.uid,
+        status: addingToStatus,
+        priority: newTask.priority,
+        dueDate: newTask.dueDate || null,
+        createdAt: serverTimestamp(),
+        blocked: false,
+      });
+      setIsAddOpen(false);
+      setNewTask({ title: "", priority: "normal", dueDate: "" });
+    } catch (error) {
+      console.error("Error adding task:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -196,7 +228,13 @@ export default function TaskBoard() {
             </div>
           )}
 
-          <button className="btn-primary h-9 py-0 px-4 text-xs font-bold flex items-center justify-center cursor-pointer">
+          <button 
+            onClick={() => {
+              setAddingToStatus("backlog");
+              setIsAddOpen(true);
+            }}
+            className="btn-primary h-9 py-0 px-4 text-xs font-bold flex items-center justify-center cursor-pointer"
+          >
             <Plus className="mr-1.5 h-4 w-4" /> Add Task
           </button>
         </div>
@@ -370,7 +408,13 @@ export default function TaskBoard() {
                         ))}
                         {provided.placeholder}
                         
-                        <button className="w-full text-white/30 hover:text-white justify-start h-8 px-2 text-xs mt-1 hover:bg-white/5 rounded-xl transition-all font-bold border border-dashed border-white/5 hover:border-white/15 flex items-center cursor-pointer">
+                        <button 
+                          onClick={() => {
+                            setAddingToStatus(column.id as TaskStatus);
+                            setIsAddOpen(true);
+                          }}
+                          className="w-full text-white/30 hover:text-white justify-start h-8 px-2 text-xs mt-1 hover:bg-white/5 rounded-xl transition-all font-bold border border-dashed border-white/5 hover:border-white/15 flex items-center cursor-pointer"
+                        >
                           <Plus className="w-3.5 h-3.5 mr-1.5" /> Add a task
                         </button>
                       </div>
@@ -382,6 +426,68 @@ export default function TaskBoard() {
           </DragDropContext>
         </div>
       )}
+
+      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+        <DialogContent className="bg-[#0f172a] border-white/10 text-white sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add New Task</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleAddTask} className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-white/70 uppercase tracking-wider">Task Title</label>
+              <Input
+                required
+                placeholder="What needs to be done?"
+                value={newTask.title}
+                onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-white/70 uppercase tracking-wider">Priority</label>
+                <select
+                  value={newTask.priority}
+                  onChange={(e) => setNewTask({ ...newTask, priority: e.target.value as TaskPriority })}
+                  className="flex h-9 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 text-white appearance-none"
+                >
+                  <option value="low" className="bg-[#0f172a]">Low</option>
+                  <option value="normal" className="bg-[#0f172a]">Normal</option>
+                  <option value="high" className="bg-[#0f172a]">High</option>
+                  <option value="urgent" className="bg-[#0f172a]">Urgent</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-white/70 uppercase tracking-wider">Due Date</label>
+                <Input
+                  type="date"
+                  value={newTask.dueDate}
+                  onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
+                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
+                  style={{ colorScheme: "dark" }}
+                />
+              </div>
+            </div>
+            <DialogFooter className="mt-6 border-t-0 pt-4">
+              <button
+                type="button"
+                onClick={() => setIsAddOpen(false)}
+                className="px-4 py-2 text-sm font-bold text-white/70 hover:text-white transition-colors"
+                disabled={isSubmitting}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-4 py-2 text-sm font-bold bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors flex items-center justify-center disabled:opacity-50"
+              >
+                {isSubmitting ? "Adding..." : "Add Task"}
+              </button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
