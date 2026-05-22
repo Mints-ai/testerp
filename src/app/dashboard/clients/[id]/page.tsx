@@ -177,7 +177,7 @@ export default function ClientProfile({ params }: { params: Promise<{ id: string
             <Card className="border-slate-200 bg-white rounded-2xl overflow-hidden shadow-sm">
               <CardHeader className="pb-3 border-b border-slate-100">
                 <CardTitle className="text-base font-bold text-slate-900">Corporate Details</CardTitle>
-                <CardDescription>Primary CRM metadata for corporate communications.</CardDescription>
+                <CardDescription className="text-slate-500">Primary CRM metadata for corporate communications.</CardDescription>
               </CardHeader>
               <CardContent className="p-6 space-y-4 text-sm text-slate-600 font-medium">
                 {client.contactPerson && (
@@ -217,7 +217,7 @@ export default function ClientProfile({ params }: { params: Promise<{ id: string
             <Card className="border-slate-200 bg-white rounded-2xl shadow-sm">
               <CardHeader className="pb-3 border-b border-slate-100">
                 <CardTitle className="text-base font-bold text-slate-900">Services Retained</CardTitle>
-                <CardDescription>Subscribed services under this account.</CardDescription>
+                <CardDescription className="text-slate-500">Subscribed services under this account.</CardDescription>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="flex flex-wrap gap-2">
@@ -238,7 +238,7 @@ export default function ClientProfile({ params }: { params: Promise<{ id: string
               <CardHeader className="pb-3 border-b border-slate-100 flex flex-row items-center justify-between">
                 <div>
                   <CardTitle className="text-base font-bold text-slate-900">CRM Account Notes</CardTitle>
-                  <CardDescription>Private account updates and notes.</CardDescription>
+                  <CardDescription className="text-slate-500">Private account updates and notes.</CardDescription>
                 </div>
                 <div className="text-xs font-semibold shrink-0">
                   {saveStatus === "typing" && <span className="text-amber-500">Typing...</span>}
@@ -251,7 +251,7 @@ export default function ClientProfile({ params }: { params: Promise<{ id: string
                   placeholder="Record strategic details, onboarding checklists, client background, or strategic goals here..." 
                   value={notes}
                   onChange={handleNotesChange}
-                  className="min-h-[180px] rounded-xl border-slate-200 focus:border-olive-500 focus:ring-olive-500 text-sm leading-relaxed"
+                  className="min-h-[180px] rounded-xl border-slate-200 focus:border-olive-500 focus:ring-olive-500 text-sm leading-relaxed text-slate-900 bg-white placeholder:text-slate-400"
                 />
                 <p className="text-[10px] text-slate-400 mt-2 text-right">Changes are automatically saved to the database.</p>
               </CardContent>
@@ -265,7 +265,7 @@ export default function ClientProfile({ params }: { params: Promise<{ id: string
               <CardHeader className="pb-4 border-b border-slate-100 flex flex-row items-center justify-between">
                 <div>
                   <CardTitle className="text-base font-bold text-slate-900">Active Projects</CardTitle>
-                  <CardDescription>Operational deliverables belonging to {client.companyName}.</CardDescription>
+                  <CardDescription className="text-slate-500">Operational deliverables belonging to {client.companyName}.</CardDescription>
                 </div>
                 <Badge variant="secondary" className="bg-olive-50 text-olive-800 border-olive-100">{projects.length} deliverables</Badge>
               </CardHeader>
@@ -313,7 +313,7 @@ export default function ClientProfile({ params }: { params: Promise<{ id: string
               <CardHeader className="pb-4 border-b border-slate-100 flex flex-row items-center justify-between">
                 <div>
                   <CardTitle className="text-base font-bold text-slate-900">Invoices & Receivables</CardTitle>
-                  <CardDescription>Financial balance statements generated for this account.</CardDescription>
+                  <CardDescription className="text-slate-500">Financial balance statements generated for this account.</CardDescription>
                 </div>
                 <Badge variant="secondary" className="bg-slate-50 text-slate-800 border border-slate-200">{invoices.length} invoices</Badge>
               </CardHeader>
