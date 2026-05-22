@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, where, onSnapshot, orderBy, doc, updateDoc, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, where, onSnapshot, orderBy, doc, updateDoc, addDoc, serverTimestamp, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { canAccess } from "@/lib/permissions";
@@ -37,6 +37,7 @@ export default function LeaveManagement() {
   const [pendingLeaves, setPendingLeaves] = useState<any[]>([]);
   const [balance, setBalance] = useState({ totalAnnual: 30, usedAnnual: 0, usedSick: 0 });
   const [loading, setLoading] = useState(true);
+  const [employeesMap, setEmployeesMap] = useState<Record<string, any>>({});
   
   const [isApplyOpen, setIsApplyOpen] = useState(false);
   const [newLeave, setNewLeave] = useState({ type: "", startDate: "", endDate: "", reason: "" });
@@ -83,6 +84,17 @@ export default function LeaveManagement() {
         setBalance(docSnap.data() as any);
       }
     });
+
+    // Fetch all employees for mapping details
+    if (isManagerOrAbove) {
+      getDocs(collection(db, "employees")).then(snap => {
+        const map: Record<string, any> = {};
+        snap.docs.forEach(d => {
+          map[d.id] = d.data();
+        });
+        setEmployeesMap(map);
+      }).catch(console.error);
+    }
 
     return () => {
       unsubscribeLeaves();
@@ -335,12 +347,16 @@ export default function LeaveManagement() {
               </Card>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {pendingLeaves.map((leave) => (
+                {pendingLeaves.map((leave) => {
+                  const emp = employeesMap[leave.employeeId];
+                  return (
                   <Card key={leave.id} className="border-l-4 border-l-amber-400">
                     <CardHeader className="pb-3 flex-row items-start justify-between">
                       <div>
-                        <CardTitle className="text-lg">{leave.employeeName || "Employee"}</CardTitle>
-                        <CardDescription className="text-sm mt-1">{leave.leaveType}</CardDescription>
+                        <CardTitle className="text-lg">{emp?.fullName || leave.employeeName || "Employee"}</CardTitle>
+                        <CardDescription className="text-sm mt-1">
+                          {emp ? `${emp.employeeId || ""} • ${emp.role || ""} • ${emp.department || (emp.departments?.[0] || "")}` : leave.leaveType}
+                        </CardDescription>
                       </div>
                       <Badge className="bg-amber-100 text-amber-700 shadow-none hover:bg-amber-100">Pending</Badge>
                     </CardHeader>
@@ -380,7 +396,7 @@ export default function LeaveManagement() {
                       </div>
                     </CardContent>
                   </Card>
-                ))}
+                )})}
               </div>
             )}
           </TabsContent>
@@ -462,6 +478,7 @@ export default function LeaveManagement() {
                     <thead className="bg-olive-50 text-olive-700 text-xs uppercase">
                       <tr>
                         <th className="px-4 py-3 font-medium">Employee</th>
+                        <th className="px-4 py-3 font-medium">Details</th>
                         <th className="px-4 py-3 font-medium">Type</th>
                         <th className="px-4 py-3 font-medium">Dates</th>
                         <th className="px-4 py-3 font-medium">Days</th>
@@ -469,9 +486,22 @@ export default function LeaveManagement() {
                       </tr>
                     </thead>
                     <tbody className="divide-y">
-                      {leaves.map((leave) => (
+                      {leaves.map((leave) => {
+                        const emp = employeesMap[leave.employeeId];
+                        return (
                         <tr key={leave.id} className="hover:bg-muted/20">
-                          <td className="px-4 py-3 font-medium">{leave.employeeName || "Employee"}</td>
+                          <td className="px-4 py-3 font-medium">
+                            <div className="flex flex-col">
+                              <span>{emp?.fullName || leave.employeeName || "Employee"}</span>
+                              <span className="text-[10px] text-muted-foreground font-mono mt-0.5">{emp?.employeeId || "No ID"}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex flex-col text-xs">
+                              <span className="font-semibold">{emp?.role || "Role N/A"}</span>
+                              <span className="text-muted-foreground mt-0.5">{emp?.department || (emp?.departments?.[0] || "Dept N/A")}</span>
+                            </div>
+                          </td>
                           <td className="px-4 py-3 text-muted-foreground">{leave.leaveType}</td>
                           <td className="px-4 py-3 text-muted-foreground">
                             {leave.startDate} to {leave.endDate}
@@ -483,7 +513,7 @@ export default function LeaveManagement() {
                             </Badge>
                           </td>
                         </tr>
-                      ))}
+                      )})}
                     </tbody>
                   </table>
                 </div>
