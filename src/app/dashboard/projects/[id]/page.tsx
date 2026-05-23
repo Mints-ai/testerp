@@ -72,6 +72,80 @@ export default function ProjectDetail() {
   const [employees, setEmployees] = useState<any[]>([]);
   const [searchEmp, setSearchEmp] = useState("");
 
+  // Milestone management state
+  const [newMilestoneTitle, setNewMilestoneTitle] = useState("");
+  const [newMilestoneDate, setNewMilestoneDate] = useState("");
+
+  // Project Task states
+  const [projectTasks, setProjectTasks] = useState<any[]>([]);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskPriority, setNewTaskPriority] = useState<"low" | "normal" | "high" | "urgent">("normal");
+
+  useEffect(() => {
+    if (!id) return;
+    const q = query(collection(db, "tasks"), where("projectId", "==", id));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setProjectTasks(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    return () => unsubscribe();
+  }, [id]);
+
+  const handleAddMilestone = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMilestoneTitle.trim()) return;
+    const newM = {
+      id: Math.random().toString(36).substring(2, 9),
+      title: newMilestoneTitle.trim(),
+      completed: false,
+      dueDate: newMilestoneDate || null
+    };
+    await updateDoc(doc(db, "projects", id as string), {
+      milestones: arrayUnion(newM)
+    });
+    setNewMilestoneTitle("");
+    setNewMilestoneDate("");
+  };
+
+  const handleToggleMilestone = async (milestoneId: string, currentVal: boolean) => {
+    const updatedMilestones = (project?.milestones || []).map((m: any) => 
+      m.id === milestoneId ? { ...m, completed: !currentVal } : m
+    );
+    await updateDoc(doc(db, "projects", id as string), {
+      milestones: updatedMilestones
+    });
+  };
+
+  const handleDeleteMilestone = async (milestoneId: string) => {
+    const updatedMilestones = (project?.milestones || []).filter((m: any) => m.id !== milestoneId);
+    await updateDoc(doc(db, "projects", id as string), {
+      milestones: updatedMilestones
+    });
+  };
+
+  const handleAddProjectTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTaskTitle.trim()) return;
+    
+    await addDoc(collection(db, "tasks"), {
+      title: newTaskTitle.trim(),
+      projectId: id,
+      projectName: project.name,
+      assignedTo: user?.uid || "unassigned",
+      status: "backlog",
+      priority: newTaskPriority,
+      createdAt: serverTimestamp ? serverTimestamp() : new Date(),
+      blocked: false
+    });
+    setNewTaskTitle("");
+  };
+
+  const handleToggleTaskStatus = async (taskId: string, currentStatus: string) => {
+    const nextStatus = currentStatus === "done" ? "in_progress" : "done";
+    await updateDoc(doc(db, "tasks", taskId), {
+      status: nextStatus
+    });
+  };
+
   useEffect(() => {
     const fetchEmployees = async () => {
       const q = query(collection(db, "employees"));
@@ -140,7 +214,10 @@ export default function ProjectDetail() {
     cancelled: "bg-red-100 text-red-700 border-red-200",
   };
 
-  const progress = 0;
+  const milestones = project?.milestones || [];
+  const progress = milestones.length > 0 
+    ? Math.round((milestones.filter((m: any) => m.completed).length / milestones.length) * 100) 
+    : 0;
 
   const handleDeleteProject = async () => {
     if (confirm("Are you sure you want to delete this project? This cannot be undone.")) {
@@ -234,16 +311,88 @@ export default function ProjectDetail() {
             </TabsList>
             
             <TabsContent value="overview" className="space-y-6 m-0">
-              <Card className="border-white/10 shadow-sm">
-                <CardHeader>
-                  <CardTitle className="text-lg text-white">Milestone Timeline</CardTitle>
+              <Card className="border-white/10 bg-white/[0.02] shadow-sm">
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="text-lg text-white">Milestone Timeline & Stages</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="relative border-l-2 border-white/10 ml-4 space-y-8 pb-4">
-                    <div className="relative pl-6">
-                      <p className="text-xs text-white/40 italic">No milestones defined yet.</p>
-                    </div>
+                <CardContent className="space-y-6">
+                  {/* Timeline representation */}
+                  <div className="relative border-l border-white/10 ml-4 pl-6 space-y-6">
+                    {milestones.length === 0 ? (
+                      <p className="text-xs text-white/40 italic">No milestones defined yet. Use the tool below to map project stages.</p>
+                    ) : (
+                      milestones.map((m: any) => (
+                        <div key={m.id} className="relative group">
+                          {/* Dot status */}
+                          <div className={cn(
+                            "absolute -left-[31px] top-1 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors",
+                            m.completed 
+                              ? "bg-emerald-500 border-emerald-400 text-white" 
+                              : "bg-[#0d1f3c] border-white/20 text-transparent"
+                          )}>
+                            {m.completed && <Check className="h-2.5 w-2.5" />}
+                          </div>
+
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <button 
+                                onClick={() => handleToggleMilestone(m.id, m.completed)}
+                                className={cn(
+                                  "text-sm font-bold transition-all text-left",
+                                  m.completed ? "text-white/40 line-through" : "text-white hover:text-blue-400"
+                                )}
+                              >
+                                {m.title}
+                              </button>
+                              {m.dueDate && (
+                                <span className="text-[10px] text-white/40 font-semibold font-mono bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">
+                                  Due: {new Date(m.dueDate).toLocaleDateString()}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Delete Milestones (Managers and above) */}
+                            {canAccess(currentRole || "employee", "CREATE_PROJECT") && (
+                              <button 
+                                onClick={() => handleDeleteMilestone(m.id)}
+                                className="text-white/20 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                                title="Remove Milestone"
+                              >
+                                <X className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
+
+                  {/* Add Milestone Inline Form (Manager and above) */}
+                  {canAccess(currentRole || "employee", "CREATE_PROJECT") && (
+                    <form onSubmit={handleAddMilestone} className="pt-4 border-t border-white/5 flex flex-wrap md:flex-nowrap gap-3 items-end">
+                      <div className="flex-1 space-y-1">
+                        <Label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">New Stage/Milestone</Label>
+                        <Input 
+                          placeholder="e.g. Design Handover & Client Approval" 
+                          value={newMilestoneTitle}
+                          onChange={e => setNewMilestoneTitle(e.target.value)}
+                          className="bg-white/[0.03] border-white/10 text-white placeholder:text-white/20 text-xs h-9"
+                        />
+                      </div>
+                      <div className="w-full md:w-44 space-y-1">
+                        <Label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Target Date</Label>
+                        <Input 
+                          type="date"
+                          value={newMilestoneDate}
+                          onChange={e => setNewMilestoneDate(e.target.value)}
+                          className="bg-white/[0.03] border-white/10 text-white text-xs h-9 animate-none"
+                        />
+                      </div>
+                      <Button type="submit" className="h-9 px-4 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 font-bold border border-blue-500/20 text-xs shrink-0 cursor-pointer">
+                        Add Milestone
+                      </Button>
+                    </form>
+                  )}
                 </CardContent>
               </Card>
 
@@ -263,17 +412,97 @@ export default function ProjectDetail() {
               )}
             </TabsContent>
 
-            <TabsContent value="tasks" className="m-0">
-              <Card className="border-white/10 shadow-sm">
-                <CardContent className="p-6">
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="font-bold text-white text-lg">Linked Tasks</h3>
-                    <Badge className="bg-white/5 text-white/80 border-white/10">12 Total</Badge>
+            <TabsContent value="tasks" className="m-0 space-y-6">
+              <Card className="border-white/10 shadow-sm bg-white/[0.02]">
+                <CardContent className="p-6 space-y-4">
+                  <div className="flex justify-between items-center pb-4 border-b border-white/5">
+                    <h3 className="font-extrabold text-white text-lg flex items-center gap-2">
+                      <CheckSquare className="h-5 w-5 text-indigo-500" />
+                      Project Deliverables & Tasks
+                    </h3>
+                    <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/20 font-bold px-2.5 py-0.5 rounded-full">
+                      {projectTasks.length} Total Tasks
+                    </Badge>
                   </div>
                   
-                  <div className="space-y-3">
-                    <p className="text-xs text-white/40 italic p-3 text-center">No tasks linked to this project.</p>
+                  <div className="space-y-2">
+                    {projectTasks.length === 0 ? (
+                      <p className="text-xs text-white/40 italic p-6 text-center">No tasks linked to this project yet.</p>
+                    ) : (
+                      projectTasks.map((t: any) => {
+                        const isTaskDone = t.status === "done";
+                        return (
+                          <div key={t.id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] hover:bg-white/[0.04] transition-colors">
+                            <div className="flex items-center gap-3">
+                              <button 
+                                onClick={() => handleToggleTaskStatus(t.id, t.status)}
+                                className={cn(
+                                  "w-5 h-5 rounded-md border flex items-center justify-center transition-colors shrink-0 cursor-pointer",
+                                  isTaskDone 
+                                    ? "bg-indigo-600 border-indigo-500 text-white" 
+                                    : "border-white/20 bg-transparent text-transparent"
+                                )}
+                              >
+                                {isTaskDone && <Check className="h-3.5 w-3.5" />}
+                              </button>
+                              <div>
+                                <span className={cn(
+                                  "text-xs font-bold block",
+                                  isTaskDone ? "text-white/40 line-through" : "text-white"
+                                )}>
+                                  {t.title}
+                                </span>
+                                {t.dueDate && (
+                                  <span className="text-[10px] text-white/40 font-mono">Due: {new Date(t.dueDate).toLocaleDateString()}</span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge className={cn(
+                                "text-[9px] uppercase tracking-wider px-2 py-0.5 font-bold rounded-full shadow-none border",
+                                t.status === "done" 
+                                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                  : t.status === "in_progress"
+                                  ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                  : "bg-white/5 text-white/60 border-white/10"
+                              )}>
+                                {t.status === "in_progress" ? "In Progress" : t.status}
+                              </Badge>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
+
+                  {/* Inline Task Form */}
+                  <form onSubmit={handleAddProjectTask} className="pt-4 border-t border-white/5 flex gap-3 items-end">
+                    <div className="flex-1 space-y-1">
+                      <Label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Fast-Create Connected Task</Label>
+                      <Input 
+                        placeholder="e.g. Design Wireframes for Checkout" 
+                        value={newTaskTitle}
+                        onChange={e => setNewTaskTitle(e.target.value)}
+                        className="bg-white/[0.03] border-white/10 text-white placeholder:text-white/20 text-xs h-9"
+                      />
+                    </div>
+                    <div className="w-32 space-y-1">
+                      <Label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Priority</Label>
+                      <select 
+                        value={newTaskPriority}
+                        onChange={e => setNewTaskPriority(e.target.value as any)}
+                        className="w-full h-9 border border-white/10 rounded-xl px-2 text-xs bg-[#0d1f3c] text-white font-semibold focus:border-indigo-500/60 focus:ring-0"
+                      >
+                        <option value="low">Low</option>
+                        <option value="normal">Normal</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                      </select>
+                    </div>
+                    <Button type="submit" className="h-9 px-4 bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 font-bold border border-indigo-500/20 text-xs shrink-0 cursor-pointer">
+                      Add Task
+                    </Button>
+                  </form>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -308,10 +537,15 @@ export default function ProjectDetail() {
                 <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider mb-2">Lead</p>
                 <div className="flex items-center gap-3">
                   <Avatar className="h-8 w-8 border border-white/10 shadow-sm">
-                    <AvatarFallback className="bg-white/5 text-white/60 text-xs">M</AvatarFallback>
+                    <AvatarImage src={employees.find(e => e.id === project.managerId)?.profilePhotoURL || ""} />
+                    <AvatarFallback className="bg-white/5 text-white/60 text-xs">
+                      {employees.find(e => e.id === project.managerId)?.fullName?.charAt(0) || "M"}
+                    </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="text-sm font-bold text-white/80">Manager Name</p>
+                    <p className="text-sm font-bold text-white/80">
+                      {employees.find(e => e.id === project.managerId)?.fullName || "Unassigned"}
+                    </p>
                   </div>
                 </div>
               </div>
