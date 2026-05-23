@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { doc, onSnapshot, deleteDoc, query, collection, where, getDocs } from "firebase/firestore";
+import { doc, onSnapshot, deleteDoc, query, collection, where, getDocs, addDoc, serverTimestamp, orderBy } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { ROLE_META, canAccess } from "@/lib/permissions";
 import { useAuth } from "@/context/AuthContext";
@@ -10,7 +10,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, Mail, Phone, Calendar, UserRound, ArrowLeft, Shield, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Building2, Mail, Phone, Calendar, UserRound, ArrowLeft, Shield, Trash2, Plus, Send, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export default function EmployeeProfile() {
@@ -22,6 +27,20 @@ export default function EmployeeProfile() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [projects, setProjects] = useState<any[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
+
+  const [employeeLeaves, setEmployeeLeaves] = useState<any[]>([]);
+  const [loadingLeaves, setLoadingLeaves] = useState(true);
+  
+  const [documents, setDocuments] = useState<any[]>([]);
+  const [loadingDocs, setLoadingDocs] = useState(true);
+  const [isAddDocOpen, setIsAddDocOpen] = useState(false);
+  const [newDoc, setNewDoc] = useState({ name: "", type: "Contract" });
+  const [isSubmittingDoc, setIsSubmittingDoc] = useState(false);
+
+  const [notes, setNotes] = useState<any[]>([]);
+  const [loadingNotes, setLoadingNotes] = useState(true);
+  const [newNote, setNewNote] = useState("");
+  const [isSubmittingNote, setIsSubmittingNote] = useState(false);
 
   useEffect(() => {
     if (!uid) return;
@@ -48,6 +67,77 @@ export default function EmployeeProfile() {
     };
     fetchProjects();
   }, [uid]);
+
+  useEffect(() => {
+    if (!uid) return;
+    
+    // We cannot reliably sort leaves by createdAt right away without an index, but employee leaves might be small. 
+    // Usually, we just filter. For now, we will sort on the client if it throws an error. Let's just use simple where.
+    const qLeaves = query(collection(db, "leaves"), where("employeeId", "==", uid));
+    const unsubLeaves = onSnapshot(qLeaves, (snap) => {
+      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setEmployeeLeaves(docs.sort((a: any, b: any) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0)));
+      setLoadingLeaves(false);
+    });
+
+    const qDocs = query(collection(db, "documents"), where("employeeId", "==", uid));
+    const unsubDocs = onSnapshot(qDocs, (snap) => {
+      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setDocuments(docs.sort((a: any, b: any) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0)));
+      setLoadingDocs(false);
+    });
+
+    const qNotes = query(collection(db, "notes"), where("employeeId", "==", uid));
+    const unsubNotes = onSnapshot(qNotes, (snap) => {
+      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setNotes(docs.sort((a: any, b: any) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0)));
+      setLoadingNotes(false);
+    });
+
+    return () => {
+      unsubLeaves();
+      unsubDocs();
+      unsubNotes();
+    };
+  }, [uid]);
+
+  const handleAddDocument = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newDoc.name || !newDoc.type) return;
+    setIsSubmittingDoc(true);
+    try {
+      await addDoc(collection(db, "documents"), {
+        employeeId: uid,
+        name: newDoc.name,
+        type: newDoc.type,
+        addedBy: user?.displayName || "System",
+        createdAt: serverTimestamp()
+      });
+      setIsAddDocOpen(false);
+      setNewDoc({ name: "", type: "Contract" });
+    } catch (err) {
+      console.error(err);
+    }
+    setIsSubmittingDoc(false);
+  };
+
+  const handleAddNote = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newNote.trim()) return;
+    setIsSubmittingNote(true);
+    try {
+      await addDoc(collection(db, "notes"), {
+        employeeId: uid,
+        text: newNote.trim(),
+        authorName: user?.displayName || "System",
+        createdAt: serverTimestamp()
+      });
+      setNewNote("");
+    } catch (err) {
+      console.error(err);
+    }
+    setIsSubmittingNote(false);
+  };
 
   if (loading) {
     return (
@@ -237,14 +327,70 @@ export default function EmployeeProfile() {
 
         <TabsContent value="documents" className="mt-4">
           <Card className="glass-card border-white/[0.08] bg-white/[0.02] overflow-hidden">
-            <CardHeader className="p-5 border-b border-white/[0.06]">
-              <CardTitle className="text-xs font-bold text-white uppercase tracking-wider">Onboard Documents Ledger</CardTitle>
-              <CardDescription className="text-xs text-white/40 mt-1">Passport copies, Global Visas, National ID, and Corporate Contracts.</CardDescription>
+            <CardHeader className="p-5 border-b border-white/[0.06] flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-xs font-bold text-white uppercase tracking-wider">Onboard Documents Ledger</CardTitle>
+                <CardDescription className="text-xs text-white/40 mt-1">Passport copies, Global Visas, National ID, and Corporate Contracts.</CardDescription>
+              </div>
+              <Dialog open={isAddDocOpen} onOpenChange={setIsAddDocOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-white h-8 text-xs font-bold px-3">
+                    <Plus className="h-3 w-3 mr-1" /> Add Record
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="bg-[#0f172a] border-white/10 text-white">
+                  <DialogHeader>
+                    <DialogTitle>Log New Document</DialogTitle>
+                    <DialogDescription className="text-white/40">Record the receipt of a new employment document.</DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleAddDocument} className="space-y-4 pt-4">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold uppercase text-white/60">Document Name</label>
+                      <Input value={newDoc.name} onChange={e => setNewDoc({...newDoc, name: e.target.value})} placeholder="e.g. Passport Scan 2026" className="bg-white/5 border-white/10 text-white" required />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold uppercase text-white/60">Document Type</label>
+                      <Select value={newDoc.type} onValueChange={v => setNewDoc({...newDoc, type: v})}>
+                        <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#1e293b] border-white/10 text-white">
+                          <SelectItem value="Passport">Passport</SelectItem>
+                          <SelectItem value="Visa">Visa</SelectItem>
+                          <SelectItem value="National ID">National ID</SelectItem>
+                          <SelectItem value="Contract">Contract</SelectItem>
+                          <SelectItem value="Certificate">Certificate</SelectItem>
+                          <SelectItem value="Other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <Button type="submit" disabled={isSubmittingDoc} className="w-full bg-blue-600 hover:bg-blue-500">{isSubmittingDoc ? "Saving..." : "Save Record"}</Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
             </CardHeader>
             <CardContent className="p-6">
-              <div className="text-center py-12 border-2 border-dashed border-white/10 rounded-2xl bg-white/[0.01]">
-                <p className="text-xs font-bold uppercase tracking-wider text-white/20">Secure document cloud storage pending activation...</p>
-              </div>
+              {loadingDocs ? (
+                 <div className="flex justify-center"><div className="animate-pulse w-4 h-4 rounded-full bg-blue-500" /></div>
+              ) : documents.length === 0 ? (
+                <div className="text-center py-12 border-2 border-dashed border-white/10 rounded-2xl bg-white/[0.01]">
+                  <p className="text-xs font-bold uppercase tracking-wider text-white/20">No documents recorded yet.</p>
+                </div>
+              ) : (
+                <div className="grid gap-3 md:grid-cols-2">
+                  {documents.map(doc => (
+                    <div key={doc.id} className="p-4 bg-white/[0.02] border border-white/10 rounded-xl flex items-center gap-4">
+                      <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">
+                        <FileText className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-white truncate">{doc.name}</p>
+                        <p className="text-xs text-white/40 mt-0.5">{doc.type} • Added {doc.createdAt ? new Date(doc.createdAt.toMillis()).toLocaleDateString() : 'Just now'}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -281,8 +427,47 @@ export default function EmployeeProfile() {
             <CardHeader className="p-5 border-b border-white/[0.06]">
               <CardTitle className="text-xs font-bold text-white uppercase tracking-wider">Staff Leave logs</CardTitle>
             </CardHeader>
-            <CardContent className="p-6">
-              <p className="text-xs text-white/35 text-center font-bold uppercase tracking-wider">No leave balance or history entries recorded.</p>
+            <CardContent className="p-0">
+              {loadingLeaves ? (
+                <div className="flex justify-center p-6"><div className="animate-pulse w-4 h-4 rounded-full bg-blue-500" /></div>
+              ) : employeeLeaves.length === 0 ? (
+                <div className="p-6">
+                  <p className="text-xs text-white/35 text-center font-bold uppercase tracking-wider">No leave balance or history entries recorded.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm text-left text-white/80">
+                    <thead className="bg-white/[0.02] border-b border-white/[0.06] text-[10px] uppercase tracking-wider text-white/50">
+                      <tr>
+                        <th className="px-5 py-3 font-bold">Leave Type</th>
+                        <th className="px-5 py-3 font-bold">Dates</th>
+                        <th className="px-5 py-3 font-bold">Days</th>
+                        <th className="px-5 py-3 font-bold">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/[0.06]">
+                      {employeeLeaves.map((leave) => (
+                        <tr key={leave.id} className="hover:bg-white/[0.02] transition-colors">
+                          <td className="px-5 py-3 font-medium text-white">{leave.leaveType}</td>
+                          <td className="px-5 py-3 text-white/50">
+                            {leave.startDate} <span className="mx-1 text-white/20">to</span> {leave.endDate}
+                          </td>
+                          <td className="px-5 py-3">{leave.daysCount}</td>
+                          <td className="px-5 py-3">
+                            <Badge variant="outline" className={cn("text-[9px] uppercase tracking-wider bg-transparent",
+                              leave.status === 'approved' ? 'text-emerald-400 border-emerald-500/20' : 
+                              leave.status === 'rejected' ? 'text-rose-400 border-rose-500/20' : 
+                              'text-amber-400 border-amber-500/20'
+                            )}>
+                              {leave.status}
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -293,8 +478,36 @@ export default function EmployeeProfile() {
               <CardHeader className="p-5 border-b border-white/[0.06]">
                 <CardTitle className="text-xs font-bold text-white uppercase tracking-wider">Private Executive Notes</CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
-                <p className="text-xs text-white/35 text-center font-bold uppercase tracking-wider">No private observations or performance assessments entered.</p>
+              <CardContent className="p-6 space-y-6">
+                <form onSubmit={handleAddNote} className="flex gap-3">
+                  <Input 
+                    placeholder="Add a performance observation..." 
+                    value={newNote} 
+                    onChange={e => setNewNote(e.target.value)} 
+                    className="bg-white/5 border-white/10 text-white" 
+                  />
+                  <Button type="submit" disabled={isSubmittingNote || !newNote.trim()} className="bg-blue-600 hover:bg-blue-500 text-white px-6 shrink-0">
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </form>
+
+                <div className="space-y-4">
+                  {loadingNotes ? (
+                    <div className="flex justify-center py-4"><div className="animate-pulse w-4 h-4 rounded-full bg-blue-500" /></div>
+                  ) : notes.length === 0 ? (
+                    <p className="text-xs text-white/35 text-center font-bold uppercase tracking-wider py-8">No private observations or performance assessments entered.</p>
+                  ) : (
+                    notes.map(note => (
+                      <div key={note.id} className="p-4 bg-white/[0.02] border border-white/10 rounded-xl">
+                        <p className="text-sm text-white/90 leading-relaxed whitespace-pre-wrap">{note.text}</p>
+                        <div className="mt-3 flex items-center justify-between text-[10px] text-white/40 font-mono uppercase tracking-wider border-t border-white/5 pt-3">
+                          <span>{note.authorName}</span>
+                          <span>{note.createdAt ? new Date(note.createdAt.toMillis()).toLocaleString() : 'Just now'}</span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
