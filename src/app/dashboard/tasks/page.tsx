@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, where, onSnapshot, doc, updateDoc, addDoc, serverTimestamp, getDocs } from "firebase/firestore";
+import { collection, query, where, onSnapshot, doc, updateDoc, addDoc, serverTimestamp, getDocs, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Clock, MessageSquare, CheckSquare, Target, Lock, Play, Kanban as KanbanIcon } from "lucide-react";
+import { Plus, Clock, MessageSquare, CheckSquare, Target, Lock, Play, Kanban as KanbanIcon, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -195,8 +195,18 @@ export default function TaskBoard() {
       await updateDoc(doc(db, "tasks", draggableId), {
         status: destStatus
       });
-    } catch (err) {
+      } catch (err) {
       console.error("Error updating task status:", err);
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    if (confirm("Are you sure you want to delete this task? This action cannot be undone.")) {
+      try {
+        await deleteDoc(doc(db, "tasks", taskId));
+      } catch (err) {
+        console.error("Error deleting task:", err);
+      }
     }
   };
 
@@ -324,12 +334,17 @@ export default function TaskBoard() {
                             <button className="mt-1 w-5 h-5 rounded border-2 border-white/20 flex items-center justify-center hover:border-blue-500 hover:bg-blue-500/10 transition-colors shrink-0 cursor-pointer">
                             </button>
                             <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1.5">
-                                <span className="badge bg-white/5 border border-white/10 text-white/50 text-[9px] font-bold py-0.5 uppercase tracking-wider">
-                                  {task.projectName || "Project"}
-                                </span>
-                                {task.priority === "urgent" && <span className="badge status-critical font-bold text-[9px] py-0.5 uppercase tracking-wider">Urgent</span>}
-                                {task.blocked && <span className="badge status-draft font-bold text-[9px] py-0.5 uppercase tracking-wider flex items-center gap-1"><Lock className="w-2.5 h-2.5" /> Blocked</span>}
+                              <div className="flex items-center justify-between mb-1.5">
+                                <div className="flex items-center gap-2">
+                                  <span className="badge bg-white/5 border border-white/10 text-white/50 text-[9px] font-bold py-0.5 uppercase tracking-wider">
+                                    {task.projectName || "Project"}
+                                  </span>
+                                  {task.priority === "urgent" && <span className="badge status-critical font-bold text-[9px] py-0.5 uppercase tracking-wider">Urgent</span>}
+                                  {task.blocked && <span className="badge status-draft font-bold text-[9px] py-0.5 uppercase tracking-wider flex items-center gap-1"><Lock className="w-2.5 h-2.5" /> Blocked</span>}
+                                </div>
+                                <button onClick={() => handleDeleteTask(task.id)} className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-rose-500/20 text-rose-400 rounded cursor-pointer">
+                                  <Trash2 className="w-3 h-3" />
+                                </button>
                               </div>
                               <h3 className="text-sm font-bold text-white group-hover:text-blue-400 transition-colors leading-snug">{task.title}</h3>
                               
@@ -406,6 +421,9 @@ export default function TaskBoard() {
                                       </Badge>
                                       {task.blocked && <span title="Blocked"><Lock className="w-3 h-3 text-white/30" /></span>}
                                     </div>
+                                    <button onClick={() => handleDeleteTask(task.id)} className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-rose-500/20 text-rose-400 rounded cursor-pointer shrink-0">
+                                      <Trash2 className="w-3 h-3" />
+                                    </button>
                                   </div>
                                   
                                   <p className="text-xs font-bold text-white mb-3 leading-snug line-clamp-2 group-hover:text-blue-400 transition-colors">
