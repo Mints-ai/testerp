@@ -14,7 +14,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Settings, Users, Building2, Calendar, ShieldAlert, UploadCloud, Plus, Trash2, User, Shield } from "lucide-react";
+import { Settings, Users, Building2, Calendar, ShieldAlert, UploadCloud, Plus, Trash2, User, Shield, Activity, ShieldCheck, Laptop, Wifi, Clock, Search } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -42,6 +43,11 @@ export default function SettingsDashboard() {
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<"preferences" | "users" | "roles" | "company" | "holidays" | "audit">("preferences");
   const [selectedRole, setSelectedRole] = useState<string>("employee");
+  
+  // Audit Logs V2 Filtering States
+  const [auditSearchQuery, setAuditSearchQuery] = useState("");
+  const [selectedAuditAction, setSelectedAuditAction] = useState<string>("ALL");
+  const [selectedAuditActor, setSelectedAuditActor] = useState<string>("ALL");
   
   const [companySettings, setCompanySettings] = useState<any>({
     name: "Mints Global",
@@ -261,6 +267,46 @@ export default function SettingsDashboard() {
 
   const getEmployeesWithRole = (r: string) => {
     return employees.filter(emp => emp.role === r);
+  };
+
+  const getActorInfo = (actorId: string) => {
+    const emp = employees.find(e => e.id === actorId);
+    return {
+      name: emp?.fullName || emp?.name || "System Actor",
+      role: emp?.role || "System",
+      jobTitle: emp?.jobTitle || "Corporate Profile",
+      avatar: emp?.profilePhotoURL || "",
+      initials: (emp?.fullName || emp?.name || "SA").split(" ").map((n: any) => n[0]).join("").substring(0, 2).toUpperCase()
+    };
+  };
+
+  const getAuditDescription = (log: any) => {
+    if (log.details) return log.details;
+    const actor = getActorInfo(log.actorId).name;
+    switch(log.action) {
+      case "LOGIN": return `${actor} successfully signed in to the ERP.`;
+      case "LOGOUT": return `${actor} signed out from corporate network.`;
+      case "START_DM": return `${actor} initiated a private direct message room.`;
+      case "CREATE_GROUP": return `${actor} created a custom private team room.`;
+      default: return `${actor} performed action ${log.action} on ${log.targetCollection || 'system'}.`;
+    }
+  };
+
+  const getActionBadgeColor = (action: string) => {
+    switch (action) {
+      case "LOGIN": return "bg-emerald-100 text-emerald-800 border-emerald-250";
+      case "LOGOUT": return "bg-amber-100 text-amber-800 border-amber-250";
+      case "START_DM": return "bg-cyan-100 text-cyan-800 border-cyan-250";
+      case "CREATE_GROUP": return "bg-indigo-100 text-indigo-800 border-indigo-250";
+      case "SYSTEM_SETTINGS": return "bg-rose-100 text-rose-800 border-rose-250";
+      default: return "bg-slate-100 text-slate-800 border-slate-250";
+    }
+  };
+
+  const isOnline = (lastSeenAtString?: string) => {
+    if (!lastSeenAtString) return false;
+    const diff = Date.now() - new Date(lastSeenAtString).getTime();
+    return diff < 300000; // 5 minutes in milliseconds
   };
 
   return (
@@ -753,50 +799,189 @@ export default function SettingsDashboard() {
             </div>
           )}
 
-          {/* AUDIT LOG */}
-          {isFounder && activeTab === "audit" && (
-            <div className="flex flex-col h-full">
-              <div className="p-6 border-b border-olive-100 bg-olive-50/50">
-                <h3 className="font-bold text-lg text-olive-900">System Audit Log</h3>
-                <p className="text-sm text-olive-600">Read-only record of all critical database operations. Visible to Founders only.</p>
+          {/* AUDIT LOG & LIVE TELEMETRY SUITE */}
+          {isFounder && activeTab === "audit" && (() => {
+            const filteredAuditLogs = auditLogs.filter(log => {
+              const actor = getActorInfo(log.actorId);
+              const desc = getAuditDescription(log);
+              const matchesSearch = actor.name.toLowerCase().includes(auditSearchQuery.toLowerCase()) ||
+                                    desc.toLowerCase().includes(auditSearchQuery.toLowerCase()) ||
+                                    log.action.toLowerCase().includes(auditSearchQuery.toLowerCase());
+              const matchesAction = selectedAuditAction === "ALL" || log.action === selectedAuditAction;
+              const matchesActor = selectedAuditActor === "ALL" || log.actorId === selectedAuditActor;
+              return matchesSearch && matchesAction && matchesActor;
+            });
+
+            const onlineEmployees = employees.filter(emp => emp.isActive && isOnline(emp.lastSeenAt));
+
+            return (
+              <div className="flex flex-col h-full bg-[#f8fafc] text-slate-800">
+                
+                {/* Visual Header */}
+                <div className="p-6 border-b border-slate-200 bg-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <h3 className="font-extrabold text-xl text-slate-900 flex items-center gap-2">
+                      <Activity className="h-5 w-5 text-indigo-600 animate-pulse" />
+                      Live Telemetry & Audit Logs
+                    </h3>
+                    <p className="text-xs text-slate-500 mt-1">Foundational dashboard monitoring team activities and active sessions in real-time.</p>
+                  </div>
+                  
+                  {/* Status Indicator Counters */}
+                  <div className="flex gap-4">
+                    <div className="bg-emerald-50 border border-emerald-200 px-4 py-2 rounded-xl flex items-center gap-3">
+                      <span className="relative flex h-3 w-3 shrink-0">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                      </span>
+                      <div>
+                        <p className="text-[10px] uppercase font-bold text-emerald-800">Active Staff</p>
+                        <p className="text-sm font-extrabold text-emerald-950 font-mono">{onlineEmployees.length} Online</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-indigo-50 border border-indigo-200 px-4 py-2 rounded-xl flex items-center gap-3">
+                      <Clock className="h-4.5 w-4.5 text-indigo-600" />
+                      <div>
+                        <p className="text-[10px] uppercase font-bold text-indigo-800">Logged Events</p>
+                        <p className="text-sm font-extrabold text-indigo-950 font-mono">{auditLogs.length} Total</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Filter and Search Bar */}
+                <div className="p-4 bg-white border-b border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                    <Input 
+                      placeholder="Search live events..." 
+                      value={auditSearchQuery}
+                      onChange={e => setAuditSearchQuery(e.target.value)}
+                      className="pl-9 bg-slate-50 border-slate-200 focus-visible:ring-indigo-500 text-slate-900 rounded-lg text-xs"
+                    />
+                  </div>
+
+                  <Select value={selectedAuditAction} onValueChange={setSelectedAuditAction}>
+                    <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900 rounded-lg text-xs font-semibold">
+                      <SelectValue placeholder="Filter Action" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white text-slate-900 font-semibold border-slate-150">
+                      <SelectItem value="ALL">All Actions</SelectItem>
+                      <SelectItem value="LOGIN">User Logins</SelectItem>
+                      <SelectItem value="START_DM">Direct Messages</SelectItem>
+                      <SelectItem value="CREATE_GROUP">Group Creations</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={selectedAuditActor} onValueChange={setSelectedAuditActor}>
+                    <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900 rounded-lg text-xs font-semibold">
+                      <SelectValue placeholder="Filter Employee" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white text-slate-900 font-semibold border-slate-150">
+                      <SelectItem value="ALL">All Colleagues</SelectItem>
+                      {employees.map(emp => (
+                        <SelectItem key={emp.id} value={emp.id}>{emp.fullName || emp.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Two-Column Telemetry workspace */}
+                <div className="flex-1 flex flex-col lg:flex-row gap-6 p-6 min-h-0 overflow-y-auto">
+                  
+                  {/* Left Column (65%): Feed timeline */}
+                  <div className="flex-1 space-y-4">
+                    <h4 className="text-xs uppercase tracking-wider font-extrabold text-slate-400">Activity Logs Timeline</h4>
+                    <div className="space-y-3">
+                      {filteredAuditLogs.length === 0 ? (
+                        <div className="bg-white border border-slate-200 rounded-xl p-12 text-center text-slate-400">
+                          <ShieldAlert className="h-10 w-10 mx-auto mb-2 opacity-30 text-indigo-500" />
+                          <p className="font-bold text-sm">No activity events found</p>
+                          <p className="text-xs mt-1">Refine your search tags or filters.</p>
+                        </div>
+                      ) : (
+                        filteredAuditLogs.map(log => {
+                          const actor = getActorInfo(log.actorId);
+                          const description = getAuditDescription(log);
+                          const dateString = log.createdAt?.seconds 
+                            ? new Date(log.createdAt.seconds * 1000).toLocaleString(undefined, {
+                                month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                              }) 
+                            : 'Just now';
+
+                          return (
+                            <div key={log.id} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-start gap-4">
+                              <Avatar className="h-10 w-10 shrink-0 border border-slate-200">
+                                <AvatarImage src={actor.avatar} />
+                                <AvatarFallback className="bg-indigo-600 text-white font-bold text-sm">{actor.initials}</AvatarFallback>
+                              </Avatar>
+                              
+                              <div className="flex-1 min-w-0">
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                  <div>
+                                    <span className="font-bold text-slate-900 text-sm block md:inline mr-2">{actor.name}</span>
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-tight bg-slate-50 border border-slate-150 px-2 py-0.5 rounded-full">{actor.role}</span>
+                                  </div>
+                                  <Badge className={cn("text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border shadow-none", getActionBadgeColor(log.action))}>
+                                    {log.action}
+                                  </Badge>
+                                </div>
+                                <p className="text-xs font-semibold text-slate-700 mt-2 leading-relaxed">{description}</p>
+                                
+                                <div className="flex items-center gap-4 mt-3 pt-3 border-t border-slate-100 text-[10px] text-slate-400 font-semibold font-mono">
+                                  <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> {dateString}</span>
+                                  <span>ID: {log.id.substring(0, 8)}...</span>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Right Column (35%): Online Staff live metrics */}
+                  <div className="w-full lg:w-80 shrink-0 space-y-4">
+                    <h4 className="text-xs uppercase tracking-wider font-extrabold text-slate-400">Live Online Staff ({onlineEmployees.length})</h4>
+                    <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-4">
+                      {onlineEmployees.length === 0 ? (
+                        <div className="text-center py-8 text-slate-400 text-xs italic">
+                          No team members are active currently.
+                        </div>
+                      ) : (
+                        <div className="space-y-3.5 divide-y divide-slate-100">
+                          {onlineEmployees.map((emp, idx) => {
+                            const initials = emp.fullName.split(" ").map((n: any) => n[0]).join("").substring(0,2).toUpperCase();
+                            return (
+                              <div key={emp.id} className={cn("flex items-center gap-3", idx > 0 ? "pt-3.5" : "")}>
+                                <div className="relative">
+                                  <Avatar className="h-9 w-9 border border-slate-200">
+                                    <AvatarImage src={emp.profilePhotoURL} />
+                                    <AvatarFallback className="bg-indigo-600 text-white font-bold text-xs">{initials}</AvatarFallback>
+                                  </Avatar>
+                                  <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white animate-pulse" />
+                                </div>
+                                
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-extrabold text-slate-900 truncate">{emp.fullName || emp.name}</p>
+                                  <p className="text-[10px] text-slate-400 font-semibold truncate">{emp.jobTitle || "Employee"}</p>
+                                  {emp.lastLoginIP && (
+                                    <p className="text-[9px] text-slate-400 font-mono mt-1 font-semibold flex items-center gap-1"><Wifi className="h-3 w-3 shrink-0" /> {emp.lastLoginIP}</p>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                </div>
               </div>
-              <div className="overflow-x-auto p-0">
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-slate-50 text-slate-700 text-xs uppercase font-bold border-b border-slate-200">
-                    <tr>
-                      <th className="px-6 py-4">Timestamp</th>
-                      <th className="px-6 py-4">Actor UID</th>
-                      <th className="px-6 py-4">Action</th>
-                      <th className="px-6 py-4">Target Collection</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {auditLogs.length === 0 ? (
-                      <tr>
-                        <td colSpan={4} className="px-6 py-16 text-center text-slate-500">
-                          <ShieldAlert className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                          <p className="font-medium">No audit logs found. System events will be recorded here.</p>
-                        </td>
-                      </tr>
-                    ) : (
-                      auditLogs.map((log) => (
-                        <tr key={log.id} className="hover:bg-slate-50 font-mono text-xs transition-colors">
-                          <td className="px-6 py-4 font-semibold text-slate-700">{log.createdAt ? new Date(log.createdAt.seconds * 1000).toLocaleString() : 'N/A'}</td>
-                          <td className="px-6 py-4 truncate max-w-[150px] text-slate-600">{log.actorId}</td>
-                          <td className="px-6 py-4">
-                            <Badge variant="outline" className="bg-white border-slate-300 text-slate-700 shadow-none font-bold">
-                              {log.action}
-                            </Badge>
-                          </td>
-                          <td className="px-6 py-4 text-slate-500">{log.targetCollection} : {log.targetId}</td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
+            );
+          })()}
 
         </div>
       </div>

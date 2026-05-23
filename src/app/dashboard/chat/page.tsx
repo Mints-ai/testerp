@@ -195,6 +195,17 @@ export default function Chat() {
         members: [user?.uid, peer.id],
         createdAt: serverTimestamp()
       });
+
+      // Write system audit log
+      await addDoc(collection(db, "auditLog"), {
+        actorId: user?.uid,
+        action: "START_DM",
+        targetCollection: "chatChannels",
+        targetId: docRef.id,
+        details: `Started a private Direct Message with ${peer.fullName || peer.name || 'colleague'}.`,
+        createdAt: serverTimestamp()
+      });
+
       setActiveChannel(docRef.id);
       setIsDMModalOpen(false);
     } catch (e) {
@@ -213,6 +224,17 @@ export default function Chat() {
         members: [user?.uid, ...selectedMembers],
         createdAt: serverTimestamp()
       });
+
+      // Write system audit log
+      await addDoc(collection(db, "auditLog"), {
+        actorId: user?.uid,
+        action: "CREATE_GROUP",
+        targetCollection: "chatChannels",
+        targetId: docRef.id,
+        details: `Created custom group chat "${groupName.trim()}" with ${selectedMembers.length} members.`,
+        createdAt: serverTimestamp()
+      });
+
       setActiveChannel(docRef.id);
       setGroupName("");
       setSelectedMembers([]);
