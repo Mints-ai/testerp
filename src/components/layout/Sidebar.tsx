@@ -207,7 +207,7 @@ export function Sidebar() {
       {/* Mobile hamburger */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-40 w-10 h-10 flex items-center justify-center glass rounded-xl text-white/60 hover:text-white cursor-pointer"
+        className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 flex items-center justify-center glass rounded-xl text-white/60 hover:text-white cursor-pointer"
       >
         <Menu className="h-5 w-5" />
       </button>

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { doc, onSnapshot, deleteDoc } from "firebase/firestore";
+import { doc, onSnapshot, deleteDoc, query, collection, where, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { ROLE_META, canAccess } from "@/lib/permissions";
 import { useAuth } from "@/context/AuthContext";
@@ -20,6 +20,8 @@ export default function EmployeeProfile() {
   const [employee, setEmployee] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [loadingProjects, setLoadingProjects] = useState(true);
 
   useEffect(() => {
     if (!uid) return;
@@ -34,6 +36,17 @@ export default function EmployeeProfile() {
     });
 
     return () => unsubscribe();
+  }, [uid]);
+
+  useEffect(() => {
+    if (!uid) return;
+    const fetchProjects = async () => {
+      const q = query(collection(db, "projects"), where("memberIds", "array-contains", uid));
+      const snap = await getDocs(q);
+      setProjects(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      setLoadingProjects(false);
+    };
+    fetchProjects();
   }, [uid]);
 
   if (loading) {
@@ -242,7 +255,23 @@ export default function EmployeeProfile() {
               <CardTitle className="text-xs font-bold text-white uppercase tracking-wider">Assigned Strategic Projects</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
-              <p className="text-xs text-white/35 text-center font-bold uppercase tracking-wider">No active project scopes registered under this staff profile.</p>
+              {loadingProjects ? (
+                <div className="flex justify-center"><div className="animate-pulse w-4 h-4 rounded-full bg-blue-500" /></div>
+              ) : projects.length === 0 ? (
+                <p className="text-xs text-white/35 text-center font-bold uppercase tracking-wider">No active project scopes registered under this staff profile.</p>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2">
+                  {projects.map((proj: any) => (
+                    <div key={proj.id} className="p-4 bg-white/[0.02] border border-white/10 rounded-xl cursor-pointer hover:bg-white/[0.05] transition-colors" onClick={() => router.push(`/dashboard/projects/${proj.id}`)}>
+                      <h4 className="text-sm font-bold text-white mb-1">{proj.name}</h4>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="bg-white/5 border-white/10 text-white/60 text-[9px] uppercase tracking-wider">{proj.status || "active"}</Badge>
+                        <span className="text-[10px] text-white/40 font-mono">{proj.serviceType}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

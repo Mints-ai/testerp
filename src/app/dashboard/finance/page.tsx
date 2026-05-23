@@ -289,7 +289,7 @@ export default function FinanceDashboard() {
                   <CardDescription className="text-[11px] text-white/40 mt-1">Revenue vs Expenses vs Net Profit over the last 6 months.</CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">
-                  <div className="h-[300px]">
+                  <div className="h-[300px] w-full min-w-0">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={mockFinancialData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                         <defs>
@@ -325,8 +325,8 @@ export default function FinanceDashboard() {
                   <CardTitle className="text-sm font-bold text-white">Expense Distribution</CardTitle>
                   <CardDescription className="text-[11px] text-white/40 mt-1">Breakdown by category (Current Month)</CardDescription>
                 </CardHeader>
-                <CardContent className="p-0 flex-1 flex flex-col justify-between">
-                  <div className="h-[180px] flex flex-col justify-center relative my-2">
+                <CardContent className="p-0 flex-1 flex flex-col justify-between min-w-0">
+                  <div className="h-[180px] w-full flex flex-col justify-center relative my-2 min-w-0">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie

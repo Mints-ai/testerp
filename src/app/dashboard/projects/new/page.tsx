@@ -117,6 +117,25 @@ export default function CreateProject() {
       };
 
       const docRef = await addDoc(collection(db, "projects"), projectData);
+
+      if (values.managerId !== user.uid) {
+        await addDoc(collection(db, "notifications"), {
+          userId: values.managerId,
+          title: "New Project Assigned",
+          message: `You have been assigned as Project Manager for: ${values.name}`,
+          read: false,
+          createdAt: serverTimestamp()
+        });
+
+        fetch('/api/discord', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            content: `🚀 **New Project Created**\n**Project:** ${values.name}\n**Manager ID:** ${values.managerId}`
+          })
+        }).catch(err => console.error("Discord error:", err));
+      }
+
       router.push(`/dashboard/projects/${docRef.id}`);
     } catch (err: any) {
       console.error("Error creating project:", err);

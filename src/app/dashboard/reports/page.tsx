@@ -290,7 +290,7 @@ export default function ReportsAndIntelligence() {
                 <CardTitle className="text-sm font-bold text-white">Revenue vs. Expenses Trend</CardTitle>
                 <CardDescription className="text-[11px] text-white/40 mt-1">Monthly track of incoming receivables and operational overhead expenses.</CardDescription>
               </CardHeader>
-              <CardContent className="h-[300px] p-0">
+              <CardContent className="h-[300px] p-0 w-full min-w-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={defaultMonthlyPerformance} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                     <defs>
@@ -363,7 +363,7 @@ export default function ReportsAndIntelligence() {
                 <CardTitle className="text-sm font-bold text-white">Delivery Portfolio Mix</CardTitle>
                 <CardDescription className="text-[11px] text-white/40 mt-1">Visual summary of client projects status.</CardDescription>
               </CardHeader>
-              <CardContent className="h-64 p-0 flex flex-col items-center justify-center">
+              <CardContent className="h-64 p-0 flex flex-col items-center justify-center w-full min-w-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -402,7 +402,7 @@ export default function ReportsAndIntelligence() {
                 <CardTitle className="text-sm font-bold text-white">Project Velocity vs. Delivery Speed</CardTitle>
                 <CardDescription className="text-[11px] text-white/40 mt-1">Monthly distribution of total actively loaded projects.</CardDescription>
               </CardHeader>
-              <CardContent className="h-[300px] p-0">
+              <CardContent className="h-[300px] p-0 w-full min-w-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={defaultMonthlyPerformance} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                     <CartesianGrid strokeDasharray={CHART_STYLE.grid.strokeDasharray} vertical={false} stroke={CHART_STYLE.grid.stroke} />
@@ -426,7 +426,7 @@ export default function ReportsAndIntelligence() {
                 <CardTitle className="text-sm font-bold text-white">Headcount Breakdown by Department</CardTitle>
                 <CardDescription className="text-[11px] text-white/40 mt-1">Shows team density and capacity allocations.</CardDescription>
               </CardHeader>
-              <CardContent className="h-[300px] p-0">
+              <CardContent className="h-[300px] p-0 w-full min-w-0">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={getDeptDistribution()} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                     <CartesianGrid strokeDasharray={CHART_STYLE.grid.strokeDasharray} horizontal={false} stroke={CHART_STYLE.grid.stroke} />

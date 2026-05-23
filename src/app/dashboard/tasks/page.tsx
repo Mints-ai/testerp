@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, where, onSnapshot, doc, updateDoc, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, where, onSnapshot, doc, updateDoc, addDoc, serverTimestamp, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
@@ -57,7 +57,8 @@ export default function TaskBoard() {
   const [focusMode, setFocusMode] = useState(false);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [newTask, setNewTask] = useState({ title: "", priority: "normal" as TaskPriority, dueDate: "" });
+  const [newTask, setNewTask] = useState({ title: "", priority: "normal" as TaskPriority, dueDate: "", assignedTo: "" });
+  const [employeesByDept, setEmployeesByDept] = useState<Record<string, any[]>>({});
   const [addingToStatus, setAddingToStatus] = useState<TaskStatus>("backlog");
 
   const handleAddTask = async (e: React.FormEvent) => {
@@ -66,25 +67,63 @@ export default function TaskBoard() {
     
     setIsSubmitting(true);
     try {
+      const assigneeId = newTask.assignedTo || user.uid;
+      
       await addDoc(collection(db, "tasks"), {
         title: newTask.title.trim(),
         projectId: "general", // Default or fetch from somewhere
         projectName: "General",
-        assignedTo: user.uid,
+        assignedTo: assigneeId,
         status: addingToStatus,
         priority: newTask.priority,
         dueDate: newTask.dueDate || null,
         createdAt: serverTimestamp(),
         blocked: false,
       });
+
+      if (assigneeId !== user.uid) {
+        await addDoc(collection(db, "notifications"), {
+          userId: assigneeId,
+          title: "New Task Assigned",
+          message: `You have been assigned a new task: ${newTask.title.trim()}`,
+          read: false,
+          createdAt: serverTimestamp()
+        });
+
+        fetch('/api/discord', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            content: `📋 **New Task Assigned**\n**Task:** ${newTask.title.trim()}\n**Assigned To ID:** ${assigneeId}`
+          })
+        }).catch(err => console.error("Discord error:", err));
+      }
+
       setIsAddOpen(false);
-      setNewTask({ title: "", priority: "normal", dueDate: "" });
+      setNewTask({ title: "", priority: "normal", dueDate: "", assignedTo: "" });
     } catch (error) {
       console.error("Error adding task:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      const snapshot = await getDocs(collection(db, "employees"));
+      const emps = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const grouped = emps.reduce((acc, emp: any) => {
+        const depts = emp.departments || (emp.department ? [emp.department] : ["Unassigned"]);
+        depts.forEach((dept: string) => {
+          if (!acc[dept]) acc[dept] = [];
+          if (!acc[dept].find((e: any) => e.id === emp.id)) acc[dept].push(emp);
+        });
+        return acc;
+      }, {} as Record<string, any[]>);
+      setEmployeesByDept(grouped);
+    };
+    fetchEmployees();
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -442,6 +481,25 @@ export default function TaskBoard() {
                 onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
                 className="bg-white/5 border-white/10 text-white placeholder:text-white/30"
               />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-white/70 uppercase tracking-wider">Assign To</label>
+              <select
+                value={newTask.assignedTo || user?.uid || ""}
+                onChange={(e) => setNewTask({ ...newTask, assignedTo: e.target.value })}
+                className="flex h-9 w-full rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 text-white appearance-none"
+              >
+                <option value={user?.uid || ""} className="bg-[#0f172a]">Assign to me</option>
+                {Object.entries(employeesByDept).map(([dept, emps]) => (
+                  <optgroup key={dept} label={dept} className="bg-[#0f172a] text-blue-400 font-bold uppercase text-[10px]">
+                    {emps.map(emp => (
+                      <option key={emp.id} value={emp.id} className="text-white text-xs normal-case font-medium">
+                        {emp.fullName} {emp.jobTitle ? `- ${emp.jobTitle}` : ""}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
