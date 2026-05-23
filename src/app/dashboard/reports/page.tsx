@@ -291,7 +291,7 @@ export default function ReportsAndIntelligence() {
                 <CardDescription className="text-[11px] text-white/40 mt-1">Monthly track of incoming receivables and operational overhead expenses.</CardDescription>
               </CardHeader>
               <CardContent className="h-[300px] p-0 w-full min-w-0">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={300}>
                   <AreaChart data={defaultMonthlyPerformance} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
@@ -364,7 +364,7 @@ export default function ReportsAndIntelligence() {
                 <CardDescription className="text-[11px] text-white/40 mt-1">Visual summary of client projects status.</CardDescription>
               </CardHeader>
               <CardContent className="h-64 p-0 flex flex-col items-center justify-center w-full min-w-0">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={256}>
                   <PieChart>
                     <Pie
                       data={getProjectStatusDistribution()}
@@ -403,7 +403,7 @@ export default function ReportsAndIntelligence() {
                 <CardDescription className="text-[11px] text-white/40 mt-1">Monthly distribution of total actively loaded projects.</CardDescription>
               </CardHeader>
               <CardContent className="h-[300px] p-0 w-full min-w-0">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={defaultMonthlyPerformance} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                     <CartesianGrid strokeDasharray={CHART_STYLE.grid.strokeDasharray} vertical={false} stroke={CHART_STYLE.grid.stroke} />
                     <XAxis dataKey="month" axisLine={CHART_STYLE.axis.axisLine} tickLine={CHART_STYLE.axis.tickLine} tick={CHART_STYLE.axis.tick} dy={10} />
@@ -427,7 +427,7 @@ export default function ReportsAndIntelligence() {
                 <CardDescription className="text-[11px] text-white/40 mt-1">Shows team density and capacity allocations.</CardDescription>
               </CardHeader>
               <CardContent className="h-[300px] p-0 w-full min-w-0">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={getDeptDistribution()} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                     <CartesianGrid strokeDasharray={CHART_STYLE.grid.strokeDasharray} horizontal={false} stroke={CHART_STYLE.grid.stroke} />
                     <XAxis type="number" axisLine={CHART_STYLE.axis.axisLine} tickLine={CHART_STYLE.axis.tickLine} tick={CHART_STYLE.axis.tick} />
