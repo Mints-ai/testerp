@@ -108,6 +108,13 @@ service cloud.firestore {
       allow update, delete: if isAuth() && (resource.data.senderId == request.auth.uid || resource.data.receiverId == request.auth.uid);
     }
 
+    // Chat Channels Collection Rules
+    match /chatChannels/{channelId} {
+      allow read: if isAuth() && (resource.data.type in ['global', 'department'] || request.auth.uid in resource.data.members);
+      allow create: if isAuth();
+      allow update, delete: if isAuth() && (resource.data.type in ['global', 'department'] || request.auth.uid in resource.data.members || isManagerOrAbove());
+    }
+
     // Chat Messages Collection Rules
     match /messages/{messageId} {
       allow read: if isAuth();
