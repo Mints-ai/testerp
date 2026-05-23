@@ -58,6 +58,17 @@ export default function SecureMail() {
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Smart priority filtering
+  const [priorityFilter, setPriorityFilter] = useState<string>("all");
+
+  // Recipient Autocomplete search query
+  const [recipientSearchText, setRecipientSearchText] = useState("");
+
+  // Composition attachments array
+  const [composeAttachments, setComposeAttachments] = useState<{ name: string; url: string }[]>([]);
+  const [attachmentName, setAttachmentName] = useState("");
+  const [attachmentUrl, setAttachmentUrl] = useState("");
+
   // 1. Fetch real-time mail data and employees list
   useEffect(() => {
     if (!user) return;
@@ -142,7 +153,12 @@ export default function SecureMail() {
     return false;
   });
 
-  const searchFilteredMails = folderFilteredMails.filter((mail) => {
+  const priorityFilteredMails = folderFilteredMails.filter((mail) => {
+    if (priorityFilter === "all") return true;
+    return mail.priority === priorityFilter;
+  });
+
+  const searchFilteredMails = priorityFilteredMails.filter((mail) => {
     const term = searchQuery.toLowerCase().trim();
     if (!term) return true;
     return (
@@ -153,8 +169,20 @@ export default function SecureMail() {
     );
   });
 
-  // Calculate unread counts
+  // Dynamic counts for each folder
   const inboxUnreadCount = incomingMails.filter(m => !m.readStatus && !m.isDeletedByReceiver).length;
+  const sentCount = outgoingMails.filter(m => !m.isDeletedBySender).length;
+  const starredCount = sortedAllMails.filter((mail) => {
+    const isSender = mail.senderId === user.uid;
+    const isReceiver = mail.receiverId === user.uid;
+    return (isReceiver && mail.isStarredByReceiver && !mail.isDeletedByReceiver) ||
+           (isSender && mail.isStarredBySender && !mail.isDeletedBySender);
+  }).length;
+  const trashCount = sortedAllMails.filter((mail) => {
+    const isSender = mail.senderId === user.uid;
+    const isReceiver = mail.receiverId === user.uid;
+    return (isReceiver && mail.isDeletedByReceiver) || (isSender && mail.isDeletedBySender);
+  }).length;
 
   // 4. Message Operations
   const handleSelectMail = async (mail: InternalMail) => {
@@ -202,6 +230,15 @@ export default function SecureMail() {
 
     try {
       if (inTrashFolder) {
+        // Log secure memo purge in founder telemetry
+        await addDoc(collection(db, "auditLog"), {
+          actorId: user.uid,
+          action: "PURGE_SECURE_MAIL",
+          details: `Permanently purged secure memo: "${mail.subject}"`,
+          ipAddress: "Secure Network",
+          createdAt: serverTimestamp ? serverTimestamp() : new Date()
+        });
+
         // Already in Trash - purge or double-delete clean logic
         // If both parties marked it deleted, or if we want to erase completely:
         const otherPartyDeleted = isReceiver ? mail.isDeletedBySender : mail.isDeletedByReceiver;
@@ -279,7 +316,17 @@ export default function SecureMail() {
         isStarredBySender: false,
         isDeletedBySender: false,
         isDeletedByReceiver: false,
-        createdAt: serverTimestamp()
+        attachments: composeAttachments, // Save secure file attachments/links
+        createdAt: serverTimestamp ? serverTimestamp() : new Date()
+      });
+
+      // Log secure internal mail transmission
+      await addDoc(collection(db, "auditLog"), {
+        actorId: user.uid,
+        action: "SEND_SECURE_MAIL",
+        details: `Sent secure memo to ${selectedEmp.fullName}: "${composeSubject.trim()}"`,
+        ipAddress: "Secure Network",
+        createdAt: serverTimestamp ? serverTimestamp() : new Date()
       });
 
       // Clear states
@@ -288,6 +335,7 @@ export default function SecureMail() {
       setComposeSubject("");
       setComposeBody("");
       setComposePriority("normal");
+      setComposeAttachments([]);
     } catch (err: any) {
       setError(err.message || "Failed to deliver secure mail memo.");
     } finally {
@@ -332,19 +380,70 @@ export default function SecureMail() {
               </div>
             )}
             <form onSubmit={handleSendMail} className="space-y-4 py-3">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-white/50 uppercase tracking-wider">Secure Recipient</label>
-                <select
-                  value={composeTo}
-                  onChange={(e) => setComposeTo(e.target.value)}
-                  required
-                  className="w-full h-10 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#0d1f3c] text-white"
-                >
-                  <option value="">Select corporate user...</option>
-                  {employees.map(emp => (
-                    <option key={emp.id} value={emp.id}>{emp.fullName} ({emp.email})</option>
-                  ))}
-                </select>
+              <div className="space-y-1.5 relative">
+                <label className="text-[10px] font-bold text-white/50 uppercase tracking-wider block">Secure Recipient</label>
+                
+                {composeTo ? (
+                  <div className="flex items-center justify-between p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-blue-500/20 text-blue-300 font-bold flex items-center justify-center text-xs shrink-0">
+                        {getInitials(employees.find(emp => emp.id === composeTo)?.fullName)}
+                      </div>
+                      <div className="text-xs min-w-0">
+                        <p className="font-bold text-white truncate">{employees.find(emp => emp.id === composeTo)?.fullName}</p>
+                        <p className="text-[10px] text-white/45 truncate">{employees.find(emp => emp.id === composeTo)?.email}</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { setComposeTo(""); setRecipientSearchText(""); }}
+                      className="text-[10px] font-bold text-blue-400 hover:text-blue-300 uppercase tracking-wider cursor-pointer shrink-0"
+                    >
+                      Change
+                    </button>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <Input
+                      placeholder="Type name or email to search recipient..."
+                      value={recipientSearchText}
+                      onChange={(e) => setRecipientSearchText(e.target.value)}
+                      className="glass-input h-10 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full"
+                    />
+                    {recipientSearchText.trim() && (
+                      <div className="absolute top-11 left-0 right-0 max-h-40 overflow-y-auto bg-[#0d1f3c] border border-white/[0.08] rounded-xl z-50 divide-y divide-white/[0.03] shadow-2xl">
+                        {employees.filter(emp => {
+                          const text = recipientSearchText.toLowerCase().trim();
+                          return emp.fullName?.toLowerCase().includes(text) || emp.email?.toLowerCase().includes(text);
+                        }).length === 0 ? (
+                          <div className="p-3 text-xs text-white/30 text-center">No recipients found</div>
+                        ) : (
+                          employees.filter(emp => {
+                            const text = recipientSearchText.toLowerCase().trim();
+                            return emp.fullName?.toLowerCase().includes(text) || emp.email?.toLowerCase().includes(text);
+                          }).map(emp => (
+                            <div
+                              key={emp.id}
+                              onClick={() => {
+                                setComposeTo(emp.id);
+                                setRecipientSearchText("");
+                              }}
+                              className="p-2.5 hover:bg-white/[0.03] cursor-pointer flex items-center gap-2"
+                            >
+                              <div className="w-6 h-6 rounded-md bg-blue-500/10 text-blue-300 font-bold flex items-center justify-center text-[10px] shrink-0">
+                                {getInitials(emp.fullName)}
+                              </div>
+                              <div className="text-left min-w-0">
+                                <p className="text-xs font-bold text-white truncate">{emp.fullName}</p>
+                                <p className="text-[9px] text-white/40 truncate">{emp.email}</p>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-3 gap-4">
@@ -376,12 +475,63 @@ export default function SecureMail() {
                 <label className="text-[10px] font-bold text-white/50 uppercase tracking-wider">Memo details</label>
                 <textarea
                   required
-                  rows={6}
+                  rows={4}
                   placeholder="Type secure internal memo details..."
                   value={composeBody}
                   onChange={(e) => setComposeBody(e.target.value)}
                   className="w-full border border-white/10 rounded-xl p-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#0d1f3c] text-white placeholder:text-white/20"
                 />
+              </div>
+
+              {/* Secure Document Attachment Linker */}
+              <div className="space-y-2 border-t border-white/[0.05] pt-3">
+                <label className="text-[10px] font-bold text-white/50 uppercase tracking-wider block">Secure Document Attachments</label>
+                
+                {/* Render current attached list */}
+                {composeAttachments.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {composeAttachments.map((att, index) => (
+                      <span key={index} className="flex items-center gap-1 text-[9px] font-bold bg-white/[0.04] border border-white/[0.06] px-2 py-0.5 rounded-lg text-blue-300">
+                        <FileText className="h-2.5 w-2.5" />
+                        <span className="truncate max-w-[120px]">{att.name}</span>
+                        <button
+                          type="button"
+                          onClick={() => setComposeAttachments(prev => prev.filter((_, i) => i !== index))}
+                          className="hover:text-red-400 font-extrabold cursor-pointer ml-1"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Doc Name (e.g. Q3 Sales)"
+                    value={attachmentName}
+                    onChange={(e) => setAttachmentName(e.target.value)}
+                    className="glass-input h-8 text-[10px] border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 flex-1"
+                  />
+                  <Input
+                    placeholder="URL or Vault Path"
+                    value={attachmentUrl}
+                    onChange={(e) => setAttachmentUrl(e.target.value)}
+                    className="glass-input h-8 text-[10px] border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 flex-1"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!attachmentName.trim() || !attachmentUrl.trim()) return;
+                      setComposeAttachments(prev => [...prev, { name: attachmentName.trim(), url: attachmentUrl.trim() }]);
+                      setAttachmentName("");
+                      setAttachmentUrl("");
+                    }}
+                    className="bg-blue-600/20 text-blue-300 hover:bg-blue-600/30 border border-blue-500/30 rounded-lg px-3 text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+                  >
+                    Add
+                  </button>
+                </div>
               </div>
 
               <DialogFooter className="pt-4 border-t border-white/[0.06] gap-2 sm:gap-0 mt-2">
@@ -398,9 +548,9 @@ export default function SecureMail() {
           <div className="text-[9px] font-bold uppercase tracking-wider text-white/30 mb-2 px-3">secure Folders</div>
           {[
             { id: "inbox", label: "Inbox", icon: Inbox, count: inboxUnreadCount },
-            { id: "sent", label: "Sent", icon: Send, count: 0 },
-            { id: "starred", label: "Starred", icon: Star, count: 0 },
-            { id: "trash", label: "Trash", icon: Trash2, count: 0 }
+            { id: "sent", label: "Sent", icon: Send, count: sentCount },
+            { id: "starred", label: "Starred", icon: Star, count: starredCount },
+            { id: "trash", label: "Trash", icon: Trash2, count: trashCount }
           ].map((folder) => (
             <button
               key={folder.id}
@@ -432,15 +582,40 @@ export default function SecureMail() {
       {/* 2. Middle Mail List Pane */}
       <div className="w-80 border-r border-white/[0.06] flex flex-col bg-white/[0.005] shrink-0">
         
-        {/* Search */}
-        <div className="p-4 border-b border-white/[0.06] relative shrink-0">
-          <Search className="absolute left-7 top-6.5 h-4 w-4 text-white/20" />
-          <Input
-            placeholder="Search memo subjects..."
-            className="pl-9 glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+        {/* Search & Priority Pills */}
+        <div className="p-4 border-b border-white/[0.06] relative shrink-0 space-y-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-white/20" />
+            <Input
+              placeholder="Search memo subjects..."
+              className="pl-9 glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <div className="flex gap-1.5 overflow-x-auto scrollbar-hide py-0.5">
+            {[
+              { id: "all", label: "All" },
+              { id: "urgent", label: "Urgent" },
+              { id: "normal", label: "Normal" },
+              { id: "low", label: "Low" }
+            ].map((p) => (
+              <button
+                key={p.id}
+                onClick={() => setPriorityFilter(p.id)}
+                className={cn(
+                  "px-2.5 py-1 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all border cursor-pointer shrink-0",
+                  priorityFilter === p.id 
+                    ? p.id === "urgent" ? "bg-rose-500/20 text-rose-300 border-rose-500/30" :
+                      p.id === "low" ? "bg-slate-500/20 text-slate-300 border-white/10" :
+                      "bg-blue-500/20 text-blue-300 border-blue-500/30"
+                    : "bg-white/[0.02] text-white/40 border-white/[0.05] hover:text-white/60"
+                )}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Mails Scroll */}
@@ -608,6 +783,33 @@ export default function SecureMail() {
               <div className="text-xs text-white/70 leading-relaxed whitespace-pre-wrap font-medium p-4 rounded-2xl bg-white/[0.01] border border-white/[0.04]">
                 {selectedMail.body}
               </div>
+
+              {/* Secure Attachments Row */}
+              {selectedMail.attachments && selectedMail.attachments.length > 0 && (
+                <div className="space-y-2 border-t border-white/[0.05] pt-4">
+                  <h4 className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Secure Attachments</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {selectedMail.attachments.map((att: any, index: number) => (
+                      <a
+                        key={index}
+                        href={att.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between p-3 rounded-xl bg-white/[0.01] border border-white/[0.05] hover:border-blue-500/30 transition-all group"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <FileText className="h-5 w-5 text-blue-400 shrink-0" />
+                          <div className="text-left min-w-0">
+                            <p className="text-xs font-bold text-white truncate group-hover:text-blue-300 transition-colors">{att.name}</p>
+                            <p className="text-[9px] text-white/30 truncate">{att.url}</p>
+                          </div>
+                        </div>
+                        <span className="text-[9px] font-bold text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-wider shrink-0">Open</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
           </div>
