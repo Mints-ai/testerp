@@ -72,7 +72,7 @@ export default function AssetManagement() {
 
   return (
     <RoleGuard permission="MANAGE_USERS" fallback={<div className="p-8 text-center text-white/40 font-bold uppercase tracking-wider text-xs">Access Denied.</div>}>
-      <div className="space-y-6 pb-12 text-white pl-4 lg:pl-0">
+      <div className="space-y-6 pb-12 text-white">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">

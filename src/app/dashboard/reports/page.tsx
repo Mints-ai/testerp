@@ -155,7 +155,7 @@ export default function ReportsAndIntelligence() {
   };
 
   return (
-    <div className="space-y-6 pb-12 text-white pl-4 lg:pl-0">
+    <div className="space-y-6 pb-12 text-white">
       {/* Header controls bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>

@@ -38,7 +38,7 @@ export default function EmployeeProfile() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64 text-white pl-4 lg:pl-0">
+      <div className="flex justify-center items-center h-64 text-white">
         <div className="animate-pulse text-xs font-bold uppercase tracking-widest text-white/30">Loading Profile Details...</div>
       </div>
     );
@@ -46,7 +46,7 @@ export default function EmployeeProfile() {
 
   if (!employee) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 text-center text-white pl-4 lg:pl-0">
+      <div className="flex flex-col items-center justify-center h-64 text-center text-white">
         <UserRound className="h-10 w-10 text-white/20 mb-3" />
         <h2 className="text-base font-bold uppercase tracking-wider text-white/70">Employee Not Found</h2>
         <p className="text-xs text-white/30 mt-1 max-w-xs">The requested profile does not exist or you don't have access.</p>
@@ -78,7 +78,7 @@ export default function EmployeeProfile() {
   };
 
   return (
-    <div className="space-y-6 max-w-5xl pb-12 text-white pl-4 lg:pl-0">
+    <div className="space-y-6 max-w-5xl pb-12 text-white">
       {/* Top Actions */}
       <div className="flex justify-between items-center">
         <button 

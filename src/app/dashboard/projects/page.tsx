@@ -88,7 +88,7 @@ export default function ProjectsList() {
   const statuses = ["pitch", "active", "on_hold", "completed"];
 
   return (
-    <div className="space-y-4 sm:space-y-6 pb-12 h-full flex flex-col text-white pl-4 pr-4 lg:pl-0 lg:pr-0">
+    <div className="space-y-4 sm:space-y-6 pb-12 h-full flex flex-col text-white">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">

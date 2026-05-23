@@ -308,7 +308,7 @@ export default function SecureMail() {
     name ? name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() : "M";
 
   return (
-    <div className="h-[calc(100vh-120px)] flex bg-[#0c1a30]/40 backdrop-blur-xl border border-white/[0.08] rounded-2xl overflow-hidden text-white pl-4 lg:pl-0">
+    <div className="h-[calc(100vh-120px)] flex bg-[#0c1a30]/40 backdrop-blur-xl border border-white/[0.08] rounded-2xl overflow-hidden text-white">
       
       {/* 1. Left Folders Navigation */}
       <div className="w-56 bg-white/[0.01] border-r border-white/[0.06] flex flex-col p-4 shrink-0">

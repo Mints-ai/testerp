@@ -143,7 +143,7 @@ export default function DashboardHome() {
   };
 
   return (
-    <div className="flex gap-6 h-full min-h-screen pb-24 text-white pl-4 lg:pl-0">
+    <div className="flex gap-6 h-full min-h-screen pb-24 text-white">
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 space-y-6">
         <div>
@@ -259,7 +259,7 @@ export default function DashboardHome() {
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7 h-auto">
           {/* Recent Activity / Tasks */}
-          <div className="col-span-4 space-y-6 flex flex-col">
+          <div className="md:col-span-2 lg:col-span-4 space-y-6 flex flex-col">
             <Card className="glass bg-white/[0.02] border-white/[0.08]">
               <CardHeader className="pb-3 border-b border-white/[0.06]">
                 <CardTitle className="text-sm font-bold text-white">Recent Activity</CardTitle>
@@ -316,7 +316,7 @@ export default function DashboardHome() {
             </Card>
           </div>
 
-          <div className="col-span-3 space-y-6 flex flex-col">
+          <div className="md:col-span-2 lg:col-span-3 space-y-6 flex flex-col">
             {/* Announcements */}
             <Card className="glass bg-white/[0.02] border-white/[0.08] overflow-hidden">
               <CardHeader className="bg-blue-950/60 border-b border-white/[0.06] pb-4">

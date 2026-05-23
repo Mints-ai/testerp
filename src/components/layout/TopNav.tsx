@@ -57,7 +57,7 @@ export function TopNav() {
 
   return (
     <>
-      <header className="h-16 border-b border-white/[0.06] bg-blue-900/30 backdrop-blur-xl flex items-center justify-between px-4 lg:px-8 z-40 sticky top-0 text-white">
+      <header className="h-16 border-b border-white/[0.06] bg-blue-900/30 backdrop-blur-xl flex items-center justify-between pl-16 lg:pl-8 pr-4 lg:pr-8 z-40 sticky top-0 text-white">
         <div className="flex items-center flex-1 gap-4 lg:gap-8">
           
           <div className="hidden lg:block">

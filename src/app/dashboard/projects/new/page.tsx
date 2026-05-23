@@ -126,7 +126,7 @@ export default function CreateProject() {
 
   return (
     <RoleGuard permission="CREATE_PROJECT" fallback={<div className="p-8 text-center text-white/40 font-bold uppercase tracking-wider text-xs">Access Denied. Only Senior Employees and above can create projects.</div>}>
-      <div className="space-y-6 max-w-3xl pb-12 text-white pl-4 lg:pl-0">
+      <div className="space-y-6 max-w-3xl pb-12 text-white">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
             <Briefcase className="h-5 w-5 text-blue-500" /> Create New Project

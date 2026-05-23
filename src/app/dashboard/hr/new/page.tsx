@@ -159,7 +159,7 @@ export default function AddEmployee() {
 
   return (
     <RoleGuard permission="MANAGE_USERS" fallback={<div className="p-8 text-center text-white/40 font-bold uppercase tracking-wider text-xs">Access Denied. You do not have permission to add employees.</div>}>
-      <div className="space-y-6 max-w-3xl pb-12 text-white pl-4 lg:pl-0">
+      <div className="space-y-6 max-w-3xl pb-12 text-white">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
             <UserPlus className="h-5 w-5 text-blue-500" /> Add New Employee

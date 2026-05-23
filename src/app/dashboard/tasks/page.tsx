@@ -187,7 +187,7 @@ export default function TaskBoard() {
    });
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] text-white pl-4 lg:pl-0">
+    <div className="flex flex-col h-[calc(100vh-8rem)] text-white">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">

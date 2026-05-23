@@ -65,7 +65,7 @@ export default function EmployeeDirectory() {
   const others = filteredEmployees.filter(e => e.role !== "founder" && e.role !== "c_suite");
 
   return (
-    <div className="space-y-6 pb-12 text-white pl-4 lg:pl-0">
+    <div className="space-y-6 pb-12 text-white">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
