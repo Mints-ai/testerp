@@ -1,6 +1,23 @@
-# Mints Global ERP - Custom Features User Manual
+# Mints Global ERP - Enterprise Master User Manual
 
-Welcome to the custom modules user manual for the **Mints Global ERP**. This guide outlines how to operate, manage, and coordinate projects and secure internal communications.
+Welcome to the official **Master User Manual** for the **Mints Global ERP**. This comprehensive reference guide provides end-to-end operational instructions for all fifteen integrated modules within our premium enterprise command center.
+
+---
+
+## 🛠️ Global Role-Based Permissions Matrix
+The ERP features dynamic, automated role enforcement to maintain absolute operational safety across all functional areas:
+
+| Module / Feature | Employee (Standard) | Manager | Admin | Founder (Owner) |
+| :--- | :---: | :---: | :---: | :---: |
+| **Secure Mail Room** | View / Send / Star | View / Send / Star | View / Send / Star | View / Send / Star |
+| **Audit Activity Logs**| Read Own | Read Own | Read All / Track | Read All / Track |
+| **CRM Leads** | View / Update Deal | Add Leads / Delete | Add Leads / Delete | Add Leads / Delete |
+| **Project Lifecycles** | View / Add Tasks | Add Milestones / Edit | Add Milestones / Edit | Full Access / Delete |
+| **Finance Treasury** | View Budgets | Add Transactions | Full Access / Invoice | Full Access / Invoice |
+| **HR Directory** | View Contacts | View Directory | Edit Profile / Roles | Edit Profile / Roles |
+| **Leaves & Time Off** | Submit Requests | Approve Department | Approve Global | Approve Global |
+| **Attendance Punch** | Check In & Out | View Reports | Edit Logs | Edit Logs |
+| **System Settings** | View Settings | Read Settings | Change Currency | Change Currency |
 
 ---
 
@@ -69,7 +86,100 @@ Create sprint tasks directly connected to the project:
 
 ---
 
-## 🛡️ Administrative Telemetry Feed
-For organizational safety, all actions taken inside secure memos are securely logged in the Founders live telemetry feed:
-*   `SEND_SECURE_MAIL` logs the date, sender, recipient, and subject of sent internal memos.
-*   `PURGE_SECURE_MAIL` logs audit events when items are permanently deleted from Trash bins.
+## 💬 Module 3: Corporate Chat & Collaborations
+The corporate chat system provides continuous, real-time messaging, split into three specific categories:
+1.  **P2P Direct Messaging:** Click on any employee name in the side panel to start a secure 1-on-1 text conversation.
+2.  **Custom Group Channels:** Create multi-member threads for custom projects or cross-functional groups by clicking **New Group**.
+3.  **Department Channels:** Built-in dedicated rooms for departments (e.g., `#engineering`, `#marketing`, `#hr`, `#sales`) automatically mapping employees based on their system directory profiles.
+
+---
+
+## 📊 Module 4: CRM Leads Kanban Board
+The CRM (Customer Relationship Management) pipeline manages customer acquisitions:
+*   **Lead Columns:** Track opportunities through stages: *New*, *Contacted*, *Proposal Sent*, *Negotiation*, *Closed Won*, *Closed Lost*.
+*   **Lead Cards:** Details include client name, deal value ($), priority level, and assigned sales lead.
+*   **Drag & Drop:** Move deal cards across columns to update pipeline statistics instantly.
+*   **Pipeline Metrics:** Visual aggregates at the top display total pipeline value, average deal size, and sales conversion rates.
+
+---
+
+## 💼 Module 5: Clients & CRM Profiles
+Maintain structural business directories for active clients:
+*   **Client Profiles:** Record primary corporate contacts, emails, phone directories, contract values, and historical engagement details.
+*   **Active Project Linking:** Bind active software/consulting projects to client records to track billing cycles and milestones directly.
+
+---
+
+## 📈 Module 6: Tasks & Sprint Kanban Board
+A centralized task manager driving corporate sprints:
+*   **Kanban Workflow:** Manage items through *Backlog*, *To Do*, *In Progress*, and *Done* cards.
+*   **Interactive Modals:** Click on any card to update descriptions, assignees, priorities, or toggle blockers.
+*   **Filtering:** Instantly sort task workloads by project, assignee, or priority index.
+
+---
+
+## 💸 Module 7: Finance & Corporate Treasury
+Manages invoices, track operating budgets, and monitor cash reserves:
+*   **Financial Dashboard:** Visually track revenue, overhead costs, and monthly margins with dynamic charts.
+*   **Invoice Generator:** Create new professional invoices specifying clients, line items, VAT rates, and payment due dates. Exporters enable printing or PDF compilation with a single click.
+*   **Operating Ledger:** Log company incomes and operational expenses directly into Firestore.
+
+---
+
+## 👥 Module 8: HR Directory & Employee DB
+The employee database holds active records:
+*   **Employee Cards:** View names, job titles, department assignments, contact numbers, and corporate emails.
+*   **Role Modifications:** Admins and Founders can promote/demote user clearance levels, edit profile data, and update department rosters.
+
+---
+
+## 📅 Module 9: Leaves & Time Off Planner
+Automates paid time off (PTO) and sick leave management:
+*   **Leave Requests:** Employees submit requests stating date ranges, leave type (PTO, Sick, Personal), and reasons.
+*   **Approval Console:** Managers receive live notifications and can **Approve** or **Reject** leaves with automated reason cards.
+*   **Leave Calendars:** Displays system-wide calendars of scheduled absences to plan team capacities.
+
+---
+
+## ⏱️ Module 10: Attendance & Location Timecard
+The attendance module logs work hours:
+*   **Punch In / Out:** Log daily clock-in/clock-out events.
+*   **Geolocation Telemetry:** Logs IP geolocation data during punch actions to assure absolute security compliance.
+*   **Time Logs:** View a grid of clock hours, overtime periods, and punctuality logs.
+
+---
+
+## 📢 Module 11: Announcements Hub
+The announcements board broadcasts information:
+*   **Broadcasts:** Send company-wide announcements instantly to the home dashboard.
+*   **Importance Levels:** Mark news as *Urgent*, *Normal*, or *Update* to apply high-visibility banner warnings.
+
+---
+
+## 📁 Module 12: File Vault & Cloud Storage
+The secure corporate repository:
+*   **Structure:** Create custom directories, folders, and categories.
+*   **Uploads:** Upload local assets (spreadsheets, design specs) directly into organized cloud folders.
+*   **Permissions:** Configure view and download rights on private corporate assets.
+
+---
+
+## 📊 Module 13: Reports & Intelligence Analytics
+Interactive corporate dashboards tracking ERP KPIs:
+*   **Task Performance:** Charts tracking task completion velocities and team cycle rates.
+*   **CRM Performance:** Leads conversion analysis, pipeline velocities, and agent performance maps.
+*   **Treasury Performance:** Monthly revenue margins, net cash flow charts, and cash reserve runway tracking.
+
+---
+
+## ⚙️ Module 14: System Settings
+Configure international settings:
+*   **Currency Switcher:** Toggle the workspace currency between **USD**, **EUR**, **GBP**, **AED**, **INR**, etc. All invoicing and project budgeting tables will adjust automatically.
+*   **Branding Preferences:** Configure dashboard logos, metadata, and company information templates.
+
+---
+
+## 🛡️ Module 15: Admin Live Telemetry Logs
+Founder dashboard tracking company security events in real-time:
+*   Logs authentication heartbeats, user registration, project deletions, secure mail transmissions, and trash purges.
+*   Assures robust, automated telemetry tracking across all users.
