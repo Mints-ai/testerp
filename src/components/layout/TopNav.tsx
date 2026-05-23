@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, where, orderBy, limit, onSnapshot, writeBatch, doc } from "firebase/firestore";
+import { collection, query, where, orderBy, limit, onSnapshot, writeBatch, doc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { Bell, Search, Check } from "lucide-react";
+import { Bell, Search, Check, Trash2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuGroup } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -43,6 +43,28 @@ export function TopNav() {
       await batch.commit();
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const deleteNotification = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, "notifications", id));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const clearAllNotifications = async () => {
+    if (confirm("Clear all notifications?")) {
+      try {
+        const batch = writeBatch(db);
+        notifications.forEach(n => {
+          batch.delete(doc(db, "notifications", n.id));
+        });
+        await batch.commit();
+      } catch (err) {
+        console.error(err);
+      }
     }
   };
 
@@ -118,9 +140,14 @@ export function TopNav() {
               <SheetHeader className="border-b border-white/[0.06] pb-4 mb-4">
                 <SheetTitle className="flex justify-between items-center text-white">
                   <span className="text-base font-bold">Notifications</span>
-                  <button onClick={markAllRead} className="text-xs text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1 cursor-pointer">
-                    <Check className="h-3.5 w-3.5" /> Mark all read
-                  </button>
+                  <div className="flex gap-3">
+                    <button onClick={markAllRead} className="text-[10px] text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1 cursor-pointer uppercase tracking-wider">
+                      <Check className="h-3.5 w-3.5" /> Read All
+                    </button>
+                    <button onClick={clearAllNotifications} className="text-[10px] text-rose-400 hover:text-rose-300 font-medium flex items-center gap-1 cursor-pointer uppercase tracking-wider">
+                      <Trash2 className="h-3.5 w-3.5" /> Clear All
+                    </button>
+                  </div>
                 </SheetTitle>
               </SheetHeader>
               <div className="flex-1 space-y-3 overflow-y-auto">
@@ -134,8 +161,13 @@ export function TopNav() {
                       ) : (
                         <div className="h-2 w-2 mt-1.5 rounded-full bg-blue-500 shadow-glow-blue shrink-0 animate-pulse" />
                       )}
-                      <div>
-                        <p className={`text-xs font-semibold ${!notif.read ? 'text-white' : 'text-white/80'}`}>{notif.title}</p>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start gap-2">
+                          <p className={`text-xs font-semibold ${!notif.read ? 'text-white' : 'text-white/80'} truncate`}>{notif.title}</p>
+                          <button onClick={() => deleteNotification(notif.id)} className="text-white/30 hover:text-rose-400 transition-colors p-1 rounded hover:bg-rose-500/10 cursor-pointer shrink-0">
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        </div>
                         <p className="text-[11px] text-white/40 mt-1 leading-relaxed">{notif.message}</p>
                         <p className="text-[9px] font-mono text-blue-400/80 mt-2.5 uppercase tracking-wider">
                           {notif.createdAt?.toDate().toLocaleString() || 'Just now'}
