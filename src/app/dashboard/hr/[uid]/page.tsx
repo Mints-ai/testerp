@@ -333,10 +333,8 @@ export default function EmployeeProfile() {
                 <CardDescription className="text-xs text-white/40 mt-1">Passport copies, Global Visas, National ID, and Corporate Contracts.</CardDescription>
               </div>
               <Dialog open={isAddDocOpen} onOpenChange={setIsAddDocOpen}>
-                <DialogTrigger asChild>
-                  <Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-white h-8 text-xs font-bold px-3">
-                    <Plus className="h-3 w-3 mr-1" /> Add Record
-                  </Button>
+                <DialogTrigger render={<Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-white h-8 text-xs font-bold px-3" />}>
+                  <Plus className="h-3 w-3 mr-1" /> Add Record
                 </DialogTrigger>
                 <DialogContent className="bg-[#0f172a] border-white/10 text-white">
                   <DialogHeader>
