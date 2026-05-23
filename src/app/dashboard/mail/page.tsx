@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { 
-  Mail, Inbox, Send, Star, Trash2, PenSquare, Search, 
+  Mail, Inbox, Send, Star, Trash2, PenSquare, Search, FileText,
   User, Calendar, Clock, AlertTriangle, CornerUpLeft, 
   CheckCircle, ArrowLeft, StarOff, ShieldAlert, Sparkles
 } from "lucide-react";
