@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { doc, onSnapshot, deleteDoc, updateDoc, collection, query, getDocs, arrayUnion, arrayRemove } from "firebase/firestore";
+import { doc, onSnapshot, deleteDoc, updateDoc, collection, query, getDocs, arrayUnion, arrayRemove, where, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
