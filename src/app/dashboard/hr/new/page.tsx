@@ -28,7 +28,7 @@ import { UserPlus, Sparkles, Wand2, ShieldAlert, Key } from "lucide-react";
 
 const DEPARTMENTS = [
   "Executive Office", "Operations", "HR & Admin", "Finance", 
-  "Cyber Security", "Performance Marketing", "SEO", 
+  "Cyber Security", "Marketing", "Performance Marketing", "SEO", 
   "Social Media", "Branding & Creative", "Software Development", 
   "Information Technology", "Video Production", "Photography & Graphics"
 ];
@@ -61,6 +61,10 @@ const SUBROLES_MAPPING: Record<string, string[]> = {
   "Information Technology": [
     "Products",
     "Services"
+  ],
+  "Marketing": [
+    "Performance",
+    "Creative"
   ],
   "Performance Marketing": [
     "Branding",
