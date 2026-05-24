@@ -28,6 +28,14 @@ Welcome to the **Mints Global ERP**, a state-of-the-art enterprise resource plan
   <img src="public/discord_settings.png" alt="Mints Global ERP Discord Webhook Settings" width="49%" />
 </div>
 
+<br/>
+
+<div align="center">
+  <img src="public/subroles_verification.png" alt="Mints Global ERP Specialization Subroles" width="49%" />
+  &nbsp;
+  <img src="public/chat_channels.png" alt="Mints Global ERP Deduplicated Corporate Chat" width="49%" />
+</div>
+
 ---
 
 ## 🏛️ Architecture & Flow Diagram
@@ -166,7 +174,8 @@ Mints Global ERP replaces disjointed spreadsheets and isolated SaaS tools by bri
 
 - **Attendance tracking**: Real-time logging with geolocated location telemetry and check-in logs.
 - **Real-time Live Presence Map**: Pulsing status markers display online, idle, and offline team members inside the Command Center using live Firestore heartbeats.
-- **Employee management (HR Hub)**: Onboard new hires, modify clearance roles, track multi-department assignments.
+- **Employee management (HR Hub)**: Onboard new hires, modify clearance roles, track multi-department assignments, and assign specialized corporate subrole service badges with auto-wrapping details drawer and card overflow limits.
+- **Corporate Chat & collaborations**: Real-time P2P secure direct messaging, custom group chats, self-healing deduplicated department rooms (Engineering, Marketing, Information Technology, Operations), and dynamic admin member assignment dialogs.
 - **Leave management**: Apply for leaves, manage global absences calendar, and approval console.
 - **CRM & Sales Pipeline**: Visual Kanban pipeline for leads and official Client list conversion.
 - **Projects, Gantt Timelines & Timesheets**: Milestone charts, Gantt relative timelines, workload capacity planner heatmaps, and weekly spreadsheet-style timesheet grids.
@@ -302,7 +311,8 @@ Mints Global ERP enforces strict Role-Based Access Control (RBAC). Here is a det
 
 - **Attendance**: Go to **Attendance**. Use the primary button to **Check In** at the start of your shift, and **Check Out** when finished. Your daily hours are automatically calculated and pushed to the Discord tracking channel.
 - **Leave Management**: Go to **Leaves**. Click **Apply for Leave**, select the date range, and specify the type. This immediately notifies Managers in Discord. Managers can click the **Approve/Reject** buttons directly in the Leaves table.
-- **Employee Onboarding (Admin Only)**: Go to **HR Hub** -> **+ Add Employee**. Fill in their details, assign their Role (e.g., Manager) and Department(s). The system will automatically generate a secure static email and password for them to log in.
+- **Employee Onboarding & Subrole Assignment (Admin Only)**: Go to **HR Hub** -> **+ Add Employee** or click **Edit Profile** on any user page. Fill in their details and assign their primary departments. A dynamic list of checkable subroles matching Mints Global service disciplines (e.g., *Incident response*, *WooCommerce*) will instantly reveal. Checking them will save to their Firestore profile document and render as premium indigo pills featuring a `Sparkles` micro-icon.
+- **Corporate Chat & Collaborations (All Roles)**: Go to **Chat**. Launch direct private messages or create custom group conversations. Access pre-seeded channels for **Marketing**, **Information Technology**, and **Operations** which feature self-healing deduplication logic. Admins can click **Manage Members** inside these rooms to dynamically assign new team members.
 - **Project Capacity & Timesheet Spreadsheet (Managers/Admins/Employees)**: Navigate to **Projects** -> **Capacity** tab. Check the heatmap to verify task load allocations. To log hours, select the **Timesheet Matrix** tab, click **+ Add Project Row**, select projects, type hours dynamically across daily input cells, and click **Submit Weekly Timesheet** to store the spreadsheet log inside Firestore.
 - **Secure File Drive Uploads & Permissions (Admins/Managers/Interns)**: Go to **Files**. Create directories, type dynamic search tokens, or click tags to filter private assets. Restrict sensitive payload assets by creating a `founding-directors-only` directory to lock access from employee or intern clearances.
 - **CRM Pipeline (Admins Only)**: Navigate to **CRM**. Click **+ Add Lead**. As negotiations progress, drag and drop the lead card across stages ("Pitch" -> "Negotiation" -> "Won").
@@ -360,4 +370,5 @@ Mints Global ERP enforces strict Role-Based Access Control (RBAC). Here is a det
 | :--- | :--- | :--- | :--- |
 | **v1.0** | May 2026 | Released | Initial release (Core HR Directory, Attendance Location Logs, Lead CRM Hub) |
 | **v1.1** | May 2026 | Released | Leave Planner workflow, Multi-department employee database structures, Static Webhooks |
-| **v1.2** | May 2026 | **Active Production** | Complete Client Billing Suite, Secure File Explorer Drive (RBAC), Gantt Capacity Heatmap, dynamic Weekly Timesheet matrix spreadsheet, Live Presence Map, and custom Discord settings telemetry center. |
+| **v1.2** | May 2026 | Released | Complete Client Billing Suite, Secure File Explorer Drive (RBAC), Gantt Capacity Heatmap, dynamic Weekly Timesheet matrix spreadsheet, Live Presence Map, and custom Discord settings telemetry center. |
+| **v1.3** | May 2026 | **Active Production** | Implemented dynamic department-based specialization subroles, multi-card badge limits (with dynamic overflow +N counts), self-healing deduplicated department chat rooms (Marketing, IT, Operations), and admin add-member action routing controls. |

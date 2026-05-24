@@ -120,7 +120,18 @@ The corporate chat system provides continuous, real-time messaging, split into t
 
 1. **P2P Direct Messaging:** Click on any employee name in the side panel to start a secure 1-on-1 text conversation.
 2. **Custom Group Channels:** Create multi-member threads for custom projects or cross-functional groups by clicking **New Group**.
-3. **Department Channels:** Built-in dedicated rooms for departments (e.g., `#engineering`, `#marketing`, `#hr`, `#sales`) automatically mapping employees based on their system directory profiles.
+3. **Department Channels:** Built-in dedicated rooms automatically mapping employees based on their system directory profiles, including pre-provisioned channels for **Marketing**, **Information Technology**, and **Operations**.
+
+### 1. Robust Deduplication & Self-Healing Sidebar
+* The chat engine features database-level self-healing filters that automatically purge duplicate channel documents in real-time.
+* A frontend `seenDepts` deduplicator ensures that the left channel pane remains perfectly clean and uncluttered.
+
+### 2. Administrative Member Assignment
+* **Admin Management Console:** Authorized Admins and Founders see a **Manage Members** action button inside department channels.
+* **Adding Users:** Click **Manage Members**, select any registered employee from the live system directory in the dialog, and assign them directly to the conversation channel.
+
+### 3. Visual Verification (Chat Suite)
+![Deduplicated Department Chat Channels](public/chat_channels.png)
 
 ---
 
@@ -168,8 +179,21 @@ Manages invoices, track operating budgets, and monitor cash reserves:
 
 The employee database holds active records:
 
-* **Employee Cards:** View names, job titles, department assignments, contact numbers, and corporate emails.
-* **Role Modifications:** Admins and Founders can promote/demote user clearance levels, edit profile data, and update department rosters.
+* **Employee Cards:** View names, job titles, department assignments, specialized subroles, contact numbers, and corporate emails.
+* **Role Modifications:** Admins and Founders can promote/demote user clearance levels, edit profile data, reassign department rosters, and change specialized subroles.
+* **Granular Specialization Subroles:** Directly assign service subroles mapped to corporate departments (e.g., *Offensive security* or *Cloud Security* under Cyber Security, or *Web Applications* and *ERP* under Software Development).
+
+### 1. Specialization Badge Layouts & Details Drawer
+* **Premium Subrole Badges:** Assigned specialties display as sleek, indigo-colored pills featuring a `Sparkles` micro-icon.
+* **Adaptive Directory Cards:** Card tags are automatically bounded to a maximum of 3 visible items with a dynamic `+N` overflow indicator. This guarantees that employee grid cards maintain uniform pixel heights.
+* **Self-Wrapping Flex Grid:** The Details quick-view drawer applies self-wrapping layout constraints (`flex-wrap` and `whitespace-nowrap`) to prevent text cut-offs on mobile screens or action buttons breaking across multiple lines.
+
+### 2. Visual Verification (HR Directory & Subroles)
+<div align="center">
+  <img src="public/subroles_verification.png" alt="Dynamic Specialization Subroles Badges" width="49%" />
+  &nbsp;
+  <img src="public/drawer_verification.png" alt="Employee Details Drawer Layout" width="49%" />
+</div>
 
 ---
 
@@ -256,4 +280,5 @@ Founder dashboard tracking company security events, real-time active users, and 
 | :--- | :--- | :--- | :--- |
 | **v1.0** | May 2026 | Released | Initial release (Core HR Directory, Attendance Location Logs, Lead CRM Hub) |
 | **v1.1** | May 2026 | Released | Leave Planner workflow, Multi-department employee database structures, Static Webhooks |
-| **v1.2** | May 2026 | **Active Production** | Complete Client Billing Suite, Secure File Explorer Drive (RBAC), Gantt Capacity Heatmap, dynamic Weekly Timesheet matrix spreadsheet, Live Presence Map, and custom Discord settings telemetry center. |
+| **v1.2** | May 2026 | Released | Complete Client Billing Suite, Secure File Explorer Drive (RBAC), Gantt Capacity Heatmap, dynamic Weekly Timesheet matrix spreadsheet, Live Presence Map, and custom Discord settings telemetry center. |
+| **v1.3** | May 2026 | **Active Production** | Implemented dynamic department-based specialization subroles, multi-card badge limits (with dynamic overflow +N counts), self-healing deduplicated department chat rooms (Marketing, IT, Operations), and admin add-member action routing controls. |
