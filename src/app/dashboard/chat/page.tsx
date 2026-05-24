@@ -163,7 +163,7 @@ export default function Chat() {
         text: messageText,
         channelId: activeChannel,
         userId: user.uid,
-        userName: user.displayName || "Unknown User",
+        userName: user.fullName || user.displayName || "Unknown User",
         userAvatar: user.photoURL || "",
         createdAt: serverTimestamp()
       });
@@ -591,7 +591,7 @@ export default function Chat() {
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 text-white/40">
                     <Avatar className="h-16 w-16 mb-2 border border-white/10">
                       <AvatarFallback className="bg-indigo-600 text-white text-lg font-bold">
-                        {user?.displayName ? user.displayName[0] : "Me"}
+                        {user?.fullName ? user.fullName[0] : (user?.displayName ? user.displayName[0] : "Me")}
                       </AvatarFallback>
                     </Avatar>
                     <span className="text-xs font-semibold uppercase tracking-wider font-mono">Camera Off</span>

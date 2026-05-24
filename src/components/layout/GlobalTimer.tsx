@@ -123,7 +123,7 @@ export function GlobalTimer() {
       
       await addDoc(collection(db, "time_logs"), {
         userId: user.uid,
-        userName: user.displayName || "Unknown User",
+        userName: user.fullName || user.displayName || "Unknown User",
         projectId: selectedProjectId || null,
         projectName: selectedProject?.name || null,
         description: taskDescription || "General task",

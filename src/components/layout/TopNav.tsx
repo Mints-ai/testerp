@@ -84,7 +84,7 @@ export function TopNav() {
           
           <div className="hidden lg:block">
             <h2 className="text-sm font-semibold text-white tracking-tight">
-              {greeting}, {user?.displayName ? user.displayName.split(' ')[0] : 'there'}
+              {greeting}, {user?.fullName ? user.fullName.split(' ')[0] : (user?.displayName ? user.displayName.split(' ')[0] : 'there')}
             </h2>
             <p className="text-[10px] text-white/40 font-medium mt-0.5">{today}</p>
           </div>

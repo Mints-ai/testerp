@@ -132,7 +132,7 @@ export default function DashboardHome() {
       await addDoc(collection(db, "shoutouts"), {
         text: newShoutout,
         authorId: user.uid,
-        authorName: user.displayName || "Team Member",
+        authorName: user.fullName || user.displayName || "Team Member",
         createdAt: serverTimestamp()
       });
       setNewShoutout("");

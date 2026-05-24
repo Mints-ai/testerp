@@ -304,7 +304,7 @@ export default function SecureMail() {
     try {
       await addDoc(collection(db, "internal_mails"), {
         senderId: user.uid,
-        senderName: user.displayName || "Unknown Admin",
+        senderName: user.fullName || user.displayName || "Unknown Admin",
         senderEmail: user.email || "",
         receiverId: selectedEmp.id,
         receiverName: selectedEmp.fullName,
