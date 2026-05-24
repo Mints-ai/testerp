@@ -308,12 +308,12 @@ export default function EmployeeDirectory() {
                   <SheetDescription className="text-blue-400 font-semibold text-xs mt-0.5 leading-none">
                     {selectedEmployee.jobTitle || "No Title"}
                   </SheetDescription>
-                  <div className="flex gap-2 mt-2.5">
-                    <Badge variant="outline" className="border-white/10 text-white/60 bg-white/5 text-[9px] uppercase tracking-wider font-bold shadow-none">
+                  <div className="flex flex-wrap gap-1.5 mt-2.5">
+                    <Badge variant="outline" className="border-white/10 text-white/60 bg-white/5 text-[9px] uppercase tracking-wider font-bold shadow-none whitespace-nowrap shrink-0">
                       {ROLE_META[selectedEmployee.role]?.label || "Employee"}
                     </Badge>
                     {(selectedEmployee.departments || (selectedEmployee.department ? [selectedEmployee.department] : [])).map((dept: string, i: number) => (
-                      <Badge key={i} variant="outline" className="border-white/10 text-white/60 bg-white/5 text-[9px] uppercase tracking-wider font-bold shadow-none">
+                      <Badge key={i} variant="outline" className="border-white/10 text-white/60 bg-white/5 text-[9px] uppercase tracking-wider font-bold shadow-none whitespace-nowrap shrink-0">
                         {dept}
                       </Badge>
                     ))}
@@ -321,15 +321,15 @@ export default function EmployeeDirectory() {
                 </div>
               </SheetHeader>
 
-              <div className="flex gap-3">
-                <button className="flex-1 btn-primary h-9 text-xs font-bold flex items-center justify-center cursor-pointer">
-                  <MessageSquare className="w-3.5 h-3.5 mr-1.5" /> Message
+              <div className="flex flex-wrap sm:flex-nowrap gap-3">
+                <button className="flex-1 min-w-[80px] whitespace-nowrap btn-primary h-9 text-xs font-bold flex items-center justify-center cursor-pointer px-2">
+                  <MessageSquare className="w-3.5 h-3.5 mr-1.5 shrink-0" /> Message
                 </button>
-                <button className="flex-1 btn-ghost h-9 text-xs font-semibold flex items-center justify-center border-white/10 text-white/70 cursor-pointer">
-                  <Mail className="w-3.5 h-3.5 mr-1.5" /> Email
+                <button className="flex-1 min-w-[80px] whitespace-nowrap btn-ghost h-9 text-xs font-semibold flex items-center justify-center border-white/10 text-white/70 cursor-pointer px-2">
+                  <Mail className="w-3.5 h-3.5 mr-1.5 shrink-0" /> Email
                 </button>
-                <Link href={`/dashboard/hr/${selectedEmployee.id}`} className="flex-1 flex cursor-pointer">
-                  <button className="w-full btn-ghost h-9 text-xs font-semibold flex items-center justify-center border-white/10 text-white/70 cursor-pointer">
+                <Link href={`/dashboard/hr/${selectedEmployee.id}`} className="flex-1 min-w-[90px] flex cursor-pointer">
+                  <button className="w-full whitespace-nowrap btn-ghost h-9 text-xs font-semibold flex items-center justify-center border-white/10 text-white/70 cursor-pointer px-2">
                     Full Profile
                   </button>
                 </Link>
