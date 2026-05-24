@@ -348,7 +348,7 @@ export default function EmployeeProfile() {
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase text-white/60">Document Type</label>
-                      <Select value={newDoc.type} onValueChange={v => setNewDoc({...newDoc, type: v})}>
+                      <Select value={newDoc.type} onValueChange={v => setNewDoc({...newDoc, type: v || ""})}>
                         <SelectTrigger className="bg-white/5 border-white/10 text-white">
                           <SelectValue />
                         </SelectTrigger>

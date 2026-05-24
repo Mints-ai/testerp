@@ -862,7 +862,7 @@ export default function SettingsDashboard() {
                     />
                   </div>
 
-                  <Select value={selectedAuditAction} onValueChange={setSelectedAuditAction}>
+                  <Select value={selectedAuditAction} onValueChange={(val) => setSelectedAuditAction(val || "ALL")}>
                     <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900 rounded-lg text-xs font-semibold">
                       <SelectValue placeholder="Filter Action" />
                     </SelectTrigger>
@@ -874,7 +874,7 @@ export default function SettingsDashboard() {
                     </SelectContent>
                   </Select>
 
-                  <Select value={selectedAuditActor} onValueChange={setSelectedAuditActor}>
+                  <Select value={selectedAuditActor} onValueChange={(val) => setSelectedAuditActor(val || "ALL")}>
                     <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900 rounded-lg text-xs font-semibold">
                       <SelectValue placeholder="Filter Employee" />
                     </SelectTrigger>

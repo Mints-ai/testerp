@@ -34,6 +34,7 @@ interface InternalMail {
   isStarredBySender: boolean;
   isDeletedBySender: boolean;
   isDeletedByReceiver: boolean;
+  attachments?: { name: string; url: string }[];
   createdAt: any;
 }
 
