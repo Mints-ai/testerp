@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { doc, onSnapshot, deleteDoc, query, collection, where, getDocs, addDoc, serverTimestamp, orderBy } from "firebase/firestore";
+import { doc, onSnapshot, deleteDoc, query, collection, where, getDocs, addDoc, serverTimestamp, orderBy, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { ROLE_META, canAccess } from "@/lib/permissions";
 import { useAuth } from "@/context/AuthContext";
@@ -15,8 +15,16 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Building2, Mail, Phone, Calendar, UserRound, ArrowLeft, Shield, Trash2, Plus, Send, FileText } from "lucide-react";
+import { Building2, Mail, Phone, Calendar, UserRound, ArrowLeft, Shield, Trash2, Plus, Send, FileText, Edit } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
+
+const DEPARTMENTS = [
+  "Executive Office", "Operations", "HR & Admin", "Finance", 
+  "Cyber Security", "Performance Marketing", "SEO", 
+  "Social Media", "Branding & Creative", "Software Development", 
+  "Video Production", "Photography & Graphics"
+];
 
 export default function EmployeeProfile() {
   const { uid } = useParams();
@@ -41,6 +49,79 @@ export default function EmployeeProfile() {
   const [loadingNotes, setLoadingNotes] = useState(true);
   const [newNote, setNewNote] = useState("");
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
+
+  // Edit Modal state variables
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    fullName: "",
+    jobTitle: "",
+    phone: "",
+    role: "",
+    departments: [] as string[],
+    isIntern: false,
+    internEndDate: ""
+  });
+  const [isSubmittingEdit, setIsSubmittingEdit] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+
+  const handleOpenEditModal = () => {
+    if (!employee) return;
+    setEditForm({
+      fullName: employee.fullName || "",
+      jobTitle: employee.jobTitle || "",
+      phone: employee.phone || "",
+      role: employee.role || "",
+      departments: employee.departments || (employee.department ? [employee.department] : []),
+      isIntern: !!employee.isIntern,
+      internEndDate: employee.internEndDate || ""
+    });
+    setEditError(null);
+    setIsEditOpen(true);
+  };
+
+  const handleUpdateEmployee = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editForm.fullName.trim()) {
+      setEditError("Full Name is required.");
+      return;
+    }
+    if (!editForm.jobTitle.trim()) {
+      setEditError("Job Title is required.");
+      return;
+    }
+    if (!editForm.role) {
+      setEditError("System Role is required.");
+      return;
+    }
+    if (editForm.departments.length === 0) {
+      setEditError("Select at least one department.");
+      return;
+    }
+    if (editForm.isIntern && !editForm.internEndDate) {
+      setEditError("Internship expiration date is required when Is Intern is checked.");
+      return;
+    }
+
+    setIsSubmittingEdit(true);
+    setEditError(null);
+    try {
+      await updateDoc(doc(db, "employees", uid as string), {
+        fullName: editForm.fullName.trim(),
+        jobTitle: editForm.jobTitle.trim(),
+        phone: editForm.phone.trim(),
+        role: editForm.role,
+        departments: editForm.departments,
+        isIntern: editForm.isIntern,
+        internEndDate: editForm.isIntern ? editForm.internEndDate : null
+      });
+      setIsEditOpen(false);
+    } catch (err: any) {
+      console.error("Error updating employee details:", err);
+      setEditError(err.message || "Failed to update employee details.");
+    } finally {
+      setIsSubmittingEdit(false);
+    }
+  };
 
   useEffect(() => {
     if (!uid) return;
@@ -191,15 +272,26 @@ export default function EmployeeProfile() {
           <ArrowLeft className="h-3.5 w-3.5" /> Back to HR Hub
         </button>
 
-        {canAccess(role, "DELETE_DATA") && !isSelf && (
-          <button 
-            onClick={handleDeleteEmployee} 
-            disabled={isDeleting}
-            className="btn-ghost bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 h-8 py-0 px-3 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
-          >
-            <Trash2 className="h-3.5 w-3.5" /> {isDeleting ? "Deleting..." : "Delete Employee"}
-          </button>
-        )}
+        <div className="flex gap-2">
+          {canAccess(role, "MANAGE_USERS") && (
+            <button 
+              onClick={handleOpenEditModal} 
+              className="btn-primary h-8 py-0 px-3 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-glow-blue"
+            >
+              <Edit className="h-3.5 w-3.5" /> Edit Profile
+            </button>
+          )}
+
+          {canAccess(role, "DELETE_DATA") && !isSelf && (
+            <button 
+              onClick={handleDeleteEmployee} 
+              disabled={isDeleting}
+              className="btn-ghost bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 h-8 py-0 px-3 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+            >
+              <Trash2 className="h-3.5 w-3.5" /> {isDeleting ? "Deleting..." : "Delete Employee"}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Header Profile Card */}
@@ -511,6 +603,158 @@ export default function EmployeeProfile() {
           </TabsContent>
         )}
       </Tabs>
+
+      {/* Edit Profile Modal */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="bg-[#0f172a] border-white/10 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold uppercase tracking-wider text-white">Edit Employee Profile</DialogTitle>
+            <DialogDescription className="text-white/40 text-xs">Update the employee's system particulars, department assignments, and job details.</DialogDescription>
+          </DialogHeader>
+          
+          {editError && (
+            <div className="p-3 text-xs text-red-300 bg-red-950/40 border border-red-500/20 rounded-xl text-center font-medium">
+              {editError}
+            </div>
+          )}
+
+          <form onSubmit={handleUpdateEmployee} className="space-y-5 pt-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-white/60 uppercase tracking-wider">Full Name</label>
+                <Input 
+                  value={editForm.fullName} 
+                  onChange={e => setEditForm({...editForm, fullName: e.target.value})} 
+                  placeholder="e.g. John Doe" 
+                  className="glass-input h-10 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full" 
+                  required 
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-white/60 uppercase tracking-wider">Phone Number</label>
+                <Input 
+                  value={editForm.phone} 
+                  onChange={e => setEditForm({...editForm, phone: e.target.value})} 
+                  placeholder="e.g. +971 50 123 4567" 
+                  className="glass-input h-10 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono" 
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-white/60 uppercase tracking-wider">Job Title</label>
+                <Input 
+                  value={editForm.jobTitle} 
+                  onChange={e => setEditForm({...editForm, jobTitle: e.target.value})} 
+                  placeholder="e.g. Senior Software Architect" 
+                  className="glass-input h-10 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full" 
+                  required 
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-white/60 uppercase tracking-wider">System Role</label>
+                <select 
+                  value={editForm.role} 
+                  onChange={e => setEditForm({...editForm, role: e.target.value})} 
+                  className="w-full h-10 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#0d1f3c] text-white"
+                  required
+                >
+                  <option value="">Select role...</option>
+                  {Object.entries(ROLE_META).map(([key, meta]) => (
+                    <option key={key} value={key}>{meta.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-bold text-white/60 uppercase tracking-wider">Departments</label>
+                <p className="text-[9px] text-white/30 uppercase tracking-wider">Select one or more departments for this employee.</p>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {DEPARTMENTS.map((dept) => {
+                  const isChecked = editForm.departments.includes(dept);
+                  const deptId = `edit-dept-${dept.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase()}`;
+                  return (
+                    <div
+                      key={dept}
+                      className="flex flex-row items-center space-x-2 rounded-md border border-white/5 bg-[#0d1f3c] p-2 hover:bg-white/5 transition-colors"
+                    >
+                      <Checkbox
+                        id={deptId}
+                        checked={isChecked}
+                        onCheckedChange={(checked) => {
+                          const updated = checked
+                            ? [...editForm.departments, dept]
+                            : editForm.departments.filter(d => d !== dept);
+                          setEditForm({...editForm, departments: updated});
+                        }}
+                      />
+                      <label 
+                        htmlFor={deptId}
+                        className="text-xs text-white/80 cursor-pointer select-none flex-1 py-0.5"
+                      >
+                        {dept}
+                      </label>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="p-4 bg-white/[0.02] rounded-2xl border border-white/[0.06] space-y-4">
+              <div className="flex flex-row items-start space-x-3 space-y-0">
+                <Checkbox
+                  checked={editForm.isIntern}
+                  onCheckedChange={(checked) => setEditForm({...editForm, isIntern: !!checked})}
+                  id="editIsIntern"
+                />
+                <div className="space-y-1 leading-none">
+                  <label htmlFor="editIsIntern" className="text-xs font-bold text-white/80 cursor-pointer">This employee is an Intern</label>
+                  <p className="text-[10px] text-white/30 mt-0.5">
+                    Interns have restricted dashboards and automatic time-bound account termination.
+                  </p>
+                </div>
+              </div>
+
+              {editForm.isIntern && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-white/60 uppercase tracking-wider">Internship Expiration Date</label>
+                  <Input 
+                    type="date" 
+                    value={editForm.internEndDate} 
+                    onChange={e => setEditForm({...editForm, internEndDate: e.target.value})} 
+                    className="glass-input h-10 text-xs border-white/10 focus:border-blue-500/60 focus:ring-0 w-full" 
+                    required={editForm.isIntern}
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-white/[0.06]">
+              <button 
+                type="button" 
+                onClick={() => setIsEditOpen(false)} 
+                disabled={isSubmittingEdit}
+                className="btn-ghost h-10 py-0 px-5 text-xs font-bold border-white/10 text-white/70 hover:text-white cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button 
+                type="submit" 
+                disabled={isSubmittingEdit}
+                className="btn-primary h-10 py-0 px-5 text-xs font-bold flex items-center justify-center cursor-pointer shadow-glow-blue"
+              >
+                {isSubmittingEdit ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

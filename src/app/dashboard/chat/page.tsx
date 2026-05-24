@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, where, doc, getDoc } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, where, doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
+import { canAccess } from "@/lib/permissions";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
 export default function Chat() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   
   // Channels and Messages State
   const [channels, setChannels] = useState<any[]>([]);
@@ -37,6 +38,8 @@ export default function Chat() {
   const [userSearchQuery, setUserSearchQuery] = useState("");
   const [groupName, setGroupName] = useState("");
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [isManageMembersOpen, setIsManageMembersOpen] = useState(false);
+  const [memberSearchQuery, setMemberSearchQuery] = useState("");
 
   // Video call states
   const [inCall, setInCall] = useState(false);
@@ -67,55 +70,63 @@ export default function Chat() {
     return () => unsub();
   }, [user]);
 
-  // 3. Fetch channels & seed General channel if empty
+  // 3. Fetch channels & seed default channels if missing
+  // 3. Fetch channels, perform self-healing duplicate cleanup, and seed required channels
   useEffect(() => {
     if (!user) return;
 
     const q = query(collection(db, "chatChannels"));
     const unsubscribe = onSnapshot(q, async (snapshot) => {
-      let fetched = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-      if (fetched.length === 0) {
-        try {
-          await addDoc(collection(db, "chatChannels"), {
-            name: "General",
-            type: "global",
-            createdAt: serverTimestamp()
-          });
-        } catch (e) {
-          console.error("Error seeding general channel:", e);
-        }
-        return;
-      }
-
+      const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
       setChannels(fetched);
       setLoadingChannels(false);
+
+      // Self-healing database cleanup: Delete existing duplicate department channel documents from Firestore
+      const seenDeptKeys = new Set<string>();
+      for (const channel of fetched) {
+        if (channel.type === "department") {
+          const deptKey = channel.department;
+          if (seenDeptKeys.has(deptKey)) {
+            try {
+              await deleteDoc(doc(db, "chatChannels", channel.id));
+            } catch (e) {
+              console.error(`Error cleaning up duplicate channel document (${channel.id}):`, e);
+            }
+          } else {
+            seenDeptKeys.add(deptKey);
+          }
+        }
+      }
+
+      // Background seeding for required company channels
+      const requiredChannels = [
+        { name: "General", type: "global" },
+        { name: "Operations Team", type: "department", department: "Operations" },
+        { name: "Performance Marketing Team", type: "department", department: "Performance Marketing" },
+        { name: "Software Development Team", type: "department", department: "Software Development" }
+      ];
+
+      for (const req of requiredChannels) {
+        const exists = fetched.some(c => 
+          c.type === req.type && 
+          (req.type === "global" ? c.name === req.name : c.department === req.department)
+        );
+        if (!exists) {
+          try {
+            await addDoc(collection(db, "chatChannels"), {
+              ...req,
+              members: [],
+              createdAt: serverTimestamp()
+            });
+          } catch (e) {
+            console.error(`Error seeding ${req.name}:`, e);
+          }
+        }
+      }
     });
 
     return () => unsubscribe();
   }, [user]);
-
-  // 4. Auto-provision department channel
-  useEffect(() => {
-    if (!currentUserProfile || !channels.length) return;
-
-    const depts = currentUserProfile.departments || (currentUserProfile.department ? [currentUserProfile.department] : []);
-    depts.forEach(async (dept: string) => {
-      const exists = channels.some(c => c.type === 'department' && c.department === dept);
-      if (!exists) {
-        try {
-          await addDoc(collection(db, "chatChannels"), {
-            name: `${dept} Team`,
-            type: "department",
-            department: dept,
-            createdAt: serverTimestamp()
-          });
-        } catch (e) {
-          console.error("Error auto-provisioning department channel:", e);
-        }
-      }
-    });
-  }, [currentUserProfile, channels]);
 
   // 5. Default to 'General' channel on load
   useEffect(() => {
@@ -346,6 +357,31 @@ export default function Chat() {
     (e.fullName || e.name || "").toLowerCase().includes(userSearchQuery.toLowerCase())
   );
 
+  const handleToggleChannelMember = async (empId: string, isCurrentlyMember: boolean) => {
+    if (!activeChannel) return;
+    try {
+      const channelRef = doc(db, "chatChannels", activeChannel);
+      const currentMembers = activeChannelObj?.members || [];
+      const updatedMembers = isCurrentlyMember
+        ? currentMembers.filter((m: string) => m !== empId)
+        : [...currentMembers, empId];
+
+      await updateDoc(channelRef, { members: updatedMembers });
+
+      // Write system audit log
+      await addDoc(collection(db, "auditLog"), {
+        actorId: user?.uid,
+        action: isCurrentlyMember ? "REMOVE_CHANNEL_MEMBER" : "ADD_CHANNEL_MEMBER",
+        targetCollection: "chatChannels",
+        targetId: activeChannel,
+        details: `${isCurrentlyMember ? 'Removed' : 'Added'} user ID ${empId} ${isCurrentlyMember ? 'from' : 'to'} chat channel "${activeChannelObj?.name}".`,
+        createdAt: serverTimestamp()
+      });
+    } catch (e) {
+      console.error("Error toggling channel member:", e);
+    }
+  };
+
   const activeChannelObj = channels.find(c => c.id === activeChannel);
   const activeInfo = resolveChannelInfo(activeChannelObj);
 
@@ -385,20 +421,36 @@ export default function Chat() {
           <div>
             <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 px-2">Departments</div>
             <div className="space-y-0.5">
-              {channels.filter(c => c.type === 'department').map(channel => (
-                <button
-                  key={channel.id}
-                  onClick={() => setActiveChannel(channel.id)}
-                  className={cn("w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-left",
-                    activeChannel === channel.id 
-                      ? 'bg-indigo-100 text-indigo-700 font-bold' 
-                      : 'text-slate-600 hover:bg-slate-100'
-                  )}
-                >
-                  <Building2 className="h-4 w-4 shrink-0 text-slate-400" />
-                  <span className="truncate">{channel.name}</span>
-                </button>
-              ))}
+              {(() => {
+                const seenDepts = new Set<string>();
+                return channels
+                  .filter(c => c.type === 'department')
+                  .filter(c => {
+                    const isAdmin = canAccess(role, "MANAGE_USERS");
+                    const isMyDept = currentUserProfile?.departments?.includes(c.department);
+                    const isExplicitMember = c.members?.includes(user?.uid);
+                    return isAdmin || isMyDept || isExplicitMember;
+                  })
+                  .filter(c => {
+                    if (seenDepts.has(c.department)) return false;
+                    seenDepts.add(c.department);
+                    return true;
+                  })
+                  .map(channel => (
+                    <button
+                      key={channel.id}
+                      onClick={() => setActiveChannel(channel.id)}
+                      className={cn("w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-left",
+                        activeChannel === channel.id 
+                          ? 'bg-indigo-100 text-indigo-700 font-bold' 
+                          : 'text-slate-600 hover:bg-slate-100'
+                      )}
+                    >
+                      <Building2 className="h-4 w-4 shrink-0 text-slate-400" />
+                      <span className="truncate">{channel.name}</span>
+                    </button>
+                  ));
+              })()}
             </div>
           </div>
 
@@ -564,6 +616,88 @@ export default function Chat() {
             <h2 className="font-extrabold text-slate-900 text-md truncate">{activeInfo.name}</h2>
           </div>
           <div className="flex items-center gap-3">
+            {/* Admin Privilege to Add/Manage Members in department/custom_group chat */}
+            {canAccess(role, "MANAGE_USERS") && (activeChannelObj?.type === 'department' || activeChannelObj?.type === 'custom_group') && (
+              <Dialog open={isManageMembersOpen} onOpenChange={setIsManageMembersOpen}>
+                <DialogTrigger render={
+                  <Button 
+                    variant="outline" 
+                    className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 font-bold flex items-center gap-1.5 shadow-sm rounded-lg text-xs h-8 cursor-pointer"
+                  >
+                    <Users className="h-3.5 w-3.5" />
+                    Manage Members
+                  </Button>
+                } />
+                <DialogContent className="bg-[#0f172a] border-white/10 text-white max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Manage Channel Members</DialogTitle>
+                    <DialogDescription className="text-white/40">
+                      Add or remove colleagues from <strong>{activeInfo.name}</strong>.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="relative my-2">
+                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-white/30" />
+                    <Input 
+                      placeholder="Search colleagues..." 
+                      value={memberSearchQuery}
+                      onChange={e => setMemberSearchQuery(e.target.value)}
+                      className="pl-9 bg-white/5 border-white/10 text-white text-xs" 
+                    />
+                  </div>
+
+                  <div className="max-h-60 overflow-y-auto space-y-2 pr-1 mt-2">
+                    {employees
+                      .filter(emp => (emp.fullName || emp.name || "").toLowerCase().includes(memberSearchQuery.toLowerCase()))
+                      .map(emp => {
+                        const name = emp.fullName || emp.name || "Team Member";
+                        const isDeptMember = activeChannelObj?.type === 'department' && emp.departments?.includes(activeChannelObj.department);
+                        const isExplicitMember = activeChannelObj?.members?.includes(emp.id);
+
+                        return (
+                          <div 
+                            key={emp.id} 
+                            className="w-full flex items-center justify-between p-2 hover:bg-white/5 rounded-lg text-left"
+                          >
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-8 w-8">
+                                <AvatarImage src={emp.profilePhotoURL} />
+                                <AvatarFallback className="bg-indigo-600 text-xs font-bold text-white">
+                                  {name.split(" ").map((n: any) => n[0]).join("")}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="text-sm font-bold text-white leading-none">{name}</p>
+                                <p className="text-[10px] text-white/40 mt-1">
+                                  {emp.jobTitle || "Employee"} • {emp.departments?.join(", ") || "No Department"}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              {isDeptMember ? (
+                                <span className="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-bold uppercase tracking-wider">
+                                  Dept Member
+                                </span>
+                              ) : (
+                                <Button
+                                  onClick={() => handleToggleChannelMember(emp.id, !!isExplicitMember)}
+                                  size="xs"
+                                  variant={isExplicitMember ? "destructive" : "default"}
+                                  className={isExplicitMember ? "bg-rose-600 hover:bg-rose-500 text-white h-7 px-3 text-xs cursor-pointer" : "bg-indigo-600 hover:bg-indigo-500 text-white h-7 px-3 text-xs cursor-pointer border-none shadow-sm"}
+                                >
+                                  {isExplicitMember ? "Remove" : "Add to Chat"}
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
+
             {!inCall && (
               <Button 
                 onClick={startCall} 
