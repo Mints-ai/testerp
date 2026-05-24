@@ -33,11 +33,63 @@ const DEPARTMENTS = [
   "Video Production", "Photography & Graphics"
 ];
 
+const SUBROLES_MAPPING: Record<string, string[]> = {
+  "Cyber Security": [
+    "Offensive security",
+    "Incident response / DFIR",
+    "Cloud Security",
+    "Compliance/GRC",
+    "Managed/Advisory",
+    "OT/Iot security",
+    "Training"
+  ],
+  "Software Development": [
+    "Website Development",
+    "WordPress Websites",
+    "Custom-Coded Websites",
+    "Web Applications",
+    "ERP",
+    "CRM",
+    "Mobile Application Development",
+    "E-Commerce Solutions",
+    "WooCommerce Development"
+  ],
+  "Performance Marketing": [
+    "Branding",
+    "Search Engine Optimization (SEO)",
+    "Performance Marketing",
+    "Social Media Management",
+    "Influencer Marketing",
+    "Commercial Video Production",
+    "Photography",
+    "Creative Designing"
+  ],
+  "SEO": [
+    "Search Engine Optimization (SEO)"
+  ],
+  "Social Media": [
+    "Social Media Management",
+    "Influencer Marketing"
+  ],
+  "Branding & Creative": [
+    "Branding",
+    "Creative Designing"
+  ],
+  "Video Production": [
+    "Commercial Video Production"
+  ],
+  "Photography & Graphics": [
+    "Photography",
+    "Creative Designing"
+  ]
+};
+
 const formSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters."),
   email: z.string().email("Must be a valid email address."),
   role: z.string().min(1, "Role is required."),
   departments: z.array(z.string()).min(1, "Select at least one department."),
+  subRoles: z.array(z.string()).optional(),
   jobTitle: z.string().min(2, "Job title is required."),
   phone: z.string().optional(),
   isIntern: z.boolean(),
@@ -70,6 +122,7 @@ export default function AddEmployee() {
       email: "",
       role: "",
       departments: [],
+      subRoles: [],
       jobTitle: "",
       phone: "",
       isIntern: false,
@@ -80,6 +133,7 @@ export default function AddEmployee() {
 
   const isIntern = form.watch("isIntern");
   const fullNameValue = form.watch("fullName");
+  const selectedDepts = form.watch("departments") || [];
 
   // Generate static internal corporate email based on full name slugifier!
   const handleGenerateStaticEmail = () => {
@@ -127,11 +181,17 @@ export default function AddEmployee() {
       const newUid = userCred.user.uid;
       
       // 2. Set doc with new UID as key
+      const selectedSubroles = values.subRoles || [];
+      const validSubroles = selectedSubroles.filter(sub => {
+        return values.departments.some(dept => SUBROLES_MAPPING[dept]?.includes(sub));
+      });
+
       await setDoc(doc(db, "employees", newUid), {
         fullName: values.fullName.trim(),
         email: values.email.toLowerCase().trim(),
         role: values.role,
         departments: values.departments,
+        subRoles: validSubroles,
         jobTitle: values.jobTitle,
         phone: values.phone || "",
         isIntern: values.isIntern,
@@ -313,6 +373,69 @@ export default function AddEmployee() {
                     )}
                   />
                 </div>
+
+                {/* Dynamic Subrole Checklist grouped by parent department selection */}
+                {selectedDepts.some(dept => SUBROLES_MAPPING[dept]?.length > 0) && (
+                  <FormField
+                    control={form.control}
+                    name="subRoles"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3 col-span-1 md:col-span-2 p-4 bg-white/[0.02] rounded-2xl border border-white/[0.06]">
+                        <div>
+                          <FormLabel className="text-xs font-bold text-white/60 uppercase tracking-wider flex items-center gap-1.5">
+                            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                            Specializations & Services (Subroles)
+                          </FormLabel>
+                          <FormDescription className="text-[9px] text-white/30 uppercase tracking-wider">Select specific service subroles within selected departments.</FormDescription>
+                        </div>
+                        
+                        <div className="space-y-4 max-h-48 overflow-y-auto pr-2">
+                          {selectedDepts.map(dept => {
+                            const mappedSubroles = SUBROLES_MAPPING[dept] || [];
+                            if (mappedSubroles.length === 0) return null;
+                            return (
+                              <div key={dept} className="space-y-2 border-b border-white/5 pb-3 last:border-b-0 last:pb-0">
+                                <h5 className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">{dept} Specialities</h5>
+                                <div className="grid grid-cols-2 gap-2">
+                                  {mappedSubroles.map(sub => {
+                                    const isChecked = field.value?.includes(sub);
+                                    const checkboxId = `new-sub-${sub.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase()}`;
+                                    return (
+                                      <div
+                                        key={sub}
+                                        className="flex flex-row items-center space-x-2 rounded-md border border-white/5 bg-[#0a1628] p-2 hover:bg-white/5 transition-colors cursor-pointer"
+                                      >
+                                        <Checkbox
+                                          id={checkboxId}
+                                          checked={isChecked}
+                                          onCheckedChange={(checked) => {
+                                            const currentVal = field.value || [];
+                                            const updated = checked
+                                              ? [...currentVal, sub]
+                                              : currentVal.filter(s => s !== sub);
+                                            field.onChange(updated);
+                                          }}
+                                          className="mt-0.5"
+                                        />
+                                        <label 
+                                          htmlFor={checkboxId}
+                                          className="text-xs text-white/70 cursor-pointer select-none flex-1 py-0.5"
+                                        >
+                                          {sub}
+                                        </label>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <FormMessage className="text-rose-400 font-bold text-[10px]" />
+                      </FormItem>
+                    )}
+                  />
+                )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField

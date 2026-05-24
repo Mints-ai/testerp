@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Plus, Building2, LayoutGrid, Network, Mail, MessageSquare, Calendar, Briefcase, Zap, Users, Trash2 } from "lucide-react";
+import { Search, Plus, Building2, LayoutGrid, Network, Mail, MessageSquare, Calendar, Briefcase, Zap, Users, Trash2, Sparkles } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -208,13 +208,27 @@ export default function EmployeeDirectory() {
                           </p>
                         </div>
 
-                        <div className="flex flex-col items-center gap-1.5">
+                        <div className="flex flex-col items-center gap-1.5 w-full">
                           {(emp.departments || (emp.department ? [emp.department] : [])).map((dept: string, i: number) => (
                             <span key={i} className="badge bg-white/5 border border-white/10 text-white/60 font-semibold text-[9px] py-0.5 uppercase tracking-wider">
                               <Building2 className="w-2.5 h-2.5 mr-1 text-blue-400" />
                               {dept}
                             </span>
                           ))}
+                          {emp.subRoles && emp.subRoles.length > 0 && (
+                            <div className="flex flex-wrap justify-center gap-1 max-w-full">
+                              {emp.subRoles.slice(0, 3).map((sub: string, i: number) => (
+                                <span key={i} className="badge bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 font-bold text-[8px] px-1.5 py-0.5 uppercase tracking-wider whitespace-nowrap">
+                                  {sub}
+                                </span>
+                              ))}
+                              {emp.subRoles.length > 3 && (
+                                <span className="badge bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 font-bold text-[8px] px-1.5 py-0.5 uppercase tracking-wider">
+                                  +{emp.subRoles.length - 3}
+                                </span>
+                              )}
+                            </div>
+                          )}
                           <Badge variant="outline" className={cn("font-bold shadow-none text-[9px] py-0.5 uppercase tracking-wider", roleMeta.color)}>
                             {roleMeta.label}
                           </Badge>
@@ -315,6 +329,12 @@ export default function EmployeeDirectory() {
                     {(selectedEmployee.departments || (selectedEmployee.department ? [selectedEmployee.department] : [])).map((dept: string, i: number) => (
                       <Badge key={i} variant="outline" className="border-white/10 text-white/60 bg-white/5 text-[9px] uppercase tracking-wider font-bold shadow-none whitespace-nowrap shrink-0">
                         {dept}
+                      </Badge>
+                    ))}
+                    {(selectedEmployee.subRoles || []).map((subRole: string, i: number) => (
+                      <Badge key={`sub-${i}`} variant="outline" className="border-indigo-500/20 text-indigo-300 bg-indigo-500/10 text-[9px] uppercase tracking-wider font-bold shadow-none whitespace-nowrap shrink-0 flex items-center gap-1">
+                        <Sparkles className="w-2.5 h-2.5 text-indigo-400" />
+                        {subRole}
                       </Badge>
                     ))}
                   </div>

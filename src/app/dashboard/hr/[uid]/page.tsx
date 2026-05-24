@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Building2, Mail, Phone, Calendar, UserRound, ArrowLeft, Shield, Trash2, Plus, Send, FileText, Edit } from "lucide-react";
+import { Building2, Mail, Phone, Calendar, UserRound, ArrowLeft, Shield, Trash2, Plus, Send, FileText, Edit, Sparkles } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +25,57 @@ const DEPARTMENTS = [
   "Social Media", "Branding & Creative", "Software Development", 
   "Video Production", "Photography & Graphics"
 ];
+
+const SUBROLES_MAPPING: Record<string, string[]> = {
+  "Cyber Security": [
+    "Offensive security",
+    "Incident response / DFIR",
+    "Cloud Security",
+    "Compliance/GRC",
+    "Managed/Advisory",
+    "OT/Iot security",
+    "Training"
+  ],
+  "Software Development": [
+    "Website Development",
+    "WordPress Websites",
+    "Custom-Coded Websites",
+    "Web Applications",
+    "ERP",
+    "CRM",
+    "Mobile Application Development",
+    "E-Commerce Solutions",
+    "WooCommerce Development"
+  ],
+  "Performance Marketing": [
+    "Branding",
+    "Search Engine Optimization (SEO)",
+    "Performance Marketing",
+    "Social Media Management",
+    "Influencer Marketing",
+    "Commercial Video Production",
+    "Photography",
+    "Creative Designing"
+  ],
+  "SEO": [
+    "Search Engine Optimization (SEO)"
+  ],
+  "Social Media": [
+    "Social Media Management",
+    "Influencer Marketing"
+  ],
+  "Branding & Creative": [
+    "Branding",
+    "Creative Designing"
+  ],
+  "Video Production": [
+    "Commercial Video Production"
+  ],
+  "Photography & Graphics": [
+    "Photography",
+    "Creative Designing"
+  ]
+};
 
 export default function EmployeeProfile() {
   const { uid } = useParams();
@@ -58,6 +109,7 @@ export default function EmployeeProfile() {
     phone: "",
     role: "",
     departments: [] as string[],
+    subRoles: [] as string[],
     isIntern: false,
     internEndDate: ""
   });
@@ -72,6 +124,7 @@ export default function EmployeeProfile() {
       phone: employee.phone || "",
       role: employee.role || "",
       departments: employee.departments || (employee.department ? [employee.department] : []),
+      subRoles: employee.subRoles || [],
       isIntern: !!employee.isIntern,
       internEndDate: employee.internEndDate || ""
     });
@@ -104,6 +157,12 @@ export default function EmployeeProfile() {
 
     setIsSubmittingEdit(true);
     setEditError(null);
+
+    // Filter subRoles to ensure only those belonging to selected departments are saved
+    const validSubroles = editForm.subRoles.filter(sub => {
+      return editForm.departments.some(dept => SUBROLES_MAPPING[dept]?.includes(sub));
+    });
+
     try {
       await updateDoc(doc(db, "employees", uid as string), {
         fullName: editForm.fullName.trim(),
@@ -111,6 +170,7 @@ export default function EmployeeProfile() {
         phone: editForm.phone.trim(),
         role: editForm.role,
         departments: editForm.departments,
+        subRoles: validSubroles,
         isIntern: editForm.isIntern,
         internEndDate: editForm.isIntern ? editForm.internEndDate : null
       });
@@ -332,6 +392,12 @@ export default function EmployeeProfile() {
                   <Badge key={idx} variant="outline" className="bg-white/[0.02] border-white/10 text-white/50 text-[9px] font-bold uppercase tracking-wider py-0.5">
                     <Building2 className="w-3 h-3 mr-1 text-white/30" />
                     {dept}
+                  </Badge>
+                ))}
+                {(employee.subRoles || []).map((subRole: string, idx: number) => (
+                  <Badge key={`sub-${idx}`} variant="outline" className="bg-indigo-500/10 border-indigo-500/20 text-indigo-300 text-[9px] font-bold uppercase tracking-wider py-0.5 whitespace-nowrap shrink-0">
+                    <Sparkles className="w-3 h-3 mr-1 text-indigo-400" />
+                    {subRole}
                   </Badge>
                 ))}
                 <div className="text-[10px] font-mono font-bold text-blue-400/80 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20 tracking-wider md:ml-auto">
@@ -705,6 +771,60 @@ export default function EmployeeProfile() {
                 })}
               </div>
             </div>
+
+            {/* Dynamic Subrole Checklist grouped by parent department selection */}
+            {editForm.departments.some(dept => SUBROLES_MAPPING[dept]?.length > 0) && (
+              <div className="space-y-3 p-4 bg-white/[0.02] rounded-2xl border border-white/[0.06]">
+                <div>
+                  <label className="text-xs font-bold text-white/60 uppercase tracking-wider flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                    Specializations & Services (Subroles)
+                  </label>
+                  <p className="text-[9px] text-white/30 uppercase tracking-wider">Select specific service subroles within selected departments.</p>
+                </div>
+                
+                <div className="space-y-4 max-h-48 overflow-y-auto pr-2">
+                  {editForm.departments.map(dept => {
+                    const mappedSubroles = SUBROLES_MAPPING[dept] || [];
+                    if (mappedSubroles.length === 0) return null;
+                    return (
+                      <div key={dept} className="space-y-2 border-b border-white/5 pb-3 last:border-b-0 last:pb-0">
+                        <h5 className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">{dept} Specialities</h5>
+                        <div className="grid grid-cols-2 gap-2">
+                          {mappedSubroles.map(sub => {
+                            const isChecked = editForm.subRoles.includes(sub);
+                            const checkboxId = `edit-sub-${sub.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase()}`;
+                            return (
+                              <div
+                                key={sub}
+                                className="flex flex-row items-center space-x-2 rounded-md border border-white/5 bg-[#0a1628] p-2 hover:bg-white/5 transition-colors"
+                              >
+                                <Checkbox
+                                  id={checkboxId}
+                                  checked={isChecked}
+                                  onCheckedChange={(checked) => {
+                                    const updated = checked
+                                      ? [...editForm.subRoles, sub]
+                                      : editForm.subRoles.filter(s => s !== sub);
+                                    setEditForm({...editForm, subRoles: updated});
+                                  }}
+                                />
+                                <label 
+                                  htmlFor={checkboxId}
+                                  className="text-xs text-white/70 cursor-pointer select-none flex-1 py-0.5"
+                                >
+                                  {sub}
+                                </label>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             <div className="p-4 bg-white/[0.02] rounded-2xl border border-white/[0.06] space-y-4">
               <div className="flex flex-row items-start space-x-3 space-y-0">
