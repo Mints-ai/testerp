@@ -35,7 +35,8 @@ const DEPARTMENTS = [
 
 const SUBROLES_MAPPING: Record<string, string[]> = {
   "Cyber Security": [
-    "Products & Services",
+    "Products",
+    "Services",
     "Offensive security",
     "Incident response / DFIR",
     "Cloud Security",
@@ -45,7 +46,8 @@ const SUBROLES_MAPPING: Record<string, string[]> = {
     "Training"
   ],
   "Software Development": [
-    "Products & Services",
+    "Products",
+    "Services",
     "Website Development",
     "WordPress Websites",
     "Custom-Coded Websites",
@@ -57,7 +59,8 @@ const SUBROLES_MAPPING: Record<string, string[]> = {
     "WooCommerce Development"
   ],
   "Information Technology": [
-    "Products & Services"
+    "Products",
+    "Services"
   ],
   "Performance Marketing": [
     "Branding",
