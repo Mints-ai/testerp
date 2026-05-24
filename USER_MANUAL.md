@@ -190,7 +190,7 @@ The employee database holds active records:
 
 ### 2. Visual Verification (HR Directory & Subroles)
 <div align="center">
-  <img src="public/subroles_verification.png" alt="Dynamic Specialization Subroles Badges" width="49%" />
+  <img src="public/products_services_badge.png" alt="Dynamic Specialization Subroles Badges" width="49%" />
   &nbsp;
   <img src="public/drawer_verification.png" alt="Employee Details Drawer Layout" width="49%" />
 </div>

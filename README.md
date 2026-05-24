@@ -31,7 +31,7 @@ Welcome to the **Mints Global ERP**, a state-of-the-art enterprise resource plan
 <br/>
 
 <div align="center">
-  <img src="public/subroles_verification.png" alt="Mints Global ERP Specialization Subroles" width="49%" />
+  <img src="public/products_services_badge.png" alt="Mints Global ERP Specialization Subroles" width="49%" />
   &nbsp;
   <img src="public/chat_channels.png" alt="Mints Global ERP Deduplicated Corporate Chat" width="49%" />
 </div>

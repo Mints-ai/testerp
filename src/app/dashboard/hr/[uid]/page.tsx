@@ -23,11 +23,12 @@ const DEPARTMENTS = [
   "Executive Office", "Operations", "HR & Admin", "Finance", 
   "Cyber Security", "Performance Marketing", "SEO", 
   "Social Media", "Branding & Creative", "Software Development", 
-  "Video Production", "Photography & Graphics"
+  "Information Technology", "Video Production", "Photography & Graphics"
 ];
 
 const SUBROLES_MAPPING: Record<string, string[]> = {
   "Cyber Security": [
+    "Products & Services",
     "Offensive security",
     "Incident response / DFIR",
     "Cloud Security",
@@ -37,6 +38,7 @@ const SUBROLES_MAPPING: Record<string, string[]> = {
     "Training"
   ],
   "Software Development": [
+    "Products & Services",
     "Website Development",
     "WordPress Websites",
     "Custom-Coded Websites",
@@ -46,6 +48,9 @@ const SUBROLES_MAPPING: Record<string, string[]> = {
     "Mobile Application Development",
     "E-Commerce Solutions",
     "WooCommerce Development"
+  ],
+  "Information Technology": [
+    "Products & Services"
   ],
   "Performance Marketing": [
     "Branding",
