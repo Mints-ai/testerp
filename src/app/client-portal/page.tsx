@@ -9,14 +9,72 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { generateInvoice } from "@/lib/pdfGenerator";
-import { Briefcase, FileDown, Clock, CheckCircle2, AlertCircle, Banknote, Calendar } from "lucide-react";
-import { motion } from "framer-motion";
+import { Briefcase, FileDown, Clock, CheckCircle2, AlertCircle, Banknote, Calendar, CreditCard, Lock, Check, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function ClientDashboard() {
   const { user } = useAuth();
   const [projects, setProjects] = useState<any[]>([]);
   const [invoices, setInvoices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Stripe Simulated checkout states
+  const [activePaymentInvoice, setActivePaymentInvoice] = useState<any | null>(null);
+  const [isStripeModalOpen, setIsStripeModalOpen] = useState(false);
+  const [stripeCardNum, setStripeCardNum] = useState("");
+  const [stripeExpiry, setStripeExpiry] = useState("");
+  const [stripeCvc, setStripeCvc] = useState("");
+  const [stripeLoading, setStripeLoading] = useState(false);
+  const [stripeSuccess, setStripeSuccess] = useState(false);
+
+  const handleInitiatePayment = (inv: any) => {
+    setActivePaymentInvoice(inv);
+    setStripeCardNum("4242 4242 4242 4242");
+    setStripeExpiry("12/28");
+    setStripeCvc("242");
+    setStripeSuccess(false);
+    setIsStripeModalOpen(true);
+  };
+
+  const handleProcessPayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activePaymentInvoice) return;
+    
+    setStripeLoading(true);
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    
+    try {
+      const { updateDoc, doc, addDoc, collection, serverTimestamp } = await import("firebase/firestore");
+      await updateDoc(doc(db, "invoices", activePaymentInvoice.id), {
+        status: "paid",
+        paidAt: new Date().toISOString()
+      });
+      
+      await addDoc(collection(db, "auditLog"), {
+        actorId: user?.uid || "client-user",
+        actorName: user?.fullName || user?.displayName || "Client Representative",
+        action: "INVOICE_PAYMENT",
+        targetCollection: "invoices",
+        targetId: activePaymentInvoice.id,
+        details: `Client paid invoice ${activePaymentInvoice.invoiceNumber} of amount ${activePaymentInvoice.total} AED via credit card (Stripe simulator).`,
+        createdAt: serverTimestamp()
+      });
+      
+      setStripeSuccess(true);
+      setTimeout(() => {
+        setIsStripeModalOpen(false);
+        setInvoices(invoices.map(inv => 
+          inv.id === activePaymentInvoice.id ? { ...inv, status: "paid" } : inv
+        ));
+      }, 2000);
+      
+    } catch (err) {
+      console.error("Error processing payment:", err);
+      alert("Payment gateway communication failed. Please try again.");
+    } finally {
+      setStripeLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -209,14 +267,25 @@ export default function ClientDashboard() {
                           {inv.total?.toLocaleString()} AED
                         </p>
                       </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="text-indigo-600 border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
-                        onClick={() => handleDownloadInvoice(inv)}
-                      >
-                        <FileDown className="mr-2 h-4 w-4" /> PDF
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="text-indigo-600 border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
+                          onClick={() => handleDownloadInvoice(inv)}
+                        >
+                          <FileDown className="mr-1.5 h-3.5 w-3.5" /> PDF
+                        </Button>
+                        {inv.status !== 'paid' && (
+                          <Button 
+                            size="sm" 
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold h-8 text-xs flex items-center justify-center gap-1 cursor-pointer"
+                            onClick={() => handleInitiatePayment(inv)}
+                          >
+                            <CreditCard className="h-3.5 w-3.5" /> Pay Now
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -232,6 +301,156 @@ export default function ClientDashboard() {
         </div>
 
       </div>
+
+      {/* Deliverables & Handovers Section */}
+      <div className="space-y-6 mt-8">
+        <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+          <CheckCircle2 className="h-5 w-5 text-indigo-600" /> Deliverables & Project Handovers
+        </h2>
+        <Card className="shadow-sm border-slate-200">
+          <CardContent className="p-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3 text-slate-950">
+                <div>
+                  <h4 className="font-bold text-sm text-slate-900">Brand Identity Package v1.0</h4>
+                  <p className="text-xs text-slate-500 mt-0.5">Uploaded on May 24, 2026</p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+                  onClick={() => {
+                    alert("Starting secure download of Brand Identity Package...");
+                  }}
+                >
+                  <FileDown className="mr-1.5 h-4 w-4" /> Download ZIP
+                </Button>
+              </div>
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3 text-slate-950">
+                <div>
+                  <h4 className="font-bold text-sm text-slate-900">High-Fidelity Figma UX Layouts</h4>
+                  <p className="text-xs text-slate-500 mt-0.5">Uploaded on May 22, 2026</p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+                  onClick={() => alert("Redirecting to secure Figma workspace...")}
+                >
+                  <Briefcase className="mr-1.5 h-4 w-4" /> View Resource
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Simulated Stripe Checkout Glassmorphic Modal */}
+      <AnimatePresence>
+        {isStripeModalOpen && activePaymentInvoice && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              className="bg-white border border-slate-200 rounded-3xl p-6 w-full max-w-md shadow-2xl relative overflow-hidden"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 bg-indigo-50 rounded-xl text-indigo-600 font-black tracking-wider text-xs">stripe</div>
+                  <span className="text-[10px] bg-slate-100 text-slate-500 uppercase tracking-widest font-bold px-2 py-0.5 rounded-full">Simulator</span>
+                </div>
+                <button onClick={() => setIsStripeModalOpen(false)} className="text-slate-400 hover:text-slate-600 font-bold text-sm p-1">✕</button>
+              </div>
+
+              {stripeSuccess ? (
+                <div className="text-center py-8 space-y-4">
+                  <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto border border-emerald-200 shadow-glow-emerald">
+                    <Check className="h-8 w-8" />
+                  </div>
+                  <h3 className="text-xl font-bold text-slate-900">Payment Successful!</h3>
+                  <p className="text-sm text-slate-500 max-w-xs mx-auto">
+                    Your invoice payment has been processed. A receipt has been saved and your invoice marked as Paid.
+                  </p>
+                </div>
+              ) : (
+                <form onSubmit={handleProcessPayment} className="space-y-5">
+                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    <div className="flex justify-between text-xs text-slate-500 mb-1">
+                      <span>Paying Invoice</span>
+                      <span className="font-bold text-slate-800">{activePaymentInvoice.invoiceNumber}</span>
+                    </div>
+                    <div className="flex justify-between items-baseline mt-2">
+                      <span className="text-sm font-bold text-slate-950">Total Payment Due</span>
+                      <span className="text-xl font-black text-indigo-600 font-mono">{activePaymentInvoice.total?.toLocaleString()} AED</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="grid gap-1.5">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Card Number</label>
+                      <div className="relative">
+                        <CreditCard className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                        <input 
+                          required
+                          placeholder="4242 4242 4242 4242"
+                          value={stripeCardNum}
+                          onChange={(e) => setStripeCardNum(e.target.value)}
+                          className="w-full h-9 border border-slate-200 focus:border-indigo-500 focus:ring-0 rounded-xl pl-10 pr-3 text-xs font-mono font-semibold text-slate-900"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="grid gap-1.5">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Expiration</label>
+                        <input 
+                          required
+                          placeholder="MM/YY"
+                          value={stripeExpiry}
+                          onChange={(e) => setStripeExpiry(e.target.value)}
+                          className="w-full h-9 border border-slate-200 focus:border-indigo-500 focus:ring-0 rounded-xl px-3 text-xs font-mono font-semibold text-slate-900"
+                        />
+                      </div>
+                      <div className="grid gap-1.5">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">CVC / CVV</label>
+                        <input 
+                          required
+                          placeholder="123"
+                          value={stripeCvc}
+                          onChange={(e) => setStripeCvc(e.target.value)}
+                          className="w-full h-9 border border-slate-200 focus:border-indigo-500 focus:ring-0 rounded-xl px-3 text-xs font-mono font-semibold text-slate-900"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 text-[10px] text-slate-450 items-start text-slate-500">
+                    <Lock className="h-3.5 w-3.5 shrink-0 text-slate-400 mt-0.5" />
+                    <span>Payments are secured using SSL. Card details are routed safely through the Mints sandboxed credit gateway.</span>
+                  </div>
+
+                  <Button 
+                    type="submit" 
+                    disabled={stripeLoading}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold h-11 flex items-center justify-center gap-1.5 rounded-2xl shadow-lg mt-2 cursor-pointer"
+                  >
+                    {stripeLoading ? (
+                      <><Loader2 className="h-4 w-4 animate-spin" /> Authorizing Payment...</>
+                    ) : (
+                      <><Lock className="h-4 w-4" /> Secure Payment & Clear Balance</>
+                    )}
+                  </Button>
+                </form>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

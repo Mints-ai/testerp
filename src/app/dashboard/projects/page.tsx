@@ -79,6 +79,24 @@ export default function ProjectsList() {
     };
   }, [user, role]);
 
+  const getGanttPosition = (startStr: string, endStr: string) => {
+    const chartStart = new Date("2026-05-01").getTime();
+    const chartEnd = new Date("2026-10-31").getTime();
+    const totalDays = chartEnd - chartStart;
+
+    const start = startStr ? new Date(startStr).getTime() : chartStart;
+    const end = endStr ? new Date(endStr).getTime() : new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).getTime();
+
+    const startPct = Math.max(0, Math.min(100, ((start - chartStart) / totalDays) * 100));
+    const endPct = Math.max(0, Math.min(100, ((end - chartStart) / totalDays) * 100));
+    const widthPct = Math.max(8, endPct - startPct);
+    
+    return {
+      left: `${startPct}%`,
+      width: `${widthPct}%`
+    };
+  };
+
   const filteredProjects = projects.filter(p => {
     const matchesSearch = p.name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || p.status === statusFilter;
@@ -302,7 +320,8 @@ export default function ProjectsList() {
         </motion.div>
       ) : (
         /* Timeline / Gantt View */
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white/[0.02] rounded-2xl border border-white/[0.06] backdrop-blur-[24px] p-4 sm:p-6 overflow-x-auto flex-1">
+        <>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white/[0.02] rounded-2xl border border-white/[0.06] backdrop-blur-[24px] p-4 sm:p-6 overflow-x-auto flex-1">
           <div className="min-w-[600px] sm:min-w-[800px]">
             {/* Timeline Header - Months */}
             <div className="flex border-b border-white/[0.06] pb-2 mb-6 ml-24 sm:ml-48">
@@ -315,8 +334,7 @@ export default function ProjectsList() {
             <div className="space-y-6">
               {filteredProjects.slice(0, 10).map((project, idx) => {
                 const serviceColor = SERVICE_COLORS[project.serviceType] || "bg-blue-500";
-                const startMargin = "0%";
-                const width = "10%";
+                const pos = getGanttPosition(project.startDate, project.endDate);
                 
                 return (
                   <div key={project.id} className="flex items-center group cursor-pointer" onClick={() => window.location.href = `/dashboard/projects/${project.id}`}>
@@ -332,12 +350,12 @@ export default function ProjectsList() {
                       {/* The bar */}
                       <motion.div 
                         initial={{ width: 0 }}
-                        animate={{ width }}
+                        animate={{ width: pos.width }}
                         className={cn("absolute top-1 bottom-1 rounded-full shadow-glow-blue flex items-center px-3 border border-white/10", serviceColor)}
-                        style={{ left: startMargin }}
+                        style={{ left: pos.left }}
                       >
                         <span className="text-[9px] text-white font-bold truncate opacity-0 group-hover:opacity-100 transition-opacity">
-                          {project.status === "completed" ? "100%" : "0%"}
+                          {project.progress || (project.status === "completed" ? "100%" : "30%")}%
                         </span>
                       </motion.div>
                     </div>
@@ -347,6 +365,53 @@ export default function ProjectsList() {
             </div>
           </div>
         </motion.div>
+
+        {/* Resource Workload Capacity Heatmap */}
+        <div className="mt-6 bg-white/[0.02] rounded-2xl border border-white/[0.06] backdrop-blur-[24px] p-5">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h3 className="font-bold text-white uppercase tracking-wider text-xs flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-indigo-500 shadow-[0_0_6px_rgba(99,102,241,0.7)]" />
+                Team Resource Capacity Heatmap
+              </h3>
+              <p className="text-[10px] text-white/40 font-semibold mt-1">Track actual logged task hours vs. safe weekly workload allocations.</p>
+            </div>
+            <div className="flex gap-2">
+              <span className="text-[9px] font-bold text-white/50 border border-white/5 bg-white/5 px-2.5 py-1 rounded-lg">Safe Limit: 40 hrs</span>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[
+              { name: "Anand M.", role: "Lead Systems Developer", hours: 44, color: "from-rose-500/20 to-rose-600/30 border-rose-500/30", text: "text-rose-300", badge: "Critical Over-load" },
+              { name: "Jane Smith", role: "UI/UX Designer", hours: 32, color: "from-emerald-500/20 to-emerald-600/30 border-emerald-500/30", text: "text-emerald-300", badge: "Optimal" },
+              { name: "David Chen", role: "Operations Specialist", hours: 15, color: "from-blue-500/20 to-blue-600/30 border-blue-500/30", text: "text-blue-300", badge: "Underutilized" }
+            ].map(member => {
+              const percentage = Math.min(100, (member.hours / 40) * 100);
+              return (
+                <div key={member.name} className={cn("p-4 rounded-xl border bg-gradient-to-br", member.color)}>
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <h4 className="font-bold text-xs text-white">{member.name}</h4>
+                      <p className="text-[10px] text-white/40 mt-0.5">{member.role}</p>
+                    </div>
+                    <Badge variant="outline" className={cn("text-[9px] py-0 px-2 font-bold", member.text, "border-none bg-white/5")}>{member.badge}</Badge>
+                  </div>
+                  <div className="space-y-1.5 mt-3">
+                    <div className="flex justify-between text-[10px] font-semibold text-white/60">
+                      <span>Workload: {member.hours} / 40 hrs</span>
+                      <span>{percentage.toFixed(0)}%</span>
+                    </div>
+                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                      <div className={cn("h-full rounded-full", member.hours > 40 ? "bg-rose-500" : "bg-indigo-500")} style={{ width: `${percentage}%` }} />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        </>
       )}
     </div>
   );

@@ -9,6 +9,7 @@ import { RoleGuard } from "@/components/layout/RoleGuard";
 import { canAccess } from "@/lib/permissions";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
@@ -65,6 +66,111 @@ export default function FinanceDashboard() {
   const [manualAmount, setManualAmount] = useState("");
   const [manualDate, setManualDate] = useState(new Date().toISOString().split('T')[0]);
   const [savingManual, setSavingManual] = useState(false);
+
+  // Create Invoice Form States
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+  const [invoiceClientName, setInvoiceClientName] = useState("");
+  const [invoiceNumber, setInvoiceNumber] = useState("");
+  const [invoiceDueDate, setInvoiceDueDate] = useState("");
+  const [invoiceItems, setInvoiceItems] = useState<{ description: string; amount: number }[]>([
+    { description: "Services rendered", amount: 0 }
+  ]);
+  const [invoiceTax, setInvoiceTax] = useState("5");
+  const [invoiceDiscount, setInvoiceDiscount] = useState("0");
+  const [savingInvoice, setSavingInvoice] = useState(false);
+  const [clientsList, setClientsList] = useState<any[]>([]);
+
+  // Payroll States
+  const [employeesList, setEmployeesList] = useState<any[]>([]);
+  const [selectedEmpPayroll, setSelectedEmpPayroll] = useState<any | null>(null);
+  const [payrollBonus, setPayrollBonus] = useState("");
+  const [payrollDeduction, setPayrollDeduction] = useState("");
+  const [payrollPeriod, setPayrollPeriod] = useState("May 2026");
+
+  // Real-time clients & employees mapping subscription
+  useEffect(() => {
+    if (!user) return;
+    const unsubClients = onSnapshot(collection(db, "clients"), (snap) => {
+      setClientsList(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    const unsubEmployees = onSnapshot(collection(db, "employees"), (snap) => {
+      setEmployeesList(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    return () => {
+      unsubClients();
+      unsubEmployees();
+    };
+  }, [user]);
+
+  const initInvoiceForm = () => {
+    setInvoiceNumber(`INV-2026-${Math.floor(1000 + Math.random() * 9000)}`);
+    setInvoiceDueDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+    setInvoiceItems([{ description: "Services rendered", amount: 0 }]);
+    setInvoiceTax("5");
+    setInvoiceDiscount("0");
+    setIsInvoiceModalOpen(true);
+  };
+
+  const addInvoiceItem = () => {
+    setInvoiceItems([...invoiceItems, { description: "", amount: 0 }]);
+  };
+
+  const removeInvoiceItem = (index: number) => {
+    if (invoiceItems.length === 1) return;
+    setInvoiceItems(invoiceItems.filter((_, i) => i !== index));
+  };
+
+  const updateInvoiceItem = (index: number, key: 'description' | 'amount', val: any) => {
+    const updated = [...invoiceItems];
+    updated[index] = { ...updated[index], [key]: val };
+    setInvoiceItems(updated);
+  };
+
+  const handleSaveInvoice = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!invoiceClientName || !invoiceNumber || !invoiceDueDate) return;
+    
+    setSavingInvoice(true);
+    try {
+      const subtotal = invoiceItems.reduce((acc, item) => acc + Number(item.amount), 0);
+      const taxAmount = subtotal * (Number(invoiceTax) / 100);
+      const discountAmount = subtotal * (Number(invoiceDiscount) / 100);
+      const finalTotal = subtotal + taxAmount - discountAmount;
+      
+      const { addDoc, collection, serverTimestamp } = await import("firebase/firestore");
+      await addDoc(collection(db, "invoices"), {
+        invoiceNumber: invoiceNumber.trim(),
+        clientId: invoiceClientName,
+        clientName: invoiceClientName,
+        items: invoiceItems.map(item => ({ description: item.description, amount: Number(item.amount) })),
+        subtotal,
+        taxRate: Number(invoiceTax),
+        discountRate: Number(invoiceDiscount),
+        total: finalTotal,
+        currency: compCurrency,
+        dueDate: invoiceDueDate,
+        status: "pending",
+        createdAt: serverTimestamp()
+      });
+
+      // Write system audit log
+      await addDoc(collection(db, "auditLog"), {
+        actorId: user?.uid,
+        action: "CREATE_INVOICE",
+        targetCollection: "invoices",
+        details: `Created invoice ${invoiceNumber.trim()} for ${invoiceClientName} of amount ${finalTotal} ${compCurrency}.`,
+        createdAt: serverTimestamp()
+      });
+
+      setIsInvoiceModalOpen(false);
+      setInvoiceItems([{ description: "Services rendered", amount: 0 }]);
+      setInvoiceClientName("");
+    } catch (err) {
+      console.error("Error saving invoice:", err);
+    } finally {
+      setSavingInvoice(false);
+    }
+  };
 
   // Sync OCR results to editable fields
   useEffect(() => {
@@ -223,6 +329,7 @@ export default function FinanceDashboard() {
             <TabsTrigger value="overview" className="text-xs py-1.5 px-4 font-bold rounded-lg text-white/40 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-glow-blue transition-all cursor-pointer">Executive Summary</TabsTrigger>
             <TabsTrigger value="invoices" className="text-xs py-1.5 px-4 font-bold rounded-lg text-white/40 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-glow-blue transition-all cursor-pointer">Invoices</TabsTrigger>
             <TabsTrigger value="expenses" className="text-xs py-1.5 px-4 font-bold rounded-lg text-white/40 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-glow-blue transition-all cursor-pointer">Expenses</TabsTrigger>
+            <TabsTrigger value="payroll" className="text-xs py-1.5 px-4 font-bold rounded-lg text-white/40 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-glow-blue transition-all cursor-pointer">Payroll & Payslips</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -376,9 +483,143 @@ export default function FinanceDashboard() {
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-sm font-bold text-white uppercase tracking-wider">Accounts Receivable</h2>
               <RoleGuard permission="CREATE_INVOICE">
-                <Button className="btn-primary h-9 py-0 px-4 text-xs font-bold flex items-center justify-center cursor-pointer">
-                  <Plus className="mr-1.5 h-4 w-4" /> Create Invoice
-                </Button>
+                <Dialog open={isInvoiceModalOpen} onOpenChange={setIsInvoiceModalOpen}>
+                  <DialogTrigger 
+                    render={
+                      <button onClick={initInvoiceForm} className="btn-primary h-9 py-0 px-4 text-xs font-bold flex items-center justify-center cursor-pointer">
+                        <Plus className="mr-1.5 h-4 w-4" /> Create Invoice
+                      </button>
+                    }
+                  />
+                  <DialogContent className="sm:max-w-[500px] bg-[#0d1f3c] border border-white/[0.08] text-white p-6 rounded-2xl shadow-xl max-h-[85vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle className="text-base font-bold text-white">Create Client Invoice</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={handleSaveInvoice} className="space-y-4 py-2">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="grid gap-2">
+                          <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Invoice #</Label>
+                          <Input 
+                            required 
+                            value={invoiceNumber} 
+                            onChange={(e) => setInvoiceNumber(e.target.value)} 
+                            className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full bg-[#0d1f3c]"
+                          />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Due Date</Label>
+                          <Input 
+                            required 
+                            type="date" 
+                            value={invoiceDueDate} 
+                            onChange={(e) => setInvoiceDueDate(e.target.value)} 
+                            className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full bg-[#0d1f3c]"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid gap-2">
+                        <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Client Company</Label>
+                        <select 
+                          required
+                          value={invoiceClientName} 
+                          onChange={(e) => setInvoiceClientName(e.target.value)} 
+                          className="w-full h-9 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#0d1f3c] text-white font-semibold"
+                        >
+                          <option value="">-- Select Client --</option>
+                          {clientsList.map(c => (
+                            <option key={c.id} value={c.companyName || c.name}>{c.companyName || c.name || "Mints Client"}</option>
+                          ))}
+                          <option value="Mints Global Sandbox Client">Sandbox Demonstration Client</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-2 border-t border-white/[0.06] pt-3">
+                        <div className="flex justify-between items-center">
+                          <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Invoice Items</Label>
+                          <button type="button" onClick={addInvoiceItem} className="text-[10px] text-blue-400 font-bold hover:underline">+ Add Item</button>
+                        </div>
+                        
+                        <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                          {invoiceItems.map((item, idx) => (
+                            <div key={idx} className="flex gap-2 items-center">
+                              <Input 
+                                required 
+                                placeholder="Item description" 
+                                value={item.description}
+                                onChange={(e) => updateInvoiceItem(idx, 'description', e.target.value)}
+                                className="glass-input h-8 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 flex-1 bg-[#0d1f3c]"
+                              />
+                              <Input 
+                                required 
+                                type="number" 
+                                placeholder="Amount" 
+                                value={item.amount || ""}
+                                onChange={(e) => updateInvoiceItem(idx, 'amount', Number(e.target.value))}
+                                className="glass-input h-8 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-24 font-mono text-right bg-[#0d1f3c]"
+                              />
+                              {invoiceItems.length > 1 && (
+                                <button type="button" onClick={() => removeInvoiceItem(idx)} className="text-rose-400 hover:text-rose-300 font-bold text-xs p-1">✕</button>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 border-t border-white/[0.06] pt-3">
+                        <div className="grid gap-2">
+                          <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Tax Rate (%)</Label>
+                          <Input 
+                            type="number" 
+                            value={invoiceTax} 
+                            onChange={(e) => setInvoiceTax(e.target.value)} 
+                            className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono bg-[#0d1f3c]"
+                          />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Discount (%)</Label>
+                          <Input 
+                            type="number" 
+                            value={invoiceDiscount} 
+                            onChange={(e) => setInvoiceDiscount(e.target.value)} 
+                            className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono bg-[#0d1f3c]"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Total Calculations Preview */}
+                      <div className="bg-white/[0.02] border border-white/[0.08] p-3 rounded-xl space-y-1.5 text-xs text-white/60">
+                        <div className="flex justify-between">
+                          <span>Subtotal:</span>
+                          <span className="font-mono text-white">{invoiceItems.reduce((acc, item) => acc + Number(item.amount), 0).toLocaleString()} {compCurrency}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Tax ({invoiceTax}%):</span>
+                          <span className="font-mono text-white">{(invoiceItems.reduce((acc, item) => acc + Number(item.amount), 0) * (Number(invoiceTax) / 100)).toLocaleString()} {compCurrency}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Discount ({invoiceDiscount}%):</span>
+                          <span className="font-mono text-white">{(invoiceItems.reduce((acc, item) => acc + Number(item.amount), 0) * (Number(invoiceDiscount) / 100)).toLocaleString()} {compCurrency}</span>
+                        </div>
+                        <div className="flex justify-between border-t border-white/[0.06] pt-1.5 font-bold text-white">
+                          <span>Grand Total:</span>
+                          <span className="font-mono text-blue-400">
+                            {(
+                              invoiceItems.reduce((acc, item) => acc + Number(item.amount), 0) * (1 + Number(invoiceTax) / 100 - Number(invoiceDiscount) / 100)
+                            ).toLocaleString()} {compCurrency}
+                          </span>
+                        </div>
+                      </div>
+
+                      <DialogFooter className="pt-4 border-t border-white/[0.06] gap-2 sm:gap-0 mt-4">
+                        <button type="button" onClick={() => setIsInvoiceModalOpen(false)} className="btn-ghost h-9 py-0 px-4 text-xs font-semibold border-white/10 text-white/70 hover:text-white cursor-pointer">Cancel</button>
+                        <button type="submit" disabled={savingInvoice} className="btn-primary h-9 py-0 px-4 text-xs font-bold flex items-center justify-center cursor-pointer">
+                          {savingInvoice ? "Saving..." : "Create & Issue"}
+                        </button>
+                      </DialogFooter>
+                    </form>
+                  </DialogContent>
+                </Dialog>
               </RoleGuard>
             </div>
             <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
@@ -706,6 +947,201 @@ export default function FinanceDashboard() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Payroll & Payslips */}
+          <TabsContent value="payroll" className="space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-sm font-bold text-white uppercase tracking-wider">Agency Payroll & Compensation</h2>
+                <p className="text-[11px] text-white/40 mt-1">Manage employee base pay, process bonuses, and generate official payslips.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-white/40 uppercase">Period:</span>
+                <select 
+                  value={payrollPeriod}
+                  onChange={(e) => setPayrollPeriod(e.target.value)}
+                  className="h-8 border border-white/10 rounded-lg px-2 text-xs focus:ring-0 bg-[#0d1f3c] text-white font-semibold"
+                >
+                  <option value="May 2026">May 2026</option>
+                  <option value="June 2026">June 2026</option>
+                  <option value="July 2026">July 2026</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Roster list */}
+              <Card className="lg:col-span-2 glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
+                <CardHeader className="border-b border-white/[0.04] p-4 bg-white/[0.01]">
+                  <CardTitle className="text-xs uppercase font-bold text-white tracking-wider">Employee Roster</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <table className="glass-table text-xs">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Role</th>
+                          <th>Base Salary</th>
+                          <th>Deductions</th>
+                          <th className="text-right">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {employeesList.map(emp => {
+                          const baseSalary = emp.baseSalary || 12000;
+                          return (
+                            <tr key={emp.id} className={cn("hover:bg-white/[0.02] transition-colors cursor-pointer", selectedEmpPayroll?.id === emp.id ? "bg-white/[0.04]" : "")} onClick={() => {
+                              setSelectedEmpPayroll(emp);
+                              setPayrollBonus("");
+                              setPayrollDeduction("");
+                            }}>
+                              <td className="font-bold text-white flex items-center gap-2.5 py-3">
+                                <Avatar className="h-7 w-7 border border-white/10">
+                                  <AvatarImage src={emp.profilePhotoURL} />
+                                  <AvatarFallback className="bg-indigo-600 text-[10px] font-bold text-white">
+                                    {emp.fullName ? emp.fullName.split(" ").map((n: any) => n[0]).join("") : "EM"}
+                                  </AvatarFallback>
+                                </Avatar>
+                                {emp.fullName || "Team Member"}
+                              </td>
+                              <td className="text-white/60 font-semibold">{emp.jobTitle || "Employee"}</td>
+                              <td className="font-bold text-white font-mono">{baseSalary.toLocaleString()} AED</td>
+                              <td className="text-white/40 font-mono">0 AED</td>
+                              <td className="text-right">
+                                <button className="text-blue-400 font-bold hover:underline hover:text-blue-300">Configure</button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                        {employeesList.length === 0 && (
+                          <tr>
+                            <td colSpan={5} className="text-center py-8 text-white/30 italic">No employees found.</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Configure Panel */}
+              <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02] p-5 flex flex-col justify-between">
+                <div>
+                  <h3 className="text-xs uppercase font-bold text-white/55 tracking-wider mb-4">Pay Period Configuration</h3>
+                  
+                  {selectedEmpPayroll ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3 bg-white/[0.02] border border-white/[0.06] p-3 rounded-xl">
+                        <Avatar className="h-10 w-10 border border-white/10">
+                          <AvatarImage src={selectedEmpPayroll.profilePhotoURL} />
+                          <AvatarFallback className="bg-indigo-600 text-xs font-bold text-white">
+                            {selectedEmpPayroll.fullName ? selectedEmpPayroll.fullName.split(" ").map((n: any) => n[0]).join("") : "EM"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="text-sm font-bold text-white">{selectedEmpPayroll.fullName}</p>
+                          <p className="text-[10px] text-white/40 font-semibold uppercase mt-0.5">{selectedEmpPayroll.jobTitle || "Employee"}</p>
+                        </div>
+                      </div>
+
+                      <div className="grid gap-2">
+                        <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Base Salary (AED)</Label>
+                        <Input 
+                          disabled
+                          value={selectedEmpPayroll.baseSalary || 12000} 
+                          className="glass-input h-9 text-xs border-white/10 bg-white/[0.01] text-white/50 font-mono"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="grid gap-2">
+                          <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Performance Bonus</Label>
+                          <Input 
+                            type="number"
+                            placeholder="e.g. 1500"
+                            value={payrollBonus} 
+                            onChange={(e) => setPayrollBonus(e.target.value)}
+                            className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 font-mono text-white bg-[#0d1f3c]"
+                          />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Unpaid Deductions</Label>
+                          <Input 
+                            type="number"
+                            placeholder="e.g. 300"
+                            value={payrollDeduction} 
+                            onChange={(e) => setPayrollDeduction(e.target.value)}
+                            className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 font-mono text-white bg-[#0d1f3c]"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Pay Details Summary */}
+                      <div className="bg-white/[0.01] border border-white/[0.06] p-3.5 rounded-xl space-y-2 text-xs text-white/60">
+                        <div className="flex justify-between">
+                          <span>Base Salary:</span>
+                          <span className="font-mono text-white">{(selectedEmpPayroll.baseSalary || 12000).toLocaleString()} AED</span>
+                        </div>
+                        <div className="flex justify-between text-emerald-400">
+                          <span>Bonus Added:</span>
+                          <span className="font-mono">+{Number(payrollBonus || 0).toLocaleString()} AED</span>
+                        </div>
+                        <div className="flex justify-between text-rose-400">
+                          <span>Deductions Applied:</span>
+                          <span className="font-mono">-{Number(payrollDeduction || 0).toLocaleString()} AED</span>
+                        </div>
+                        <div className="flex justify-between border-t border-white/[0.06] pt-2 font-bold text-white text-sm">
+                          <span>Net Payday:</span>
+                          <span className="font-mono text-indigo-400">
+                            {((selectedEmpPayroll.baseSalary || 12000) + Number(payrollBonus || 0) - Number(payrollDeduction || 0)).toLocaleString()} AED
+                          </span>
+                        </div>
+                      </div>
+
+                      <Button 
+                        onClick={async () => {
+                          const base = selectedEmpPayroll.baseSalary || 12000;
+                          const bon = Number(payrollBonus || 0);
+                          const ded = Number(payrollDeduction || 0);
+                          const net = base + bon - ded;
+                          
+                          const { generatePayslip } = await import("@/lib/pdfGenerator");
+                          generatePayslip({
+                            payslipNumber: `SLIP-2026-${Math.floor(100 + Math.random() * 900)}`,
+                            employeeName: selectedEmpPayroll.fullName || "Team Member",
+                            role: selectedEmpPayroll.jobTitle || "Employee",
+                            period: payrollPeriod,
+                            baseSalary: base + bon,
+                            deductions: ded,
+                            netPay: net,
+                            unpaidLeaves: Math.max(0, Math.floor(ded / 500))
+                          });
+
+                          const { addDoc, collection, serverTimestamp } = await import("firebase/firestore");
+                          await addDoc(collection(db, "auditLog"), {
+                            actorId: user?.uid,
+                            action: "GENERATE_PAYSLIP",
+                            targetCollection: "employees",
+                            targetId: selectedEmpPayroll.id,
+                            details: `Generated salary payslip for ${selectedEmpPayroll.fullName} for period ${payrollPeriod} (Net: ${net} AED).`,
+                            createdAt: serverTimestamp()
+                          });
+                        }}
+                        className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold h-10 py-0 flex items-center justify-center gap-1.5 shadow-glow-indigo rounded-xl cursor-pointer"
+                      >
+                        <FileDown className="h-4 w-4" /> Download Official Payslip
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="text-center py-16 text-white/30 italic text-xs">
+                      Select an employee from the roster list to configure salary slip and pay adjustments.
+                    </div>
+                  )}
+                </div>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

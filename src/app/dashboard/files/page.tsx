@@ -82,7 +82,7 @@ const fileToBase64 = (file: File): Promise<string> => {
 };
 
 export default function CloudDrive() {
-  const { user } = useAuth();
+  const { user, role } = useAuth();
   const [files, setFiles] = useState<StorageFile[]>([]);
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -93,15 +93,28 @@ export default function CloudDrive() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const fetchFiles = async (mode: 'cloud' | 'local' = driveMode) => {
+  // Folder states
+  const [currentFolder, setCurrentFolder] = useState<string>("");
+
+  const fetchFiles = async (mode: 'cloud' | 'local' = driveMode, folderPath = currentFolder) => {
     setLoading(true);
     setErrorMsg(null);
 
     if (mode === 'local') {
       try {
         const fetchedFiles = await getLocalFiles();
-        fetchedFiles.sort((a, b) => new Date(b.timeCreated).getTime() - new Date(a.timeCreated).getTime());
-        setFiles(fetchedFiles);
+        // Filter local files by active sub-folder path
+        const filtered = fetchedFiles.filter(f => {
+          if (!folderPath) {
+            return !f.path.includes("founding-directors-only/") && 
+                   !f.path.includes("employee-portal/") && 
+                   !f.path.includes("client-handovers/");
+          } else {
+            return f.path.includes(`/${folderPath}/`);
+          }
+        });
+        filtered.sort((a, b) => new Date(b.timeCreated).getTime() - new Date(a.timeCreated).getTime());
+        setFiles(filtered);
       } catch (err: any) {
         console.error("Local fetch failed:", err);
         setErrorMsg(err.message || "Failed to load local browser files.");
@@ -112,7 +125,7 @@ export default function CloudDrive() {
     }
 
     try {
-      const storageRef = ref(storage, 'agency-assets');
+      const storageRef = ref(storage, folderPath ? `agency-assets/${folderPath}` : 'agency-assets');
       const result = await listAll(storageRef);
       
       const filePromises = result.items.map(async (itemRef) => {
@@ -136,15 +149,15 @@ export default function CloudDrive() {
       console.error("Error fetching cloud files, falling back to Local Drive:", error);
       // Auto fallback to free Local browser drive
       setDriveMode('local');
-      fetchFiles('local');
+      fetchFiles('local', folderPath);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchFiles();
-  }, [driveMode]);
+    fetchFiles(driveMode, currentFolder);
+  }, [driveMode, currentFolder]);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -157,16 +170,34 @@ export default function CloudDrive() {
         setUploadProgress(30);
         const base64Url = await fileToBase64(file);
         setUploadProgress(70);
+        const pathPrefix = currentFolder ? `local-assets/${currentFolder}` : 'local-assets';
         const localFile = {
           name: file.name,
           url: base64Url,
-          path: `local-assets/${Date.now()}_${file.name}`,
+          path: `${pathPrefix}/${Date.now()}_${file.name}`,
           size: file.size,
           contentType: file.type || "application/octet-stream",
           timeCreated: new Date().toISOString()
         };
         await saveLocalFile(localFile);
         setUploadProgress(100);
+
+        if (currentFolder === "client-handovers") {
+          try {
+            const { addDoc, collection, serverTimestamp } = await import("firebase/firestore");
+            const { db: firestoreDb } = await import("@/lib/firebase");
+            await addDoc(collection(firestoreDb, "auditLog"), {
+              actorId: user?.uid,
+              action: "PUBLISH_CLIENT_HANDOVER",
+              targetCollection: "files",
+              details: `Founder published asset ${file.name} to the client portal handovers area.`,
+              createdAt: serverTimestamp()
+            });
+          } catch (err) {
+            console.error("Local audit log creation failed:", err);
+          }
+        }
+
         setTimeout(async () => {
           setIsUploading(false);
           setUploadProgress(0);
@@ -181,7 +212,8 @@ export default function CloudDrive() {
     }
 
     setIsUploading(true);
-    const storageRef = ref(storage, `agency-assets/${Date.now()}_${file.name}`);
+    const pathPrefix = currentFolder ? `agency-assets/${currentFolder}` : 'agency-assets';
+    const storageRef = ref(storage, `${pathPrefix}/${Date.now()}_${file.name}`);
     const uploadTask = uploadBytesResumable(storageRef, file);
 
     uploadTask.on(
@@ -198,7 +230,24 @@ export default function CloudDrive() {
       async () => {
         setIsUploading(false);
         setUploadProgress(0);
-        await fetchFiles('cloud'); // Refresh list
+
+        if (currentFolder === "client-handovers") {
+          try {
+            const { addDoc, collection, serverTimestamp } = await import("firebase/firestore");
+            const { db: firestoreDb } = await import("@/lib/firebase");
+            await addDoc(collection(firestoreDb, "auditLog"), {
+              actorId: user?.uid,
+              action: "PUBLISH_CLIENT_HANDOVER",
+              targetCollection: "files",
+              details: `Founder published asset ${file.name} to the client portal handovers area.`,
+              createdAt: serverTimestamp()
+            });
+          } catch (err) {
+            console.error("Cloud audit log creation failed:", err);
+          }
+        }
+
+        await fetchFiles('cloud');
       }
     );
   };
@@ -299,19 +348,80 @@ export default function CloudDrive() {
 
       <Card className="glass-card min-h-[500px]">
         <CardHeader className="border-b border-slate-100 bg-slate-50/50 flex flex-row items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            {driveMode === 'cloud' ? (
-              <Cloud className="h-5 w-5 text-indigo-600 animate-pulse" />
-            ) : (
-              <Database className="h-5 w-5 text-teal-600" />
-            )}
-            {driveMode === 'cloud' ? "agency-assets/ (Firebase)" : "browser-local-assets/ (100% Free Drive)"}
-          </CardTitle>
+          <div className="flex flex-col gap-1">
+            <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
+              {driveMode === 'cloud' ? (
+                <Cloud className="h-5 w-5 text-indigo-600 animate-pulse" />
+              ) : (
+                <Database className="h-5 w-5 text-teal-600" />
+              )}
+              {driveMode === 'cloud' ? "agency-assets/ (Firebase)" : "browser-local-assets/ (100% Free Drive)"}
+            </CardTitle>
+            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 mt-1">
+              <span className="cursor-pointer hover:text-indigo-600" onClick={() => setCurrentFolder("")}>Root Drive</span>
+              {currentFolder && (
+                <>
+                  <span>/</span>
+                  <span className="text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md flex items-center gap-1">
+                    {currentFolder === "founding-directors-only" ? "🔒 founding-directors-only" : 
+                     currentFolder === "client-handovers" ? "🌐 client-handovers" : `📁 ${currentFolder}`}
+                  </span>
+                </>
+              )}
+            </div>
+          </div>
           <Badge variant="secondary" className={driveMode === 'local' ? "bg-teal-50 text-teal-700 border border-teal-100" : "bg-indigo-50 text-indigo-700 border border-indigo-100"}>
             {driveMode === 'local' ? "Unlimited Free Browser Space" : "Firebase Storage"}
           </Badge>
         </CardHeader>
         <CardContent className="p-6">
+          {/* Secured Folders Grid when at Root */}
+          {currentFolder === "" && (
+            <div className="mb-6 space-y-3">
+              <h3 className="text-xs uppercase font-bold text-slate-500 tracking-wider">Role-Based Secured Folders</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[
+                  { id: "founding-directors-only", name: "Founding Directors Only", icon: "🔒", desc: "Executive strategic plans, financials, payrolls", roleRestricted: "founder" },
+                  { id: "employee-portal", name: "General Team Portal", icon: "📁", desc: "Shared agency resources, SOPs, design assets", roleRestricted: null },
+                  { id: "client-handovers", name: "Client Handover Vault", icon: "🌐", desc: "Syncs directly to client portal deliverables", roleRestricted: null }
+                ].map(folder => {
+                  const isRestricted = folder.roleRestricted && role !== folder.roleRestricted;
+                  return (
+                    <div 
+                      key={folder.id}
+                      onClick={() => {
+                        if (isRestricted) {
+                          alert("Access Denied: The Founding Directors folder is restricted by RBAC to corporate executives.");
+                          return;
+                        }
+                        setCurrentFolder(folder.id);
+                      }}
+                      className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between h-32 hover:shadow-md ${
+                        isRestricted 
+                          ? "bg-slate-50/50 border-slate-200 opacity-60 hover:border-red-300"
+                          : "bg-white border-slate-200 hover:border-indigo-400"
+                      }`}
+                    >
+                      <div className="flex justify-between items-start">
+                        <span className="text-2xl">{folder.icon}</span>
+                        {isRestricted && (
+                          <Badge variant="outline" className="text-[9px] font-bold border-red-200 text-red-600 bg-red-50 py-0 uppercase">Restricted</Badge>
+                        )}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-sm text-slate-900 flex items-center gap-1.5">
+                          {folder.name}
+                        </h4>
+                        <p className="text-[10px] text-slate-500 mt-1 truncate">{folder.desc}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="border-t border-slate-100 pt-6"></div>
+            </div>
+          )}
+
           {loading ? (
             <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
               <Loader2 className="h-8 w-8 animate-spin text-indigo-500 mb-4" />

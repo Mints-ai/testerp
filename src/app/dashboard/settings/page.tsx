@@ -41,8 +41,18 @@ export default function SettingsDashboard() {
   const { showToast } = useToast();
   const [employees, setEmployees] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<"preferences" | "users" | "roles" | "company" | "holidays" | "audit">("preferences");
+  const [activeTab, setActiveTab] = useState<"preferences" | "users" | "roles" | "company" | "holidays" | "audit" | "integrations">("preferences");
   const [selectedRole, setSelectedRole] = useState<string>("employee");
+
+  // Integrations states
+  const [discordWebhookUrl, setDiscordWebhookUrl] = useState("");
+  const [webhookEvents, setWebhookEvents] = useState({
+    auth: true,
+    finance: true,
+    projects: true
+  });
+  const [testingWebhook, setTestingWebhook] = useState(false);
+  const [savingWebhook, setSavingWebhook] = useState(false);
   
   // Audit Logs V2 Filtering States
   const [auditSearchQuery, setAuditSearchQuery] = useState("");
@@ -146,6 +156,7 @@ export default function SettingsDashboard() {
 
     // Fetch Audit Logs (Founder only)
     let unsubAudit = () => {};
+    let unsubWebhook = () => {};
     if (isFounder) {
       const qAudit = query(collection(db, "auditLog"), orderBy("createdAt", "desc"));
       unsubAudit = onSnapshot(qAudit, (snapshot) => {
@@ -153,12 +164,23 @@ export default function SettingsDashboard() {
       }, (error) => {
         console.error("Firestore onSnapshot error (settings auditLog):", error);
       });
+
+      unsubWebhook = onSnapshot(doc(db, "settings", "discordWebhook"), (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setDiscordWebhookUrl(data.url || "");
+          if (data.events) {
+            setWebhookEvents(data.events);
+          }
+        }
+      });
     }
 
     return () => {
       unsubEmp();
       unsubSettings();
       unsubAudit();
+      unsubWebhook();
     };
   }, [user, isCSuiteOrAbove, isFounder]);
 
@@ -309,6 +331,47 @@ export default function SettingsDashboard() {
     return diff < 300000; // 5 minutes in milliseconds
   };
 
+  const handleExportAuditLogs = (logsToExport: any[]) => {
+    try {
+      if (logsToExport.length === 0) {
+        showToast("No audit logs available to export.", "warning");
+        return;
+      }
+      
+      const headers = ["Log ID", "Actor ID", "Actor Name", "Action Type", "Target Component", "Description Details", "Timestamp"];
+      const rows = logsToExport.map(log => {
+        const actor = getActorInfo(log.actorId);
+        const desc = getAuditDescription(log);
+        const dateString = log.createdAt?.seconds 
+          ? new Date(log.createdAt.seconds * 1000).toLocaleString() 
+          : "Just now";
+        return [
+          log.id,
+          log.actorId,
+          `"${actor.name.replace(/"/g, '""')}"`,
+          log.action,
+          log.targetCollection || "system",
+          `"${desc.replace(/"/g, '""')}"`,
+          dateString
+        ];
+      });
+
+      const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `mints_global_erp_audit_log_${Date.now()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast("Audit logs successfully exported as a corporate compliance CSV sheet.", "success");
+    } catch (err) {
+      console.error("CSV Export failed:", err);
+      showToast("Failed to export audit logs as CSV.", "error");
+    }
+  };
+
   return (
     <div className="space-y-6 pb-12 h-full flex flex-col">
       <div className="shrink-0 mb-6">
@@ -389,17 +452,30 @@ export default function SettingsDashboard() {
           )}
 
           {isFounder && (
-            <button 
-              onClick={() => setActiveTab("audit")}
-              className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-left border", 
-                activeTab === "audit" 
-                  ? "bg-blue-600/20 text-blue-300 border-blue-500/25 shadow-sm" 
-                  : "text-white/40 border-transparent hover:text-white/80 hover:bg-white/[0.04]"
-              )}
-            >
-              <ShieldAlert className="w-5 h-5" />
-              Audit Log
-            </button>
+            <>
+              <button 
+                onClick={() => setActiveTab("audit")}
+                className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-left border", 
+                  activeTab === "audit" 
+                    ? "bg-blue-600/20 text-blue-300 border-blue-500/25 shadow-sm" 
+                    : "text-white/40 border-transparent hover:text-white/80 hover:bg-white/[0.04]"
+                )}
+              >
+                <ShieldAlert className="w-5 h-5" />
+                Audit Log
+              </button>
+              <button 
+                onClick={() => setActiveTab("integrations")}
+                className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-left border", 
+                  activeTab === "integrations" 
+                    ? "bg-blue-600/20 text-blue-300 border-blue-500/25 shadow-sm" 
+                    : "text-white/40 border-transparent hover:text-white/80 hover:bg-white/[0.04]"
+                )}
+              >
+                <Wifi className="w-5 h-5" />
+                Integrations Center
+              </button>
+            </>
           )}
         </div>
 
@@ -828,7 +904,16 @@ export default function SettingsDashboard() {
                   </div>
                   
                   {/* Status Indicator Counters */}
-                  <div className="flex gap-4">
+                  <div className="flex items-center gap-3">
+                    <Button
+                      onClick={() => handleExportAuditLogs(filteredAuditLogs)}
+                      variant="outline"
+                      className="bg-white border-slate-200 text-slate-750 hover:bg-slate-50 text-xs font-bold flex items-center gap-2 h-9 py-0 px-4 shrink-0 shadow-sm cursor-pointer"
+                    >
+                      <UploadCloud className="h-4 w-4 rotate-180 text-indigo-600" />
+                      Export CSV
+                    </Button>
+
                     <div className="bg-emerald-50 border border-emerald-200 px-4 py-2 rounded-xl flex items-center gap-3">
                       <span className="relative flex h-3 w-3 shrink-0">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -982,6 +1067,121 @@ export default function SettingsDashboard() {
               </div>
             );
           })()}
+
+          {/* EXECUTIVE INTEGRATIONS CENTER */}
+          {isFounder && activeTab === "integrations" && (
+            <div className="flex flex-col h-full bg-[#f8fafc] text-slate-800">
+              <div className="p-6 border-b border-slate-200 bg-white">
+                <h3 className="font-extrabold text-xl text-slate-900 flex items-center gap-2">
+                  <Wifi className="h-5 w-5 text-indigo-600 animate-pulse" />
+                  Discord Webhook Integration Center
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">Configure real-time automated system event routing directly to your Discord server channels.</p>
+              </div>
+
+              <div className="p-8 space-y-6 max-w-3xl">
+                <Card className="border border-slate-200 shadow-sm bg-white rounded-xl">
+                  <CardHeader className="border-b border-slate-100 p-5 bg-slate-50/50">
+                    <CardTitle className="text-sm font-bold text-slate-900">Active Webhook Configurations</CardTitle>
+                    <CardDescription className="text-xs text-slate-500">Specify the targeting URL of your Discord webhook channel integration.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-6 space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Discord Webhook Destination URL</Label>
+                      <div className="flex gap-3">
+                        <Input
+                          value={discordWebhookUrl}
+                          onChange={(e) => setDiscordWebhookUrl(e.target.value)}
+                          placeholder="https://discord.com/api/webhooks/..."
+                          className="bg-slate-50/50 border-slate-200 text-slate-900 font-medium"
+                        />
+                        <Button 
+                          onClick={async () => {
+                            if (!discordWebhookUrl) return;
+                            setTestingWebhook(true);
+                            try {
+                              const res = await fetch("/api/discord-alert", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                  content: "🛡️ **Mints Global ERP Webhook Integration Test**\nSystem webhooks have been successfully configured and verified. Real-time telemetry is operational!",
+                                  webhookUrl: discordWebhookUrl
+                                })
+                              });
+                              if (res.ok) {
+                                showToast("Test alert successfully dispatched to Discord channel!", "success");
+                              } else {
+                                throw new Error("Test failed");
+                              }
+                            } catch (err) {
+                              showToast("Failed to connect to Discord channel. Verify webhook URL.", "error");
+                            } finally {
+                              setTestingWebhook(false);
+                            }
+                          }}
+                          disabled={testingWebhook || !discordWebhookUrl}
+                          variant="outline"
+                          className="font-bold shrink-0 text-slate-700 border-slate-200 hover:bg-slate-50 cursor-pointer"
+                        >
+                          {testingWebhook ? "Testing..." : "Test Connection"}
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-slate-100 pt-5 space-y-4">
+                      <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Configure Automated Event Triggers</h4>
+                      <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Toggle which high-impact business activities route real-time telemetry updates to Discord.</p>
+                      
+                      <div className="space-y-3.5 mt-4">
+                        {[
+                          { key: "auth", label: "User Authentication & Sign-ins", desc: "Monitors successful employee logins and new sessions." },
+                          { key: "finance", label: "Financial Actions & Billing Suite", desc: "Routes invoice generation, payroll issuances, and client payments." },
+                          { key: "projects", label: "Project Creations & Handover Deliveries", desc: "Routes timeline schedules and deliverable file publications." }
+                        ].map(item => (
+                          <div key={item.key} className="flex items-center justify-between p-3.5 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                            <div>
+                              <h5 className="text-xs font-bold text-slate-900">{item.label}</h5>
+                              <p className="text-[10px] text-slate-500 font-semibold mt-0.5">{item.desc}</p>
+                            </div>
+                            <Switch
+                              checked={(webhookEvents as any)[item.key]}
+                              onCheckedChange={(checked) => setWebhookEvents(prev => ({ ...prev, [item.key]: checked }))}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="border-t border-slate-100 pt-6 flex justify-end">
+                      <Button
+                        onClick={async () => {
+                          setSavingWebhook(true);
+                          try {
+                            const { db: dbRef } = await import("@/lib/firebase");
+                            const { setDoc, doc: docRef } = await import("firebase/firestore");
+                            await setDoc(docRef(dbRef, "settings", "discordWebhook"), {
+                              url: discordWebhookUrl,
+                              events: webhookEvents,
+                              updatedAt: new Date().toISOString()
+                            });
+                            showToast("Discord Integration Settings saved successfully.", "success");
+                          } catch (err) {
+                            showToast("Failed to save integration settings.", "error");
+                          } finally {
+                            setSavingWebhook(false);
+                          }
+                        }}
+                        disabled={savingWebhook}
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold cursor-pointer"
+                      >
+                        {savingWebhook ? "Saving..." : "Save Webhook Settings"}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
 
         </div>
       </div>
