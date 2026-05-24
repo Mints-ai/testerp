@@ -247,3 +247,13 @@ Founder dashboard tracking company security events, real-time active users, and 
 
 ![Live Presence Map Home](public/live_presence_map.png)
 ![Discord integrations panel](public/discord_settings.png)
+
+---
+
+## 📅 16. Version History
+
+| Version | Date | Status | Changes |
+| :--- | :--- | :--- | :--- |
+| **v1.0** | May 2026 | Released | Initial release (Core HR Directory, Attendance Location Logs, Lead CRM Hub) |
+| **v1.1** | May 2026 | Released | Leave Planner workflow, Multi-department employee database structures, Static Webhooks |
+| **v1.2** | May 2026 | **Active Production** | Complete Client Billing Suite, Secure File Explorer Drive (RBAC), Gantt Capacity Heatmap, dynamic Weekly Timesheet matrix spreadsheet, Live Presence Map, and custom Discord settings telemetry center. |

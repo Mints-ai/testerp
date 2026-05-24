@@ -356,8 +356,8 @@ Mints Global ERP enforces strict Role-Based Access Control (RBAC). Here is a det
 
 ### 13. Version History
 
-| Version | Date | Changes |
-|---|---|---|
-| v1.0 | May 2026 | Initial release (HR, Attendance, CRM) |
-| v1.1 | May 2026 | Added Leave Management, Multi-department, Discord Webhooks |
-| v1.2 | TBD | Advanced Financial Tracking & Client Portal |
+| Version | Date | Status | Changes |
+| :--- | :--- | :--- | :--- |
+| **v1.0** | May 2026 | Released | Initial release (Core HR Directory, Attendance Location Logs, Lead CRM Hub) |
+| **v1.1** | May 2026 | Released | Leave Planner workflow, Multi-department employee database structures, Static Webhooks |
+| **v1.2** | May 2026 | **Active Production** | Complete Client Billing Suite, Secure File Explorer Drive (RBAC), Gantt Capacity Heatmap, dynamic Weekly Timesheet matrix spreadsheet, Live Presence Map, and custom Discord settings telemetry center. |
