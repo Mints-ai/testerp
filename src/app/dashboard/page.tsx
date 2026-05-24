@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { db } from "@/lib/firebase";
+import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Briefcase, Users, CheckCircle2, Clock, Check, X, AlertCircle, Heart, Zap } from "lucide-react";
 import { LineChart, Line, ResponsiveContainer, AreaChart, Area } from "recharts";
 import { motion } from "framer-motion";
@@ -33,6 +35,7 @@ export default function DashboardHome() {
     pendingApprovals: [] as any[]
   });
   const [loadingStats, setLoadingStats] = useState(true);
+  const [employees, setEmployees] = useState<any[]>([]);
   
   const isExecutive = role === "founder" || role === "c_suite" || role === "manager";
 
@@ -42,22 +45,6 @@ export default function DashboardHome() {
     const loadStats = async () => {
       try {
         const { collection, query, where, getDocs } = await import("firebase/firestore");
-        
-        // 1. Active Employees Count & Online Users Count
-        const employeesSnap = await getDocs(query(collection(db, "employees"), where("isActive", "==", true)));
-        const empCount = employeesSnap.size;
-        
-        let onlineUsers = 0;
-        const now = Date.now();
-        employeesSnap.docs.forEach(doc => {
-          const emp = doc.data();
-          if (emp.lastSeenAt) {
-            const lastSeenTime = new Date(emp.lastSeenAt).getTime();
-            if (now - lastSeenTime < 5 * 60 * 1000) {
-              onlineUsers++;
-            }
-          }
-        });
         
         // 2. Open Tasks
         const tasksSnap = await getDocs(collection(db, "tasks"));
@@ -75,14 +62,13 @@ export default function DashboardHome() {
           ...doc.data()
         }));
         
-        setStats({
+        setStats(prev => ({
+          ...prev,
           openTasks: taskCount,
           activeProjects: projectCount,
-          teamSize: empCount,
-          onlineCount: onlineUsers,
           pendingLeaves: leaveCount,
           pendingApprovals: approvals
-        });
+        }));
       } catch (err) {
         console.error("Error loading dashboard stats:", err);
       } finally {
@@ -92,16 +78,43 @@ export default function DashboardHome() {
 
     loadStats();
     
-    // Listen to Shoutouts
+    let unsubShoutouts = () => {};
+    let unsubEmployees = () => {};
+
+    // Listen to Shoutouts in real-time
     import("firebase/firestore").then(({ collection, query, orderBy, limit, onSnapshot }) => {
       const q = query(collection(db, "shoutouts"), orderBy("createdAt", "desc"), limit(5));
-      const unsubscribe = onSnapshot(q, (snapshot) => {
+      unsubShoutouts = onSnapshot(q, (snapshot) => {
         setShoutouts(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
       }, (error) => {
         console.error("Firestore onSnapshot error (shoutouts):", error);
       });
-      return unsubscribe;
     });
+
+    // Listen to Employees for dynamic presence updates
+    import("firebase/firestore").then(({ collection, query, onSnapshot }) => {
+      const q = query(collection(db, "employees"));
+      unsubEmployees = onSnapshot(q, (snapshot) => {
+        const emps = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        setEmployees(emps);
+        
+        const now = Date.now();
+        const activeCount = emps.filter((emp: any) => emp.isActive && emp.lastSeenAt && (now - new Date(emp.lastSeenAt).getTime() < 5 * 60 * 1000)).length;
+        
+        setStats(prev => ({
+          ...prev,
+          teamSize: emps.filter((e: any) => e.isActive).length,
+          onlineCount: activeCount
+        }));
+      }, (error) => {
+        console.error("Firestore onSnapshot error (presence employees):", error);
+      });
+    });
+
+    return () => {
+      unsubShoutouts();
+      unsubEmployees();
+    };
   }, [user]);
 
   const handleAction = async (id: string, newStatus: "approved" | "rejected") => {
@@ -260,15 +273,77 @@ export default function DashboardHome() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7 h-auto">
           {/* Recent Activity / Tasks */}
           <div className="md:col-span-2 lg:col-span-4 space-y-6 flex flex-col">
+            {/* Real-time Live Presence Map */}
             <Card className="glass bg-white/[0.02] border-white/[0.08]">
-              <CardHeader className="pb-3 border-b border-white/[0.06]">
-                <CardTitle className="text-sm font-bold text-white">Recent Activity</CardTitle>
+              <CardHeader className="pb-3 border-b border-white/[0.06] flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    Live Presence Map
+                  </CardTitle>
+                  <CardDescription className="text-[10px] text-white/40 mt-1">Real-time status updates of onboarded colleagues based on activity beat.</CardDescription>
+                </div>
+                <div className="flex gap-3 text-[9px] font-bold text-white/50">
+                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Online</span>
+                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Idle</span>
+                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white/20" /> Offline</span>
+                </div>
               </CardHeader>
-              <CardContent className="p-0">
-                <div className="divide-y divide-white/[0.04]">
-                  <div className="p-8 text-center text-xs text-white/40 italic">
-                    No recent activity recorded.
-                  </div>
+              <CardContent className="p-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  {employees.length === 0 ? (
+                    <div className="col-span-full py-8 text-center text-xs text-white/40 italic">
+                      No registered colleagues found.
+                    </div>
+                  ) : (
+                    employees.map(emp => {
+                      const now = Date.now();
+                      let status: "online" | "idle" | "offline" = "offline";
+                      let lastSeenStr = "Never active";
+                      
+                      if (emp.lastSeenAt) {
+                        const diff = now - new Date(emp.lastSeenAt).getTime();
+                        if (diff < 5 * 60 * 1000) {
+                          status = "online";
+                          lastSeenStr = "Active now";
+                        } else if (diff < 15 * 60 * 1000) {
+                          status = "idle";
+                          lastSeenStr = "Idle (Active recently)";
+                        } else {
+                          status = "offline";
+                          lastSeenStr = `Offline (Seen ${new Date(emp.lastSeenAt).toLocaleDateString()})`;
+                        }
+                      }
+
+                      const initials = (emp.fullName || emp.name || "SA").split(" ").map((n: any) => n[0]).join("").substring(0, 2).toUpperCase();
+
+                      return (
+                        <div key={emp.id} className="relative bg-white/[0.01] border border-white/[0.04] p-3 rounded-xl flex items-center gap-3 hover:bg-white/[0.03] hover:border-white/[0.08] transition-all group">
+                          <div className="relative">
+                            <Avatar className="h-9 w-9 border border-white/5 shadow-sm">
+                              <AvatarImage src={emp.profilePhotoURL} />
+                              <AvatarFallback className="bg-blue-600/30 text-white font-bold text-xs">{initials}</AvatarFallback>
+                            </Avatar>
+                            <span className={cn(
+                              "absolute bottom-0 right-0 block h-2 w-2 rounded-full ring-1 ring-black/50",
+                              status === "online" && "bg-emerald-500 animate-pulse",
+                              status === "idle" && "bg-amber-500 animate-pulse",
+                              status === "offline" && "bg-white/20"
+                            )} />
+                          </div>
+
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-bold text-white truncate leading-snug">{emp.fullName || emp.name}</p>
+                            <p className="text-[9px] text-white/40 truncate mt-0.5 leading-snug">{emp.jobTitle || "Team Colleague"}</p>
+                            <p className="text-[8px] text-white/30 font-semibold truncate mt-1 leading-snug">{lastSeenStr}</p>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               </CardContent>
             </Card>
