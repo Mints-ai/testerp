@@ -12,6 +12,22 @@ Welcome to the **Mints Global ERP**, a state-of-the-art enterprise resource plan
   <img src="public/Screenshot2.png" alt="Mints Global ERP Dashboard Preview 2" width="49%" />
 </div>
 
+<br/>
+
+<div align="center">
+  <img src="public/live_presence_map.png" alt="Mints Global ERP Live Presence Map" width="49%" />
+  &nbsp;
+  <img src="public/timesheet_matrix.png" alt="Mints Global ERP Weekly Timesheet Matrix" width="49%" />
+</div>
+
+<br/>
+
+<div align="center">
+  <img src="public/cloud_drive.png" alt="Mints Global ERP Secure Folder Explorer" width="49%" />
+  &nbsp;
+  <img src="public/discord_settings.png" alt="Mints Global ERP Discord Webhook Settings" width="49%" />
+</div>
+
 ---
 
 ## 🏛️ Architecture & Flow Diagram
@@ -148,14 +164,16 @@ Mints Global ERP replaces disjointed spreadsheets and isolated SaaS tools by bri
 
 ### Modules currently built
 
-- **Attendance tracking**: Real-time logging with Discord webhook notifications.
-- **Employee management (HR Hub)**: Onboard new hires, assign multiple departments, track intern progress.
-- **Leave management**: Apply for leave, view balance, and approval workflow integrated with Discord.
-- **CRM & Sales Pipeline**: Visual drag-and-drop Kanban pipeline for leads.
-- **Projects & Capacity Planning**: Active project scopes, team assignment, and capacity monitoring.
-- **Finance & Invoicing**: Track revenue streams and generate dynamic PDF invoices/proposals.
+- **Attendance tracking**: Real-time logging with geolocated location telemetry and check-in logs.
+- **Real-time Live Presence Map**: Pulsing status markers display online, idle, and offline team members inside the Command Center using live Firestore heartbeats.
+- **Employee management (HR Hub)**: Onboard new hires, modify clearance roles, track multi-department assignments.
+- **Leave management**: Apply for leaves, manage global absences calendar, and approval console.
+- **CRM & Sales Pipeline**: Visual Kanban pipeline for leads and official Client list conversion.
+- **Projects, Gantt Timelines & Timesheets**: Milestone charts, Gantt relative timelines, workload capacity planner heatmaps, and weekly spreadsheet-style timesheet grids.
+- **Secure Company Drive & Assets Explorer**: Subdirectories, Dynamic global search/tags, Founding Director folder locking (RBAC), and direct client publication.
+- **Executive Control Panel**: Dynamic settings Discord webhook toggles (Auth, Financial, HR), connectivity testing routes, and Auditor CSV logs exporter.
 - **Role-based access control (RBAC)**: Secure access gating based on hierarchy (Founders, C-Suite, Managers, Employees, Interns).
-- **Discord Bot Integration**: Real-time push notifications for logins, logouts, and leave applications.
+- **Discord Bot Integration**: Real-time notifications filtered dynamically by custom triggers.
 - **Global Command Palette**: Instantly search and navigate across the ERP (`Ctrl+K`).
 
 ---
@@ -285,9 +303,11 @@ Mints Global ERP enforces strict Role-Based Access Control (RBAC). Here is a det
 - **Attendance**: Go to **Attendance**. Use the primary button to **Check In** at the start of your shift, and **Check Out** when finished. Your daily hours are automatically calculated and pushed to the Discord tracking channel.
 - **Leave Management**: Go to **Leaves**. Click **Apply for Leave**, select the date range, and specify the type. This immediately notifies Managers in Discord. Managers can click the **Approve/Reject** buttons directly in the Leaves table.
 - **Employee Onboarding (Admin Only)**: Go to **HR Hub** -> **+ Add Employee**. Fill in their details, assign their Role (e.g., Manager) and Department(s). The system will automatically generate a secure static email and password for them to log in.
-- **Project Capacity (Managers/Admins)**: Go to **Projects**. Create a scope, then click into the project to **Manage Team**. Adding a team member updates their load in the **Capacity** tab, ensuring no employee is assigned to too many active projects at once.
+- **Project Capacity & Timesheet Spreadsheet (Managers/Admins/Employees)**: Navigate to **Projects** -> **Capacity** tab. Check the heatmap to verify task load allocations. To log hours, select the **Timesheet Matrix** tab, click **+ Add Project Row**, select projects, type hours dynamically across daily input cells, and click **Submit Weekly Timesheet** to store the spreadsheet log inside Firestore.
+- **Secure File Drive Uploads & Permissions (Admins/Managers/Interns)**: Go to **Files**. Create directories, type dynamic search tokens, or click tags to filter private assets. Restrict sensitive payload assets by creating a `founding-directors-only` directory to lock access from employee or intern clearances.
 - **CRM Pipeline (Admins Only)**: Navigate to **CRM**. Click **+ Add Lead**. As negotiations progress, drag and drop the lead card across stages ("Pitch" -> "Negotiation" -> "Won").
-- **Invoicing (Admins Only)**: Navigate to **Finance**. Click **Create Invoice**, fill in the line items and client details, and click **Download PDF**. The browser dynamically generates a branded invoice using your Global HQ settings.
+- **Invoicing & Handover (Admins Only)**: Navigate to **Finance**. Click **Create Invoice**, fill in the line items and client details, and click **Download PDF**. The browser dynamically generates a branded invoice using your Global HQ settings. Export deliverables by uploading finalized items inside the Client Handover Vault to make them visible to the Client Portal interface.
+- **Integrations & Testing (Admins/Founders)**: Navigate to **Settings** -> **Integrations**. Set your target webhook address, toggle notification event routing (Auth, Finance, HR), click **Test Webhook Connection** to send dynamic instant alerts to Discord, or click **Export Audit Logs** to download the CSV spreadsheets.
 
 ### 6. Navigation Guide
 
