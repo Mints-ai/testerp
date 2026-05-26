@@ -17,6 +17,14 @@ import { Input } from "@/components/ui/input";
 type TaskStatus = "backlog" | "in_progress" | "review" | "done";
 type TaskPriority = "low" | "normal" | "high" | "urgent";
 
+interface TaskRemark {
+  id: string;
+  text: string;
+  authorName: string;
+  authorId: string;
+  createdAt: string;
+}
+
 interface Task {
   id: string;
   title: string;
@@ -28,6 +36,7 @@ interface Task {
   dueDate?: string;
   createdAt: any;
   blocked?: boolean;
+  remarks?: TaskRemark[];
 }
 
 const COLUMNS: { id: TaskStatus; title: string }[] = [
@@ -61,6 +70,41 @@ export default function TaskBoard() {
   const [employeesByDept, setEmployeesByDept] = useState<Record<string, any[]>>({});
   const [employeesList, setEmployeesList] = useState<any[]>([]);
   const [addingToStatus, setAddingToStatus] = useState<TaskStatus>("backlog");
+  
+  // Selected Task details & Remarks state
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [newRemark, setNewRemark] = useState("");
+  const [isSubmittingRemark, setIsSubmittingRemark] = useState(false);
+
+  // Reactive lookup of active task to keep remarks modal real-time responsive
+  const activeTask = selectedTask ? 
+    Object.values(tasks).flat().find(t => t.id === selectedTask.id) : 
+    null;
+
+  const handleAddRemark = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user || !activeTask || !newRemark.trim()) return;
+
+    setIsSubmittingRemark(true);
+    try {
+      const docRef = doc(db, "tasks", activeTask.id);
+      const updatedRemarks = [...(activeTask.remarks || []), {
+        id: Math.random().toString(36).substring(2, 9),
+        text: newRemark.trim(),
+        authorId: user.uid,
+        authorName: user.fullName || user.displayName || "Mints Member",
+        createdAt: new Date().toISOString()
+      }];
+      
+      await updateDoc(docRef, { remarks: updatedRemarks });
+      setNewRemark("");
+    } catch (err) {
+      console.error("Error adding remark:", err);
+    } finally {
+      setIsSubmittingRemark(false);
+    }
+  };
 
   const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -347,10 +391,16 @@ export default function TaskBoard() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95 }}
                     >
-                      <Card className={cn("glass-card overflow-hidden border-white/[0.08] bg-white/[0.02] relative group", 
-                        task.priority === "urgent" ? "border-rose-500/30" : "",
-                        task.blocked ? "opacity-60" : ""
-                      )}>
+                      <Card 
+                        onClick={() => {
+                          setSelectedTask(task);
+                          setIsDetailsOpen(true);
+                        }}
+                        className={cn("glass-card overflow-hidden border-white/[0.08] bg-white/[0.02] relative group cursor-pointer hover:border-blue-500/30 transition-all", 
+                          task.priority === "urgent" ? "border-rose-500/30" : "",
+                          task.blocked ? "opacity-60" : ""
+                        )}
+                      >
                         {task.priority === "urgent" && !task.blocked && (
                           <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-rose-500 animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.5)]" />
                         )}
@@ -359,18 +409,24 @@ export default function TaskBoard() {
                             <button className="mt-1 w-5 h-5 rounded border-2 border-white/20 flex items-center justify-center hover:border-blue-500 hover:bg-blue-500/10 transition-colors shrink-0 cursor-pointer">
                             </button>
                             <div className="flex-1">
-                              <div className="flex items-center justify-between mb-1.5">
-                                <div className="flex items-center gap-2">
-                                  <span className="badge bg-white/5 border border-white/10 text-white/50 text-[9px] font-bold py-0.5 uppercase tracking-wider">
-                                    {task.projectName || "Project"}
-                                  </span>
-                                  {task.priority === "urgent" && <span className="badge status-critical font-bold text-[9px] py-0.5 uppercase tracking-wider">Urgent</span>}
-                                  {task.blocked && <span className="badge status-draft font-bold text-[9px] py-0.5 uppercase tracking-wider flex items-center gap-1"><Lock className="w-2.5 h-2.5" /> Blocked</span>}
-                                </div>
-                                <button onClick={() => handleDeleteTask(task.id)} className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-rose-500/20 text-rose-400 rounded cursor-pointer">
-                                  <Trash2 className="w-3 h-3" />
-                                </button>
-                              </div>
+                               <div className="flex items-center justify-between mb-1.5">
+                                 <div className="flex items-center gap-2">
+                                   <span className="badge bg-white/5 border border-white/10 text-white/50 text-[9px] font-bold py-0.5 uppercase tracking-wider">
+                                     {task.projectName || "Project"}
+                                   </span>
+                                   {task.priority === "urgent" && <span className="badge status-critical font-bold text-[9px] py-0.5 uppercase tracking-wider">Urgent</span>}
+                                   {task.blocked && <span className="badge status-draft font-bold text-[9px] py-0.5 uppercase tracking-wider flex items-center gap-1"><Lock className="w-2.5 h-2.5" /> Blocked</span>}
+                                 </div>
+                                 <button 
+                                   onClick={(e) => {
+                                     e.stopPropagation();
+                                     handleDeleteTask(task.id);
+                                   }} 
+                                   className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-rose-500/20 text-rose-400 rounded cursor-pointer"
+                                 >
+                                   <Trash2 className="w-3 h-3" />
+                                 </button>
+                               </div>
                               <h3 className="text-sm font-bold text-white group-hover:text-blue-400 transition-colors leading-snug">{task.title}</h3>
                               
                               <div className="flex items-center gap-4 mt-4 text-xs font-bold uppercase tracking-wider">
@@ -428,8 +484,12 @@ export default function TaskBoard() {
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
+                                onClick={() => {
+                                  setSelectedTask(task);
+                                  setIsDetailsOpen(true);
+                                }}
                                 className={cn(
-                                  "mb-3 cursor-grab border-white/[0.08] bg-[#0c1322]/80 hover:bg-[#0c1322] transition-all relative overflow-hidden group", 
+                                  "mb-3 cursor-pointer border-white/[0.08] bg-[#0c1322]/80 hover:bg-[#0c1322] transition-all relative overflow-hidden group hover:border-blue-500/30", 
                                   snapshot.isDragging ? 'shadow-xl ring-1 ring-blue-500/30 rotate-1 bg-blue-950/90' : 'shadow-sm',
                                   task.priority === "urgent" && "border-rose-500/20"
                                 )}
@@ -446,7 +506,13 @@ export default function TaskBoard() {
                                       </Badge>
                                       {task.blocked && <span title="Blocked"><Lock className="w-3 h-3 text-white/30" /></span>}
                                     </div>
-                                    <button onClick={() => handleDeleteTask(task.id)} className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-rose-500/20 text-rose-400 rounded cursor-pointer shrink-0">
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteTask(task.id);
+                                      }} 
+                                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-rose-500/20 text-rose-400 rounded cursor-pointer shrink-0"
+                                    >
                                       <Trash2 className="w-3 h-3" />
                                     </button>
                                   </div>
@@ -458,10 +524,10 @@ export default function TaskBoard() {
                                   <div className="flex items-center justify-between mt-auto pt-3 border-t border-white/[0.04]">
                                     <div className="flex gap-2 text-white/40 text-[9px] font-bold">
                                       <div className="flex items-center gap-1 hover:text-white/70 transition-colors">
-                                        <CheckSquare className="w-3 h-3 text-blue-400" /> 0/3
+                                        <CheckSquare className="w-3 h-3 text-blue-400" /> {task.status === "done" ? "1/1" : "0/1"}
                                       </div>
                                       <div className="flex items-center gap-1 hover:text-white/70 transition-colors">
-                                        <MessageSquare className="w-3 h-3" /> 2
+                                        <MessageSquare className="w-3 h-3 text-blue-400" /> {task.remarks?.length || 0}
                                       </div>
                                     </div>
                                     
@@ -476,9 +542,13 @@ export default function TaskBoard() {
                                           {new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                         </div>
                                       )}
-                                      <Avatar className="w-5 h-5 border border-white/10 shadow-sm">
+                                      <Avatar className="w-5 h-5 border border-white/10 shadow-sm" title={employeesList.find(e => e.id === task.assignedTo)?.fullName || "Unassigned"}>
                                         <AvatarFallback className="bg-blue-800 text-[8px] font-bold text-blue-200">
-                                          {task.assignedTo ? "JD" : "?"}
+                                          {(() => {
+                                            const emp = employeesList.find(e => e.id === task.assignedTo);
+                                            if (!emp?.fullName) return "?";
+                                            return emp.fullName.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase();
+                                          })()}
                                         </AvatarFallback>
                                       </Avatar>
                                     </div>
@@ -587,6 +657,100 @@ export default function TaskBoard() {
               </button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Task Details & Remarks Dialog */}
+      <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
+        <DialogContent className="bg-[#0f172a] border-white/10 text-white sm:max-w-lg">
+          <DialogHeader>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="badge bg-white/5 border border-white/10 text-white/50 text-[9px] font-bold py-0.5 uppercase tracking-wider">
+                {activeTask?.projectName || "General"}
+              </span>
+              <div className={`w-1.5 h-1.5 rounded-full ${activeTask ? PRIORITY_COLORS[activeTask.priority] : ''}`} />
+              <span className="text-[9px] font-bold uppercase text-white/40">{activeTask?.priority} Priority</span>
+            </div>
+            <DialogTitle className="text-base font-extrabold text-white leading-tight">
+              {activeTask?.title}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-5 mt-4">
+            {/* Task Meta Details */}
+            <div className="grid grid-cols-2 gap-4 bg-white/[0.02] border border-white/[0.05] p-3 rounded-xl text-xs">
+              <div>
+                <span className="text-white/40 block mb-0.5">Assigned To:</span>
+                <span className="font-bold text-white flex items-center gap-1.5">
+                  <Avatar className="w-4 h-4 border border-white/10">
+                    <AvatarFallback className="bg-blue-800 text-[7px] font-bold text-blue-200">
+                      {activeTask ? (employeesList.find(e => e.id === activeTask.assignedTo)?.fullName?.substring(0,2).toUpperCase() || "UN") : "UN"}
+                    </AvatarFallback>
+                  </Avatar>
+                  {activeTask ? (employeesList.find(e => e.id === activeTask.assignedTo)?.fullName || "Unassigned") : "Unassigned"}
+                </span>
+              </div>
+              <div>
+                <span className="text-white/40 block mb-0.5">Due Date:</span>
+                <span className="font-bold text-white flex items-center gap-1">
+                  <Clock className="w-3 h-3 text-blue-400" />
+                  {activeTask?.dueDate ? new Date(activeTask.dueDate).toLocaleDateString() : "No deadline set"}
+                </span>
+              </div>
+            </div>
+
+            {/* Remarks Log */}
+            <div>
+              <h3 className="text-xs font-bold text-white/70 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                <MessageSquare className="w-3.5 h-3.5 text-blue-400" /> Remarks & Progress Logs ({activeTask?.remarks?.length || 0})
+              </h3>
+              
+              <div className="space-y-3 max-h-48 overflow-y-auto pr-1 scrollbar-thin">
+                {!activeTask?.remarks || activeTask.remarks.length === 0 ? (
+                  <div className="text-center py-6 text-white/20 text-[10px] font-medium border border-white/[0.04] border-dashed rounded-xl">
+                    No remarks logged yet.
+                  </div>
+                ) : (
+                  activeTask.remarks.map((remark) => (
+                    <div key={remark.id} className="bg-white/[0.02] border border-white/[0.05] p-3 rounded-xl">
+                      <div className="flex justify-between items-center mb-1 text-[9px] font-bold uppercase">
+                        <span className="text-blue-400">{remark.authorName}</span>
+                        <span className="text-white/30">{new Date(remark.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                      </div>
+                      <p className="text-[11px] text-white/80 leading-relaxed font-medium">
+                        {remark.text}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Add Remark Form */}
+            <form onSubmit={handleAddRemark} className="space-y-2 border-t border-white/[0.06] pt-4">
+              <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider block">Add Progress Remark</label>
+              <div className="flex gap-2">
+                <input
+                  required
+                  placeholder={
+                    activeTask?.assignedTo === user?.uid 
+                      ? "Describe your progress, blockers, or update..."
+                      : "Write a manager note or remark..."
+                  }
+                  value={newRemark}
+                  onChange={(e) => setNewRemark(e.target.value)}
+                  className="flex-grow h-9 rounded-lg border border-white/10 bg-white/5 px-3 py-1 text-xs text-white placeholder:text-white/30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500"
+                />
+                <button
+                  type="submit"
+                  disabled={isSubmittingRemark || !newRemark.trim()}
+                  className="px-3 h-9 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-lg text-xs font-bold transition-colors cursor-pointer flex items-center justify-center"
+                >
+                  {isSubmittingRemark ? "..." : "Log"}
+                </button>
+              </div>
+            </form>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
