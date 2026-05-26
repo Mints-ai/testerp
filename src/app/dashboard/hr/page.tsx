@@ -212,8 +212,8 @@ export default function EmployeeDirectory() {
                           <h3 className="font-bold text-sm text-white line-clamp-1 group-hover:text-blue-400 transition-colors" title={emp.fullName}>
                             {emp.fullName}
                           </h3>
-                          <p className="text-[10px] text-white/40 line-clamp-1 font-semibold mt-0.5" title={roleMeta.label}>
-                            Privilege: {roleMeta.label}
+                          <p className="text-[10px] text-white/40 line-clamp-1 font-semibold mt-0.5" title={emp.jobTitle || "Team Member"}>
+                            {emp.jobTitle || "Team Member"}
                           </p>
                         </div>
 
@@ -239,7 +239,7 @@ export default function EmployeeDirectory() {
                             </div>
                           )}
                           <Badge className="bg-blue-500/10 border border-blue-500/20 text-blue-300 font-bold shadow-none text-[9px] py-0.5 uppercase tracking-wider whitespace-nowrap shrink-0">
-                            💼 {emp.jobTitle || "Team Member"}
+                            💼 Privilege: {roleMeta.label}
                           </Badge>
                         </div>
                         

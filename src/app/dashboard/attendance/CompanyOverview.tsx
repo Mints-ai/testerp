@@ -152,7 +152,7 @@ export function CompanyOverview() {
                         <td className="px-6 py-4">
                           <div className="flex flex-col gap-1.5 items-start">
                             <Badge variant="outline" className={cn("text-[9px] uppercase tracking-wider font-bold shadow-none", ROLE_META[emp.role]?.color || "bg-olive-100 text-olive-700")}>
-                              {ROLE_META[emp.role]?.label || "Employee"}
+                              {emp.jobTitle || ROLE_META[emp.role]?.label || "Employee"}
                             </Badge>
                             {emp.department && (
                               <span className="text-[10px] font-semibold text-olive-600 flex items-center">
