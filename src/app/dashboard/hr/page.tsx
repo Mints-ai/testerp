@@ -61,8 +61,17 @@ export default function EmployeeDirectory() {
     return name.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase();
   };
 
-  const founders = filteredEmployees.filter(e => e.role === "founder" || e.role === "c_suite");
-  const others = filteredEmployees.filter(e => e.role !== "founder" && e.role !== "c_suite");
+  const founders = filteredEmployees.filter(
+    e => (e.role === "founder" || e.role === "c_suite") && 
+         e.fullName !== "System Administrator" && 
+         e.email !== "admin@mintsglobal.ae" && 
+         e.email !== "admin@mintsgloabal.ae"
+  );
+  const others = filteredEmployees.filter(
+    e => e.role !== "founder" && 
+         e.role !== "c_suite" && 
+         e.fullName !== "System Administrator"
+  );
 
   return (
     <div className="space-y-6 pb-12 text-white">
@@ -266,7 +275,7 @@ export default function EmployeeDirectory() {
                     <AvatarFallback className="text-base font-bold bg-blue-800 text-blue-200">{getInitials(emp.fullName)}</AvatarFallback>
                   </Avatar>
                   <p className="font-bold text-xs text-white mt-3">{emp.fullName}</p>
-                  <p className="text-[10px] text-blue-400 font-semibold mt-0.5">{ROLE_META[emp.role]?.label || "Executive"}</p>
+                  <p className="text-[10px] text-blue-400 font-semibold mt-0.5">{emp.jobTitle || ROLE_META[emp.role]?.label || "Executive"}</p>
                 </div>
               )) : (
                 <div className="text-white/20 italic text-xs">No executives defined</div>
@@ -296,7 +305,7 @@ export default function EmployeeDirectory() {
                           <AvatarFallback className="bg-blue-800 text-blue-200 font-bold text-xs">{getInitials(emp.fullName)}</AvatarFallback>
                         </Avatar>
                         <p className="font-bold text-white mt-3 text-xs truncate w-full text-center" title={emp.fullName}>{emp.fullName}</p>
-                        <p className="text-[9px] text-white/40 text-center truncate w-full font-bold uppercase mt-0.5">{roleMeta.label}</p>
+                        <p className="text-[9px] text-white/40 text-center truncate w-full font-bold uppercase mt-0.5">{emp.jobTitle || roleMeta.label}</p>
                       </div>
                     );
                   })}
