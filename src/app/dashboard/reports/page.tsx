@@ -18,13 +18,35 @@ import {
 import { motion } from "framer-motion";
 import { CHART_COLORS, CHART_STYLE } from "@/lib/chartTheme";
 
-const defaultMonthlyPerformance: any[] = [];
-const defaultProjectStatusData: any[] = [];
-const defaultDeptTeamData: any[] = [];
+const defaultMonthlyPerformance: any[] = [
+  { month: "Jan", revenue: 45000, expenses: 28000, projects: 4 },
+  { month: "Feb", revenue: 52000, expenses: 31000, projects: 6 },
+  { month: "Mar", revenue: 61000, expenses: 35000, projects: 8 },
+  { month: "Apr", revenue: 58000, expenses: 34000, projects: 9 },
+  { month: "May", revenue: 73000, expenses: 42000, projects: 12 },
+  { month: "Jun", revenue: 85000, expenses: 46000, projects: 15 },
+];
+
+const defaultProjectStatusData: any[] = [
+  { name: "In Progress", value: 8 },
+  { name: "Completed", value: 5 },
+  { name: "Not Started", value: 2 },
+];
+
+const defaultDeptTeamData: any[] = [
+  { name: "OPERATIONS", count: 6 },
+  { name: "IT & CYBER SECURITY", count: 12 },
+  { name: "MARKETING", count: 4 },
+];
 
 export default function ReportsAndIntelligence() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   const [projects, setProjects] = useState<any[]>([]);
   const [invoices, setInvoices] = useState<any[]>([]);
@@ -291,32 +313,36 @@ export default function ReportsAndIntelligence() {
                 <CardDescription className="text-[11px] text-white/40 mt-1">Monthly track of incoming receivables and operational overhead expenses.</CardDescription>
               </CardHeader>
               <CardContent className="h-[300px] p-0 w-full min-w-0">
-                <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={defaultMonthlyPerformance} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25}/>
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                      </linearGradient>
-                      <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#ef4444" stopOpacity={0.15}/>
-                        <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray={CHART_STYLE.grid.strokeDasharray} vertical={false} stroke={CHART_STYLE.grid.stroke} />
-                    <XAxis dataKey="month" axisLine={CHART_STYLE.axis.axisLine} tickLine={CHART_STYLE.axis.tickLine} tick={CHART_STYLE.axis.tick} dy={10} />
-                    <YAxis axisLine={CHART_STYLE.axis.axisLine} tickLine={CHART_STYLE.axis.tickLine} tick={CHART_STYLE.axis.tick} tickFormatter={(v) => `AED ${v/1000}k`} />
-                    <RechartsTooltip 
-                      contentStyle={CHART_STYLE.tooltip.contentStyle}
-                      labelStyle={CHART_STYLE.tooltip.labelStyle}
-                      cursor={CHART_STYLE.tooltip.cursor}
-                      formatter={(value) => [`AED ${(Number(value) || 0).toLocaleString()}`, "Amount"]} 
-                    />
-                    <Legend wrapperStyle={CHART_STYLE.legend.wrapperStyle} />
-                    <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#3b82f6" fillOpacity={1} fill="url(#colorRev)" strokeWidth={2} />
-                    <Area type="monotone" dataKey="expenses" name="Expenses" stroke="#ef4444" fillOpacity={1} fill="url(#colorExp)" strokeWidth={2} />
-                  </AreaChart>
-                </ResponsiveContainer>
+                {mounted ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart data={defaultMonthlyPerformance} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25}/>
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                        </linearGradient>
+                        <linearGradient id="colorExp" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#ef4444" stopOpacity={0.15}/>
+                          <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray={CHART_STYLE.grid.strokeDasharray} vertical={false} stroke={CHART_STYLE.grid.stroke} />
+                      <XAxis dataKey="month" axisLine={CHART_STYLE.axis.axisLine} tickLine={CHART_STYLE.axis.tickLine} tick={CHART_STYLE.axis.tick} dy={10} />
+                      <YAxis axisLine={CHART_STYLE.axis.axisLine} tickLine={CHART_STYLE.axis.tickLine} tick={CHART_STYLE.axis.tick} tickFormatter={(v) => `AED ${v/1000}k`} />
+                      <RechartsTooltip 
+                        contentStyle={CHART_STYLE.tooltip.contentStyle}
+                        labelStyle={CHART_STYLE.tooltip.labelStyle}
+                        cursor={CHART_STYLE.tooltip.cursor}
+                        formatter={(value) => [`AED ${(Number(value) || 0).toLocaleString()}`, "Amount"]} 
+                      />
+                      <Legend wrapperStyle={CHART_STYLE.legend.wrapperStyle} />
+                      <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#3b82f6" fillOpacity={1} fill="url(#colorRev)" strokeWidth={2} />
+                      <Area type="monotone" dataKey="expenses" name="Expenses" stroke="#ef4444" fillOpacity={1} fill="url(#colorExp)" strokeWidth={2} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center text-xs text-white/20">Loading chart...</div>
+                )}
               </CardContent>
             </Card>
 
@@ -364,27 +390,31 @@ export default function ReportsAndIntelligence() {
                 <CardDescription className="text-[11px] text-white/40 mt-1">Visual summary of client projects status.</CardDescription>
               </CardHeader>
               <CardContent className="h-64 p-0 flex flex-col items-center justify-center w-full min-w-0">
-                <ResponsiveContainer width="100%" height={256}>
-                  <PieChart>
-                    <Pie
-                      data={getProjectStatusDistribution()}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={55}
-                      outerRadius={75}
-                      paddingAngle={3}
-                      dataKey="value"
-                      stroke="none"
-                    >
-                      {getProjectStatusDistribution().map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <RechartsTooltip 
-                      contentStyle={CHART_STYLE.tooltip.contentStyle}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
+                {mounted ? (
+                  <ResponsiveContainer width="100%" height={256}>
+                    <PieChart>
+                      <Pie
+                        data={getProjectStatusDistribution()}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={55}
+                        outerRadius={75}
+                        paddingAngle={3}
+                        dataKey="value"
+                        stroke="none"
+                      >
+                        {getProjectStatusDistribution().map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip 
+                        contentStyle={CHART_STYLE.tooltip.contentStyle}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center text-xs text-white/20">Loading chart...</div>
+                )}
                 
                 <div className="flex flex-wrap gap-x-4 gap-y-1.5 justify-center mt-4">
                   {getProjectStatusDistribution().map((entry, index) => (
@@ -403,16 +433,20 @@ export default function ReportsAndIntelligence() {
                 <CardDescription className="text-[11px] text-white/40 mt-1">Monthly distribution of total actively loaded projects.</CardDescription>
               </CardHeader>
               <CardContent className="h-[300px] p-0 w-full min-w-0">
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={defaultMonthlyPerformance} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray={CHART_STYLE.grid.strokeDasharray} vertical={false} stroke={CHART_STYLE.grid.stroke} />
-                    <XAxis dataKey="month" axisLine={CHART_STYLE.axis.axisLine} tickLine={CHART_STYLE.axis.tickLine} tick={CHART_STYLE.axis.tick} dy={10} />
-                    <YAxis axisLine={CHART_STYLE.axis.axisLine} tickLine={CHART_STYLE.axis.tickLine} tick={CHART_STYLE.axis.tick} />
-                    <RechartsTooltip contentStyle={CHART_STYLE.tooltip.contentStyle} />
-                    <Legend wrapperStyle={CHART_STYLE.legend.wrapperStyle} />
-                    <Bar dataKey="projects" name="Delivered Deliverables" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                {mounted ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={defaultMonthlyPerformance} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray={CHART_STYLE.grid.strokeDasharray} vertical={false} stroke={CHART_STYLE.grid.stroke} />
+                      <XAxis dataKey="month" axisLine={CHART_STYLE.axis.axisLine} tickLine={CHART_STYLE.axis.tickLine} tick={CHART_STYLE.axis.tick} dy={10} />
+                      <YAxis axisLine={CHART_STYLE.axis.axisLine} tickLine={CHART_STYLE.axis.tickLine} tick={CHART_STYLE.axis.tick} />
+                      <RechartsTooltip contentStyle={CHART_STYLE.tooltip.contentStyle} />
+                      <Legend wrapperStyle={CHART_STYLE.legend.wrapperStyle} />
+                      <Bar dataKey="projects" name="Delivered Deliverables" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center text-xs text-white/20">Loading chart...</div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -427,15 +461,19 @@ export default function ReportsAndIntelligence() {
                 <CardDescription className="text-[11px] text-white/40 mt-1">Shows team density and capacity allocations.</CardDescription>
               </CardHeader>
               <CardContent className="h-[300px] p-0 w-full min-w-0">
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={getDeptDistribution()} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray={CHART_STYLE.grid.strokeDasharray} horizontal={false} stroke={CHART_STYLE.grid.stroke} />
-                    <XAxis type="number" axisLine={CHART_STYLE.axis.axisLine} tickLine={CHART_STYLE.axis.tickLine} tick={CHART_STYLE.axis.tick} />
-                    <YAxis dataKey="name" type="category" axisLine={CHART_STYLE.axis.axisLine} tickLine={CHART_STYLE.axis.tickLine} tick={CHART_STYLE.axis.tick} width={130} fontSize={10} />
-                    <RechartsTooltip contentStyle={CHART_STYLE.tooltip.contentStyle} />
-                    <Bar dataKey="count" name="Team Members" fill="#06b6d4" radius={[0, 4, 4, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                {mounted ? (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={getDeptDistribution()} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray={CHART_STYLE.grid.strokeDasharray} horizontal={false} stroke={CHART_STYLE.grid.stroke} />
+                      <XAxis type="number" axisLine={CHART_STYLE.axis.axisLine} tickLine={CHART_STYLE.axis.tickLine} tick={CHART_STYLE.axis.tick} />
+                      <YAxis dataKey="name" type="category" axisLine={CHART_STYLE.axis.axisLine} tickLine={CHART_STYLE.axis.tickLine} tick={CHART_STYLE.axis.tick} width={130} fontSize={10} />
+                      <RechartsTooltip contentStyle={CHART_STYLE.tooltip.contentStyle} />
+                      <Bar dataKey="count" name="Team Members" fill="#06b6d4" radius={[0, 4, 4, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center text-xs text-white/20">Loading chart...</div>
+                )}
               </CardContent>
             </Card>
 

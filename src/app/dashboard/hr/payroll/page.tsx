@@ -124,7 +124,7 @@ export default function PayrollDashboard() {
   const totalPayroll = payroll.reduce((sum, p) => sum + p.netPay, 0);
 
   return (
-    <RoleGuard permission="MANAGE_USERS" fallback={<div className="p-8 text-center text-white/40 font-bold uppercase tracking-wider text-xs">Access Denied. Only authorized personnel from HR & Admin can run payroll metrics.</div>}>
+    <RoleGuard permission="MANAGE_USERS" fallback={<div className="p-8 text-center text-white/40 font-bold uppercase tracking-wider text-xs">Access Denied. Only authorized HR personnel can run payroll metrics.</div>}>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>

@@ -67,7 +67,7 @@ export default function OKRManagement() {
   };
 
   return (
-    <RoleGuard permission="MANAGE_USERS" fallback={<div className="p-8 text-center text-white/40 font-bold uppercase tracking-wider text-xs">Access Denied. Only authorized personnel from HR & Admin can manage corporate OKRs.</div>}>
+    <RoleGuard permission="MANAGE_USERS" fallback={<div className="p-8 text-center text-white/40 font-bold uppercase tracking-wider text-xs">Access Denied. Only authorized HR personnel can manage corporate OKRs.</div>}>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>

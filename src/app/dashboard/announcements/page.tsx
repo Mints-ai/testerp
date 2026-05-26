@@ -17,12 +17,10 @@ import { Megaphone, Pin, CheckCircle2, AlertCircle } from "lucide-react";
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 
-// In a real app, this would be fetched from Firestore /departments
 const DEPARTMENTS = [
-  "Executive Office", "Operations", "HR & Admin", "Finance", 
-  "Cyber Security", "Performance Marketing", "SEO", 
-  "Social Media", "Branding & Creative", "Software Development", 
-  "Video Production", "Photography & Graphics"
+  "OPERATIONS",
+  "IT & CYBER SECURITY",
+  "MARKETING"
 ];
 
 export default function Announcements() {

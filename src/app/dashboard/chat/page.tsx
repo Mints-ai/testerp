@@ -81,16 +81,18 @@ export default function Chat() {
       setChannels(fetched);
       setLoadingChannels(false);
 
-      // Self-healing database cleanup: Delete existing duplicate department channel documents from Firestore
+      // Self-healing database cleanup: Delete existing duplicate or obsolete department channel documents from Firestore
+      const validDepts = ["OPERATIONS", "IT & CYBER SECURITY", "MARKETING"];
       const seenDeptKeys = new Set<string>();
       for (const channel of fetched) {
         if (channel.type === "department") {
           const deptKey = channel.department;
-          if (seenDeptKeys.has(deptKey)) {
+          const isObsolete = !validDepts.includes(deptKey);
+          if (isObsolete || seenDeptKeys.has(deptKey)) {
             try {
               await deleteDoc(doc(db, "chatChannels", channel.id));
             } catch (e) {
-              console.error(`Error cleaning up duplicate channel document (${channel.id}):`, e);
+              console.error(`Error cleaning up obsolete/duplicate channel document (${channel.id}):`, e);
             }
           } else {
             seenDeptKeys.add(deptKey);
@@ -101,9 +103,9 @@ export default function Chat() {
       // Background seeding for required company channels
       const requiredChannels = [
         { name: "General", type: "global" },
-        { name: "Operations Team", type: "department", department: "Operations" },
-        { name: "Performance Marketing Team", type: "department", department: "Performance Marketing" },
-        { name: "Software Development Team", type: "department", department: "Software Development" }
+        { name: "Operations Team", type: "department", department: "OPERATIONS" },
+        { name: "IT & Cyber Security Team", type: "department", department: "IT & CYBER SECURITY" },
+        { name: "Marketing Team", type: "department", department: "MARKETING" }
       ];
 
       for (const req of requiredChannels) {

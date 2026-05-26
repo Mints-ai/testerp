@@ -12,11 +12,10 @@ import { Briefcase, Users, CheckCircle2, Clock, Check, X, AlertCircle, Heart, Za
 import { LineChart, Line, ResponsiveContainer, AreaChart, Area } from "recharts";
 import { motion } from "framer-motion";
 
-// Mock data for sparklines (Cleared for production)
-const taskData: any[] = [];
-const projData: any[] = [];
-const teamData: any[] = [];
-const hoursData: any[] = [];
+const taskData = [{ v: 5 }, { v: 8 }, { v: 6 }, { v: 12 }, { v: 8 }, { v: 14 }];
+const projData = [{ v: 2 }, { v: 4 }, { v: 3 }, { v: 6 }, { v: 5 }, { v: 7 }];
+const teamData = [{ v: 3 }, { v: 5 }, { v: 8 }, { v: 12 }, { v: 15 }, { v: 18 }];
+const hoursData = [{ v: 20 }, { v: 35 }, { v: 42 }, { v: 38 }, { v: 45 }, { v: 40 }];
 
 // Clean Attendance Heatmap Data (12 weeks, 5 days a week, all zeroes)
 const heatmapData: number[][] = Array(12).fill(Array(5).fill(0));
@@ -26,6 +25,11 @@ export default function DashboardHome() {
   const [shoutouts, setShoutouts] = useState<any[]>([]);
   const [newShoutout, setNewShoutout] = useState("");
   const [isSubmittingShoutout, setIsSubmittingShoutout] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const [stats, setStats] = useState({
     openTasks: 0,
     activeProjects: 0,
@@ -183,17 +187,19 @@ export default function DashboardHome() {
               <p className="text-[10px] text-white/40 mt-1">Live operational tasks</p>
             </CardContent>
             <div className="absolute bottom-0 left-0 right-0 h-14 opacity-20 group-hover:opacity-40 transition-opacity">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={taskData}>
-                  <defs>
-                    <linearGradient id="colorTasks" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.4}/>
-                      <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <Area type="monotone" dataKey="v" stroke="#2563eb" fillOpacity={1} fill="url(#colorTasks)" />
-                </AreaChart>
-              </ResponsiveContainer>
+              {mounted ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={taskData}>
+                    <defs>
+                      <linearGradient id="colorTasks" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#2563eb" stopOpacity={0.4}/>
+                        <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <Area type="monotone" dataKey="v" stroke="#2563eb" fillOpacity={1} fill="url(#colorTasks)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              ) : null}
             </div>
           </Card>
 
@@ -209,11 +215,13 @@ export default function DashboardHome() {
                   <p className="text-[10px] text-white/40 mt-1">Actively loaded projects</p>
                 </CardContent>
                 <div className="absolute bottom-0 left-0 right-0 h-14 opacity-20 group-hover:opacity-40 transition-opacity">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={projData}>
-                      <Line type="monotone" dataKey="v" stroke="#06b6d4" strokeWidth={2} dot={false} />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  {mounted ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={projData}>
+                        <Line type="monotone" dataKey="v" stroke="#06b6d4" strokeWidth={2} dot={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : null}
                 </div>
               </Card>
 
@@ -235,17 +243,19 @@ export default function DashboardHome() {
                   <p className="text-[10px] text-white/40 mt-1">Onboarded employees</p>
                 </CardContent>
                 <div className="absolute bottom-0 left-0 right-0 h-14 opacity-20 group-hover:opacity-40 transition-opacity">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={teamData}>
-                      <defs>
-                        <linearGradient id="colorTeam" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.4}/>
-                          <stop offset="95%" stopColor="#7c3aed" stopOpacity={0}/>
-                        </linearGradient>
-                      </defs>
-                      <Area type="step" dataKey="v" stroke="#7c3aed" fillOpacity={1} fill="url(#colorTeam)" />
-                    </AreaChart>
-                  </ResponsiveContainer>
+                  {mounted ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={teamData}>
+                        <defs>
+                          <linearGradient id="colorTeam" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.4}/>
+                            <stop offset="95%" stopColor="#7c3aed" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <Area type="step" dataKey="v" stroke="#7c3aed" fillOpacity={1} fill="url(#colorTeam)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  ) : null}
                 </div>
               </Card>
             </>
@@ -261,11 +271,13 @@ export default function DashboardHome() {
               <p className="text-[10px] text-white/40 mt-1">Current operational week</p>
             </CardContent>
             <div className="absolute bottom-0 left-0 right-0 h-14 opacity-20 group-hover:opacity-40 transition-opacity">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={hoursData}>
-                  <Line type="monotone" dataKey="v" stroke="#10b981" strokeWidth={2} dot={{ r: 2, fill: "#10b981" }} />
-                </LineChart>
-              </ResponsiveContainer>
+              {mounted ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={hoursData}>
+                    <Line type="monotone" dataKey="v" stroke="#10b981" strokeWidth={2} dot={{ r: 2, fill: "#10b981" }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : null}
             </div>
           </Card>
         </div>

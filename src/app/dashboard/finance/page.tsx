@@ -21,9 +21,22 @@ import { motion } from "framer-motion";
 import { CHART_COLORS, CHART_STYLE } from "@/lib/chartTheme";
 import { cn } from "@/lib/utils";
 
-const mockFinancialData: any[] = [];
+const mockFinancialData: any[] = [
+  { name: "Jan", revenue: 45000, profit: 12000 },
+  { name: "Feb", revenue: 52000, profit: 15000 },
+  { name: "Mar", revenue: 61000, profit: 19000 },
+  { name: "Apr", revenue: 58000, profit: 17500 },
+  { name: "May", revenue: 73000, profit: 24000 },
+  { name: "Jun", revenue: 85000, profit: 29000 },
+];
 
-const mockExpenseData: any[] = [];
+const mockExpenseData: any[] = [
+  { name: "Software", value: 12400 },
+  { name: "Marketing", value: 8500 },
+  { name: "Salaries", value: 32000 },
+  { name: "Operations", value: 4300 },
+  { name: "Travel", value: 1800 },
+];
 
 const STATUS_COLORS: Record<string, string> = {
   draft: "bg-white/5 text-white/50 border-white/10",
@@ -38,6 +51,11 @@ export default function FinanceDashboard() {
   const [expenses, setExpenses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [compCurrency, setCompCurrency] = useState("USD");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const unsubSettings = onSnapshot(doc(db, "settings", "company"), (docSnap) => {
@@ -306,6 +324,105 @@ export default function FinanceDashboard() {
       console.error("Error updating expense status:", err);
     }
   };
+  const getDynamicFinancialData = () => {
+    if (invoices.length === 0 && expenses.length === 0) {
+      return [];
+    }
+
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const today = new Date();
+    const buckets: { name: string; revenue: number; profit: number; monthIdx: number; year: number }[] = [];
+
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      buckets.push({
+        name: months[d.getMonth()],
+        revenue: 0,
+        profit: 0,
+        monthIdx: d.getMonth(),
+        year: d.getFullYear()
+      });
+    }
+
+    invoices.forEach(inv => {
+      let d: Date | null = null;
+      if (inv.createdAt) {
+        d = inv.createdAt.seconds ? new Date(inv.createdAt.seconds * 1000) : new Date(inv.createdAt);
+      } else if (inv.dueDate) {
+        d = new Date(inv.dueDate);
+      }
+      if (!d || isNaN(d.getTime())) return;
+
+      const mIdx = d.getMonth();
+      const yr = d.getFullYear();
+      const match = buckets.find(b => b.monthIdx === mIdx && b.year === yr);
+      if (match) {
+        const val = Number(inv.total) || 0;
+        match.revenue += val;
+        match.profit += val;
+      }
+    });
+
+    expenses.forEach(exp => {
+      let d: Date | null = null;
+      if (exp.createdAt) {
+        d = exp.createdAt.seconds ? new Date(exp.createdAt.seconds * 1000) : new Date(exp.createdAt);
+      } else if (exp.date) {
+        d = new Date(exp.date);
+      }
+      if (!d || isNaN(d.getTime())) return;
+
+      const mIdx = d.getMonth();
+      const yr = d.getFullYear();
+      const match = buckets.find(b => b.monthIdx === mIdx && b.year === yr);
+      if (match) {
+        const val = Number(exp.amount) || 0;
+        match.profit -= val;
+      }
+    });
+
+    return buckets.map(b => ({
+      name: b.name,
+      revenue: b.revenue,
+      profit: Math.max(0, b.profit)
+    }));
+  };
+
+  const getDynamicExpenseData = () => {
+    if (expenses.length === 0) {
+      return [];
+    }
+
+    const categoryMap: Record<string, number> = {};
+    expenses.forEach(exp => {
+      const cat = exp.category || "Other";
+      const val = Number(exp.amount) || 0;
+      categoryMap[cat] = (categoryMap[cat] || 0) + val;
+    });
+
+    return Object.entries(categoryMap).map(([name, value]) => ({
+      name,
+      value
+    }));
+  };
+
+  const totalExpSum = expenses.reduce((acc, exp) => acc + (Number(exp.amount) || 0), 0);
+  const dynamicFinancialData = getDynamicFinancialData();
+  const dynamicExpenseData = getDynamicExpenseData();
+
+  const dynamicGrossRevenue = invoices.reduce((acc, inv) => acc + (Number(inv.total) || 0), 0);
+  const dynamicNetProfit = Math.max(0, dynamicGrossRevenue - totalExpSum);
+  const dynamicAR = invoices
+    .filter(inv => inv.status === "pending" || inv.status === "sent")
+    .reduce((acc, inv) => acc + (Number(inv.total) || 0), 0);
+  const outstandingCount = invoices.filter(inv => inv.status === "pending" || inv.status === "sent").length;
+  const dynamicRunRate = dynamicGrossRevenue * 2;
+
+  const formatCompact = (val: number) => {
+    if (val >= 1000000) return `${(val / 1000000).toFixed(1)}M`;
+    if (val >= 1000) return `${(val / 1000).toFixed(1)}K`;
+    return val.toLocaleString();
+  };
 
   return (
     <RoleGuard permission="VIEW_DEPT_FINANCE" fallback={<div className="p-8 text-center text-white/40 font-bold uppercase tracking-wider text-xs">Access Denied.</div>}>
@@ -333,7 +450,6 @@ export default function FinanceDashboard() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            {/* Executive Summary Bar */}
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
                 <CardContent className="p-5">
@@ -341,9 +457,9 @@ export default function FinanceDashboard() {
                     <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Gross Revenue</p>
                     <div className="p-1.5 bg-blue-500/10 text-blue-400 rounded-lg border border-blue-500/20"><DollarSign className="w-4 h-4" /></div>
                   </div>
-                  <h3 className="text-xl font-bold text-white tracking-tight font-mono">920.0K <span className="text-[10px] text-white/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
+                  <h3 className="text-xl font-bold text-white tracking-tight font-mono">{formatCompact(dynamicGrossRevenue)} <span className="text-[10px] text-white/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
                   <div className="flex items-center gap-1 mt-2 text-[10px] font-bold text-emerald-400">
-                    <ArrowUpRight className="w-3.5 h-3.5" /> 12.5% YoY
+                    <ArrowUpRight className="w-3.5 h-3.5" /> Billed Receivables
                   </div>
                 </CardContent>
               </Card>
@@ -354,9 +470,9 @@ export default function FinanceDashboard() {
                     <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Net Profit</p>
                     <div className="p-1.5 bg-emerald-500/10 text-emerald-400 rounded-lg border border-emerald-500/20"><TrendingUp className="w-4 h-4" /></div>
                   </div>
-                  <h3 className="text-xl font-bold text-white tracking-tight font-mono">340.0K <span className="text-[10px] text-white/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
+                  <h3 className="text-xl font-bold text-white tracking-tight font-mono">{formatCompact(dynamicNetProfit)} <span className="text-[10px] text-white/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
                   <div className="flex items-center gap-1 mt-2 text-[10px] font-bold text-emerald-400">
-                    <ArrowUpRight className="w-3.5 h-3.5" /> 8.2% YoY
+                    <ArrowUpRight className="w-3.5 h-3.5" /> Net surplus
                   </div>
                 </CardContent>
               </Card>
@@ -367,9 +483,9 @@ export default function FinanceDashboard() {
                     <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">AR (Outstanding)</p>
                     <div className="p-1.5 bg-amber-500/10 text-amber-400 rounded-lg border border-amber-500/20"><Banknote className="w-4 h-4" /></div>
                   </div>
-                  <h3 className="text-xl font-bold text-white tracking-tight font-mono">45.5K <span className="text-[10px] text-white/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
-                  <div className="flex items-center gap-1 mt-2 text-[10px] font-bold text-rose-400">
-                    <AlertCircle className="w-3.5 h-3.5" /> 3 Overdue
+                  <h3 className="text-xl font-bold text-white tracking-tight font-mono">{formatCompact(dynamicAR)} <span className="text-[10px] text-white/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
+                  <div className={cn("flex items-center gap-1 mt-2 text-[10px] font-bold", outstandingCount > 0 ? "text-amber-400" : "text-emerald-400")}>
+                    <AlertCircle className="w-3.5 h-3.5" /> {outstandingCount} Unpaid
                   </div>
                 </CardContent>
               </Card>
@@ -380,9 +496,9 @@ export default function FinanceDashboard() {
                     <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Run Rate</p>
                     <div className="p-1.5 bg-violet-500/10 text-violet-400 rounded-lg border border-violet-500/20"><ArrowUpRight className="w-4 h-4" /></div>
                   </div>
-                  <h3 className="text-xl font-bold text-white tracking-tight font-mono">1.84M <span className="text-[10px] text-white/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
+                  <h3 className="text-xl font-bold text-white tracking-tight font-mono">{formatCompact(dynamicRunRate)} <span className="text-[10px] text-white/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
                   <div className="text-[10px] font-semibold text-white/30 mt-2">
-                    Projected FY2026
+                    Projected annual revenue
                   </div>
                 </CardContent>
               </Card>
@@ -397,31 +513,43 @@ export default function FinanceDashboard() {
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="h-[300px] w-full min-w-0">
-                    <ResponsiveContainer width="100%" height={300}>
-                      <AreaChart data={mockFinancialData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                        <defs>
-                          <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25}/>
-                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                          </linearGradient>
-                          <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.4}/>
-                            <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray={CHART_STYLE.grid.strokeDasharray} vertical={false} stroke={CHART_STYLE.grid.stroke} />
-                        <XAxis dataKey="name" axisLine={CHART_STYLE.axis.axisLine} tickLine={CHART_STYLE.axis.tickLine} tick={CHART_STYLE.axis.tick} dy={10} />
-                        <YAxis axisLine={CHART_STYLE.axis.axisLine} tickLine={CHART_STYLE.axis.tickLine} tick={CHART_STYLE.axis.tick} tickFormatter={(value) => `${value / 1000}k`} />
-                        <RechartsTooltip 
-                          contentStyle={CHART_STYLE.tooltip.contentStyle}
-                          labelStyle={CHART_STYLE.tooltip.labelStyle}
-                          cursor={CHART_STYLE.tooltip.cursor}
-                          formatter={(value) => [`${Number(value).toLocaleString()} ${compCurrency}`, '']}
-                        />
-                        <Area type="monotone" dataKey="revenue" stackId="1" stroke="#3b82f6" strokeWidth={2} fill="url(#colorRevenue)" name="Revenue" />
-                        <Area type="monotone" dataKey="profit" stackId="2" stroke="#06b6d4" strokeWidth={2.5} fill="url(#colorProfit)" name="Profit" />
-                      </AreaChart>
-                    </ResponsiveContainer>
+                    {mounted ? (
+                      dynamicFinancialData.length > 0 ? (
+                        <ResponsiveContainer width="100%" height={300}>
+                          <AreaChart data={dynamicFinancialData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+                            <defs>
+                              <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25}/>
+                                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                              </linearGradient>
+                              <linearGradient id="colorProfit" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.4}/>
+                                <stop offset="95%" stopColor="#06b6d4" stopOpacity={0}/>
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray={CHART_STYLE.grid.strokeDasharray} vertical={false} stroke={CHART_STYLE.grid.stroke} />
+                            <XAxis dataKey="name" axisLine={CHART_STYLE.axis.axisLine} tickLine={CHART_STYLE.axis.tickLine} tick={CHART_STYLE.axis.tick} dy={10} />
+                            <YAxis axisLine={CHART_STYLE.axis.axisLine} tickLine={CHART_STYLE.axis.tickLine} tick={CHART_STYLE.axis.tick} tickFormatter={(value) => `${value / 1000}k`} />
+                            <RechartsTooltip 
+                              contentStyle={CHART_STYLE.tooltip.contentStyle}
+                              labelStyle={CHART_STYLE.tooltip.labelStyle}
+                              cursor={CHART_STYLE.tooltip.cursor}
+                              formatter={(value) => [`${Number(value).toLocaleString()} ${compCurrency}`, '']}
+                            />
+                            <Area type="monotone" dataKey="revenue" stackId="1" stroke="#3b82f6" strokeWidth={2} fill="url(#colorRevenue)" name="Revenue" />
+                            <Area type="monotone" dataKey="profit" stackId="2" stroke="#06b6d4" strokeWidth={2.5} fill="url(#colorProfit)" name="Profit" />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <div className="h-full w-full flex flex-col items-center justify-center text-xs text-white/30 gap-2 border border-white/[0.04] bg-white/[0.01] rounded-2xl p-6">
+                          <TrendingUp className="h-8 w-8 text-white/20 animate-pulse" />
+                          <span className="font-bold uppercase tracking-wider text-[10px]">No Transaction Data Found</span>
+                          <span className="text-[9px] text-white/20 text-center px-6">Generate client invoices or log business expenses to compile live cash flow graphs.</span>
+                        </div>
+                      )
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center text-xs text-white/20">Loading chart...</div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -434,36 +562,50 @@ export default function FinanceDashboard() {
                 </CardHeader>
                 <CardContent className="p-0 flex-1 flex flex-col justify-between min-w-0">
                   <div className="h-[180px] w-full flex flex-col justify-center relative my-2 min-w-0">
-                    <ResponsiveContainer width="100%" height={180}>
-                      <PieChart>
-                        <Pie
-                          data={mockExpenseData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={55}
-                          outerRadius={75}
-                          paddingAngle={3}
-                          dataKey="value"
-                          stroke="none"
-                        >
-                          {mockExpenseData.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <RechartsTooltip 
-                          contentStyle={CHART_STYLE.tooltip.contentStyle}
-                          formatter={(value) => [`${value} ${compCurrency}`, '']}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    {/* Inner Text for Donut */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-1">
-                      <span className="text-lg font-black text-white font-mono leading-none">0</span>
-                      <span className="text-[8px] uppercase font-bold text-white/30 tracking-widest mt-1">Total Exp</span>
-                    </div>
+                    {mounted ? (
+                      dynamicExpenseData.length > 0 ? (
+                        <>
+                          <ResponsiveContainer width="100%" height={180}>
+                            <PieChart>
+                              <Pie
+                                data={dynamicExpenseData}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={55}
+                                outerRadius={75}
+                                paddingAngle={3}
+                                dataKey="value"
+                                stroke="none"
+                              >
+                                {dynamicExpenseData.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                                ))}
+                              </Pie>
+                              <RechartsTooltip 
+                                contentStyle={CHART_STYLE.tooltip.contentStyle}
+                                formatter={(value) => [`${value} ${compCurrency}`, '']}
+                              />
+                            </PieChart>
+                          </ResponsiveContainer>
+                          {/* Inner Text for Donut */}
+                          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-1">
+                            <span className="text-lg font-black text-white font-mono leading-none">{totalExpSum.toLocaleString()}</span>
+                            <span className="text-[8px] uppercase font-bold text-white/30 tracking-widest mt-1">Total Exp</span>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="h-full w-full flex flex-col items-center justify-center text-xs text-white/30 gap-1.5 border border-white/[0.04] bg-white/[0.01] rounded-2xl py-6 p-4">
+                          <Sparkles className="h-6 w-6 text-white/20 animate-pulse" />
+                          <span className="font-bold uppercase tracking-wider text-[10px]">No Expenses Logged</span>
+                          <span className="text-[8px] text-white/20 text-center px-4">AI Scan or Manual entries generate category breakdown.</span>
+                        </div>
+                      )
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center text-xs text-white/20">Loading chart...</div>
+                    )}
                   </div>
                   <div className="flex flex-col gap-2 mt-2">
-                    {mockExpenseData.map((entry, index) => (
+                    {dynamicExpenseData.map((entry, index) => (
                       <div key={entry.name} className="flex items-center justify-between text-xs font-semibold">
                         <div className="flex items-center text-white/60">
                           <div className="w-2.5 h-2.5 rounded-sm mr-2" style={{backgroundColor: CHART_COLORS[index % CHART_COLORS.length]}}></div>

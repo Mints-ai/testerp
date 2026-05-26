@@ -27,74 +27,54 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { UserPlus, Sparkles, Wand2, ShieldAlert, Key } from "lucide-react";
 
 const DEPARTMENTS = [
-  "Executive Office", "Operations", "HR & Admin", "Finance", 
-  "Cyber Security", "Marketing", "Performance Marketing", "SEO", 
-  "Social Media", "Branding & Creative", "Software Development", 
-  "Information Technology", "Video Production", "Photography & Graphics"
+  "OPERATIONS",
+  "IT & CYBER SECURITY",
+  "MARKETING"
 ];
 
 const SUBROLES_MAPPING: Record<string, string[]> = {
-  "Cyber Security": [
-    "Products",
-    "Services",
-    "Offensive security",
-    "Incident response / DFIR",
-    "Cloud Security",
-    "Compliance/GRC",
-    "Managed/Advisory",
-    "OT/Iot security",
-    "Training"
+  "OPERATIONS": [
+    "SALES",
+    "PUBLIC RELATION",
+    "STRATEGY",
+    "CLIENT RELATION",
+    "COMPANY MARKETING",
+    "HUMAN RESOURCE",
+    "FINANCE"
   ],
-  "Software Development": [
-    "Products",
-    "Services",
-    "Website Development",
-    "WordPress Websites",
-    "Custom-Coded Websites",
-    "Web Applications",
-    "ERP",
-    "CRM",
-    "Mobile Application Development",
-    "E-Commerce Solutions",
-    "WooCommerce Development"
+  "IT & CYBER SECURITY": [
+    "PRODUCTS",
+    "PRODUCTS » SHIELD DESK",
+    "PRODUCTS » MINTS ERP",
+    "PRODUCTS » MINORA",
+    "SERVICES",
+    "SERVICES » OFFENSIVE SECURITY",
+    "SERVICES » INCIDENT RESPONSE",
+    "SERVICES » MANAGED & ADVISORY",
+    "SERVICES » COMPLIANCE & GRC",
+    "SERVICES » CLOUD SECURITY",
+    "SERVICES » OT / IOT SECURITY",
+    "SERVICES » WEBAPPLICATION",
+    "SERVICES » MOBILE APPLICATION",
+    "SERVICES » WEBSITE DEVELOPMENT",
+    "SERVICES » ERP DEVELOPMENT & SOLUTION",
+    "SERVICES » CRM DEVELOPMENT",
+    "SERVICES » E-COMMERCE"
   ],
-  "Information Technology": [
-    "Products",
-    "Services"
-  ],
-  "Marketing": [
-    "Performance",
-    "Creative"
-  ],
-  "Performance Marketing": [
-    "Branding",
-    "Search Engine Optimization (SEO)",
-    "Performance Marketing",
-    "Social Media Management",
-    "Influencer Marketing",
-    "Commercial Video Production",
-    "Photography",
-    "Creative Designing"
-  ],
-  "SEO": [
-    "Search Engine Optimization (SEO)"
-  ],
-  "Social Media": [
-    "Social Media Management",
-    "Influencer Marketing"
-  ],
-  "Branding & Creative": [
-    "Branding",
-    "Creative Designing"
-  ],
-  "Video Production": [
-    "Commercial Video Production"
-  ],
-  "Photography & Graphics": [
-    "Photography",
-    "Creative Designing"
+  "MARKETING": [
+    "CREATIVE",
+    "CREATIVE » PHOTOGRAPHY",
+    "CREATIVE » SMM",
+    "CREATIVE » VIDEO GRAPHY",
+    "CREATIVE » INFLUCENCE MARKETING",
+    "PERFORMANCE",
+    "PERFORMANCE » SEO",
+    "PERFORMANCE » META",
+    "PERFORMANCE » GOOGLE ADS",
+    "PERFORMANCE » EMAIL MARKETING"
   ]
 };
+
 
 const formSchema = z.object({
   fullName: z.string().min(2, "Name must be at least 2 characters."),
