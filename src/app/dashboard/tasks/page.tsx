@@ -59,6 +59,7 @@ export default function TaskBoard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newTask, setNewTask] = useState({ title: "", priority: "normal" as TaskPriority, dueDate: "", assignedTo: "" });
   const [employeesByDept, setEmployeesByDept] = useState<Record<string, any[]>>({});
+  const [employeesList, setEmployeesList] = useState<any[]>([]);
   const [addingToStatus, setAddingToStatus] = useState<TaskStatus>("backlog");
 
   const handleAddTask = async (e: React.FormEvent) => {
@@ -68,6 +69,10 @@ export default function TaskBoard() {
     setIsSubmitting(true);
     try {
       const assigneeId = newTask.assignedTo || user.uid;
+      const assigneeEmp = employeesList.find(emp => emp.id === assigneeId) || {
+        fullName: user.fullName || user.displayName || "Employee",
+        email: user.email || ""
+      };
       
       await addDoc(collection(db, "tasks"), {
         title: newTask.title.trim(),
@@ -79,6 +84,25 @@ export default function TaskBoard() {
         dueDate: newTask.dueDate || null,
         createdAt: serverTimestamp(),
         blocked: false,
+      });
+
+      // Internal secure mail notification
+      await addDoc(collection(db, "internal_mails"), {
+        senderId: user.uid,
+        senderName: user.fullName || user.displayName || "Mints Task Manager",
+        senderEmail: user.email || "system@mintsglobal.com",
+        receiverId: assigneeId,
+        receiverName: assigneeEmp.fullName || "Employee",
+        receiverEmail: assigneeEmp.email || "",
+        subject: `📋 Task Assigned: ${newTask.title.trim()}`,
+        body: `Hello ${assigneeEmp.fullName || "Team Member"},\n\nYou have been assigned a new task on the Mints Global ERP:\n\nTask: ${newTask.title.trim()}\nPriority: ${newTask.priority.toUpperCase()}\nDue Date: ${newTask.dueDate || "No due date set"}\n\nPlease head to your Tasks Kanban Board to manage this task.\n\nBest regards,\n${user.fullName || user.displayName || "Mints Project Management"}`,
+        priority: newTask.priority === "urgent" || newTask.priority === "high" ? "urgent" : "normal",
+        readStatus: false,
+        isStarredByReceiver: false,
+        isStarredBySender: false,
+        isDeletedBySender: false,
+        isDeletedByReceiver: false,
+        createdAt: serverTimestamp()
       });
 
       if (assigneeId !== user.uid) {
@@ -112,6 +136,7 @@ export default function TaskBoard() {
     const fetchEmployees = async () => {
       const snapshot = await getDocs(collection(db, "employees"));
       const emps = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setEmployeesList(emps);
       const grouped = emps.reduce((acc, emp: any) => {
         const depts = emp.departments || (emp.department ? [emp.department] : ["Unassigned"]);
         depts.forEach((dept: string) => {

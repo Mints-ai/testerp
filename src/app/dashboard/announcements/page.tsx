@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, where, onSnapshot, orderBy, doc, updateDoc, addDoc, serverTimestamp, arrayUnion } from "firebase/firestore";
+import { collection, query, where, onSnapshot, orderBy, doc, updateDoc, addDoc, serverTimestamp, arrayUnion, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { canAccess, ROLE_META } from "@/lib/permissions";
@@ -97,19 +97,6 @@ export default function Announcements() {
         postedBy: announcementData.creatorName
       }
     });
-    
-    // Simulate endpoint call
-    /*
-    try {
-      await fetch("/api/notifications/announcement", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(announcementData)
-      });
-    } catch (e) {
-      console.error(e);
-    }
-    */
   };
 
   const handlePost = async () => {
@@ -129,6 +116,48 @@ export default function Announcements() {
         readBy: [],
         createdAt: serverTimestamp(),
       });
+
+      // Fetch all employees to send internal mail notifications to targeted users
+      const employeesSnap = await getDocs(collection(db, "employees"));
+      const employees = employeesSnap.docs.map(d => ({ id: d.id, ...d.data() } as any));
+
+      // Filter target employees based on announcement scope
+      const targetEmployees = employees.filter(emp => {
+        // Exclude the creator from getting their own notice via email unless self-publishing is fine
+        if (emp.id === user.uid) return false;
+
+        if (audience === "all") return true;
+        if (audience === "department") {
+          const depts = emp.departments || (emp.department ? [emp.department] : []);
+          return depts.includes(targetValue);
+        }
+        if (audience === "role") {
+          return emp.role === targetValue;
+        }
+        return false;
+      });
+
+      // Dispatch secure internal mails for target audience
+      const plainTextContent = editor.getText() || "A new notice has been published.";
+      for (const emp of targetEmployees) {
+        await addDoc(collection(db, "internal_mails"), {
+          senderId: user.uid,
+          senderName: user.fullName || user.displayName || "Mints Announcement System",
+          senderEmail: user.email || "system@mintsglobal.com",
+          receiverId: emp.id,
+          receiverName: emp.fullName || "Employee",
+          receiverEmail: emp.email || "",
+          subject: `📢 Notice Board: ${title}`,
+          body: `Hello ${emp.fullName || "Team Member"},\n\nA new corporate notice has been published on the Mints Global ERP:\n\nTitle: ${title}\nTarget Audience: ${audience === "all" ? "All Company" : audience.toUpperCase() + " (" + targetValue + ")"}\n\nNotice Body:\n----------------------------------------\n${plainTextContent}\n----------------------------------------\n\nPlease visit the Notice Board inside the ERP dashboard to view full formatting and pinned announcements.\n\nBest regards,\n${user.fullName || user.displayName || "Mints HR & Operations"}`,
+          priority: isPinned ? "urgent" : "normal",
+          readStatus: false,
+          isStarredByReceiver: false,
+          isStarredBySender: false,
+          isDeletedBySender: false,
+          isDeletedByReceiver: false,
+          createdAt: serverTimestamp ? serverTimestamp() : new Date()
+        });
+      }
       
       // Trigger notification hook
       if (sendEmail) {
