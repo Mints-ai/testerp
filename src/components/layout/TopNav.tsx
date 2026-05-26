@@ -193,7 +193,7 @@ export function TopNav() {
                   <div className="hidden md:block text-left">
                     <p className="text-xs font-bold text-white leading-none">{(user?.fullName || user?.displayName || "User").split(" ")[0]}</p>
                     <p className="text-[9px] text-blue-400/80 font-medium capitalize mt-1 leading-none">
-                      {roleMeta?.label || role} {user?.role !== role && <span className="text-[8px] text-amber-400 font-bold ml-0.5 animate-pulse">(Sim)</span>}
+                      {user?.jobTitle || roleMeta?.label || role} {user?.role !== role && <span className="text-[8px] text-amber-400 font-bold ml-0.5 animate-pulse">(Sim)</span>}
                     </p>
                   </div>
                 </button>

@@ -11,6 +11,7 @@ interface AppUser extends User {
   department?: string;
   departments?: string[];
   fullName?: string;
+  jobTitle?: string;
 }
 
 interface AuthContextType {
@@ -142,7 +143,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             await signOut(auth);
             setUser(null);
           } else {
-            appUser = { ...firebaseUser, role: data.role, department: data.department, departments: data.departments || (data.department ? [data.department] : []), fullName: data.fullName };
+            appUser = { ...firebaseUser, role: data.role, department: data.department, departments: data.departments || (data.department ? [data.department] : []), fullName: data.fullName, jobTitle: data.jobTitle };
             setUser(appUser);
 
             // Fetch public IP address and record login trace asynchronously

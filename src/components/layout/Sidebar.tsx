@@ -164,7 +164,7 @@ function SidebarContent({ isExpanded, onNavigate }: { isExpanded: boolean; onNav
             >
               <p className="text-xs font-bold text-white truncate leading-tight">{user?.fullName || user?.displayName || "User"}</p>
               <p className="text-[10px] text-blue-400/80 font-medium capitalize truncate leading-none mt-0.5">
-                {roleMeta?.label || role} {user?.role !== role && <span className="text-[9px] text-amber-400 font-bold ml-1 animate-pulse">(Sim)</span>}
+                {user?.jobTitle || roleMeta?.label || role} {user?.role !== role && <span className="text-[9px] text-amber-400 font-bold ml-1 animate-pulse">(Sim)</span>}
               </p>
             </motion.div>
           )}
