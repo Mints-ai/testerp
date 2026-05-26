@@ -69,9 +69,15 @@ export default function CapacityPlanning() {
       const empsList: any[] = [];
       
       usersSnap.forEach(docSnap => {
-        const d = { ...docSnap.data(), id: docSnap.id };
-        usersMap.set(docSnap.id, d);
-        empsList.push(d);
+        const d = { ...docSnap.data(), id: docSnap.id } as any;
+        const isSysAdmin = d.email?.toLowerCase().trim() === "systemadministrator@mintsglobal.ae" ||
+                           d.email?.toLowerCase().trim() === "binuarjunanand@gmail.com" ||
+                           d.role === "system_administrator" ||
+                           d.fullName === "System Administrator";
+        if (!isSysAdmin) {
+          usersMap.set(docSnap.id, d);
+          empsList.push(d);
+        }
       });
       setEmployees(empsList);
       if (empsList.length > 0) {
@@ -113,7 +119,7 @@ export default function CapacityPlanning() {
           return {
             userId: user.id,
             name: user.fullName || "Unknown User",
-            role: user.role || "Employee",
+            role: user.jobTitle || user.role || "Employee",
             avatar: user.profilePhotoURL || "",
             activeTasks: load.count,
             totalEstimatedHours: load.hours,
@@ -430,7 +436,7 @@ export default function CapacityPlanning() {
                     >
                       {employees.map(e => (
                         <option key={e.id} value={e.id} className="bg-slate-900 text-white">
-                          {e.fullName || e.name} — {e.role || "Team Member"}
+                          {e.fullName || e.name} — {e.jobTitle || e.role || "Team Member"}
                         </option>
                       ))}
                     </select>
