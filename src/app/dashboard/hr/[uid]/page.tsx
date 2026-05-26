@@ -374,11 +374,11 @@ export default function EmployeeProfile() {
                   <Badge variant="outline" className="bg-rose-500/15 text-rose-300 border-rose-500/20 font-bold text-[9px] uppercase tracking-wider">Inactive</Badge>
                 )}
               </div>
-              <p className="text-xs text-white/50 font-medium">{employee.jobTitle || "No Job Title Assigned"}</p>
+              <p className="text-xs text-white/50 font-medium">System Privilege: {roleMeta.label}</p>
               
               <div className="flex flex-wrap items-center gap-2.5 pt-3">
-                <Badge className={cn("font-bold text-[9px] shadow-none uppercase tracking-wider py-0.5", roleMeta.color)}>
-                  {roleMeta.label}
+                <Badge className="bg-blue-500/10 border border-blue-500/20 text-blue-300 font-bold text-[9px] shadow-none uppercase tracking-wider py-0.5 whitespace-nowrap shrink-0">
+                  💼 {employee.jobTitle || "Team Member"}
                 </Badge>
                 {(employee.departments || (employee.department ? [employee.department] : [])).map((dept: string, idx: number) => (
                   <Badge key={idx} variant="outline" className="bg-white/[0.02] border-white/10 text-white/50 text-[9px] font-bold uppercase tracking-wider py-0.5">
