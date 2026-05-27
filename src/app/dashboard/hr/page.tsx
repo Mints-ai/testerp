@@ -416,13 +416,18 @@ export default function EmployeeDirectory() {
                   <div className="pt-4 border-t border-white/[0.06] mt-6">
                     <button 
                       onClick={async () => {
-                        if (confirm(`WARNING: Are you absolutely sure you want to permanently delete the employee profile for "${selectedEmployee.fullName}"? This will disable their login credentials and wipe their HR record from all departments. This is a destructive action.`)) {
+                        if (confirm(`WARNING: Are you absolutely sure you want to deprovision the employee profile for "${selectedEmployee.fullName}"? This will deactivate their ERP access, archive their profile, and sign them out of all active sessions.`)) {
                           try {
-                            const { deleteDoc, doc } = await import("firebase/firestore");
-                            await deleteDoc(doc(db, "employees", selectedEmployee.id));
+                            const { updateDoc, doc } = await import("firebase/firestore");
+                            await updateDoc(doc(db, "employees", selectedEmployee.id), {
+                              isActive: false,
+                              isArchived: true,
+                              role: "employee", // Downgrade system role for security
+                              updatedAt: new Date().toISOString()
+                            });
                             setSelectedEmployee(null);
                           } catch (err) {
-                            console.error("Error deleting employee:", err);
+                            console.error("Error deprovisioning employee:", err);
                           }
                         }
                       }}

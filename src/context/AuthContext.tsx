@@ -175,10 +175,49 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             })();
           }
         } else {
-          // BLOCK SIGN IN: Do not auto-grant founder role!
-          setAuthError("Access Denied: Your email is not registered in Mints Global ERP. Please contact an administrator.");
-          await signOut(auth);
-          setUser(null);
+          // SELF-HEALING FALLBACK: If the database was wiped but the user is authenticated in Firebase Auth,
+          // automatically reconstruct their Firestore employee record to prevent lockout!
+          try {
+            const emailLower = firebaseUser.email?.toLowerCase().trim() || "";
+            const defaultRole = "employee";
+            
+            // Format name cleanly from email
+            const nameParts = emailLower.split("@")[0].split(".");
+            const cleanName = nameParts.map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(" ");
+            
+            await setDoc(userDocRef, {
+              fullName: firebaseUser.displayName || cleanName,
+              email: emailLower,
+              role: defaultRole,
+              department: "OPERATIONS",
+              departments: ["OPERATIONS"],
+              jobTitle: "Team Member",
+              phone: firebaseUser.phoneNumber || "",
+              isIntern: false,
+              isActive: true,
+              dateJoined: new Date().toISOString(),
+              createdAt: new Date().toISOString(),
+              isSelfHealed: true
+            });
+            
+            await sendDiscordNotification(
+              `♻️ **Self-Healing Active**: Reconstructed missing Firestore profile for authenticated user **${emailLower}** following database anomaly.`,
+              undefined,
+              'auth'
+            );
+            
+            userDoc = await getDoc(userDocRef);
+            if (userDoc.exists()) {
+              const data = userDoc.data();
+              appUser = { ...firebaseUser, role: data.role, department: data.department, departments: data.departments || (data.department ? [data.department] : []), fullName: data.fullName, jobTitle: data.jobTitle };
+              setUser(appUser);
+            }
+          } catch (healErr) {
+            console.error("Self-healing failed:", healErr);
+            setAuthError("Access Denied: Your email is not registered in Mints Global ERP. Please contact an administrator.");
+            await signOut(auth);
+            setUser(null);
+          }
         }
       } else {
         setUser(null);

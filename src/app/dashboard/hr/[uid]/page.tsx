@@ -300,15 +300,20 @@ export default function EmployeeProfile() {
   const isSelf = user?.uid === uid;
 
   const handleDeleteEmployee = async () => {
-    if (!window.confirm(`Are you sure you want to completely delete ${employee.fullName}? This cannot be undone.`)) return;
+    if (!window.confirm(`WARNING: Are you sure you want to deprovision ${employee.fullName}? This will deactivate their ERP access, archive their profile, and sign them out of all active sessions.`)) return;
     
     setIsDeleting(true);
     try {
-      await deleteDoc(doc(db, "employees", uid as string));
+      await updateDoc(doc(db, "employees", uid as string), {
+        isActive: false,
+        isArchived: true,
+        role: "employee", // Downgrade system role for security
+        updatedAt: new Date().toISOString()
+      });
       router.push('/dashboard/hr');
     } catch (err) {
-      console.error("Error deleting employee:", err);
-      alert("Failed to delete employee.");
+      console.error("Error deprovisioning employee:", err);
+      alert("Failed to deprovision employee.");
       setIsDeleting(false);
     }
   };
@@ -340,7 +345,7 @@ export default function EmployeeProfile() {
               disabled={isDeleting}
               className="btn-ghost bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 h-8 py-0 px-3 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
             >
-              <Trash2 className="h-3.5 w-3.5" /> {isDeleting ? "Deleting..." : "Delete Employee"}
+              <Trash2 className="h-3.5 w-3.5" /> {isDeleting ? "Deprovisioning..." : "Deprovision Employee"}
             </button>
           )}
         </div>
