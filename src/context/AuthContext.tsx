@@ -71,7 +71,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const emailLower = firebaseUser.email?.toLowerCase().trim() || "";
         const isSuperAdmin = emailLower === "binuarjunanand@gmail.com" || 
                              emailLower === "admin@mintsgloabal.ae" || 
-                             emailLower === "admin@mintsglobal.ae";
+                             emailLower === "admin@mintsglobal.ae" ||
+                             emailLower === "arya@mintsglobal.ae";
+        
+        const getAdminFallbackName = (email: string) => {
+          if (email.startsWith("admin")) return "System Administrator";
+          if (email.startsWith("arya")) return "Arya";
+          return "Binu Arjun Anand";
+        };
         
         const userDocRef = doc(db, "employees", firebaseUser.uid);
         let userDoc = await getDoc(userDocRef);
@@ -81,7 +88,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (isSuperAdmin) {
           if (!userDoc.exists()) {
             await setDoc(userDocRef, {
-              fullName: firebaseUser.displayName || (emailLower.startsWith("admin") ? "System Administrator" : "Binu Arjun Anand"),
+              fullName: firebaseUser.displayName || getAdminFallbackName(emailLower),
               email: emailLower,
               role: "founder",
               department: "OPERATIONS",
@@ -101,7 +108,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 ...data,
                 role: "founder",
                 isActive: true,
-                fullName: data?.fullName || (emailLower.startsWith("admin") ? "System Administrator" : "Binu Arjun Anand"),
+                fullName: data?.fullName || getAdminFallbackName(emailLower),
                 updatedAt: new Date().toISOString()
               }, { merge: true });
               userDoc = await getDoc(userDocRef);
