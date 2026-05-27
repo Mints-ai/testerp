@@ -72,11 +72,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const isSuperAdmin = emailLower === "binuarjunanand@gmail.com" || 
                              emailLower === "admin@mintsgloabal.ae" || 
                              emailLower === "admin@mintsglobal.ae" ||
-                             emailLower === "arya@mintsglobal.ae";
+                             emailLower === "arya@mintsglobal.ae" ||
+                             emailLower === "anand.binuarjun@mintsglobal.ae";
         
         const getAdminFallbackName = (email: string) => {
           if (email.startsWith("admin")) return "System Administrator";
           if (email.startsWith("arya")) return "Arya";
+          if (email.includes("anand.binuarjun")) return "Anand Binuarjun";
           return "Binu Arjun Anand";
         };
         
