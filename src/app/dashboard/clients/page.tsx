@@ -72,9 +72,9 @@ export default function ClientsCRM() {
   );
 
   const getHealthBadge = (score: number) => {
-    if (score >= 4) return <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-100 shadow-none">Excellent</Badge>;
-    if (score === 3) return <Badge className="bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-100 shadow-none">Good</Badge>;
-    return <Badge className="bg-rose-100 text-rose-800 border-rose-200 hover:bg-rose-100 shadow-none animate-pulse">At Risk</Badge>;
+    if (score >= 4) return <Badge className="bg-emerald-500/10 text-emerald-300 border-emerald-500/20 hover:bg-[#0a1628] shadow-none font-bold">Excellent</Badge>;
+    if (score === 3) return <Badge className="bg-amber-500/10 text-amber-300 border-amber-500/20 hover:bg-[#0a1628] shadow-none font-bold">Good</Badge>;
+    return <Badge className="bg-rose-500/10 text-rose-300 border-rose-500/20 hover:bg-[#0a1628] shadow-none animate-pulse font-bold">At Risk</Badge>;
   };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -144,85 +144,85 @@ export default function ClientsCRM() {
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
               <DialogTrigger 
                 render={
-                  <Button className="inline-flex items-center justify-center gap-2 rounded-xl text-sm font-semibold h-10 px-5 bg-olive-600 hover:bg-olive-700 text-white shadow-md transition-all hover:translate-y-[-1px]">
+                  <Button className="inline-flex items-center justify-center gap-2 rounded-xl text-sm font-semibold h-10 px-5 bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow-[0_0_24px_rgba(37,99,235,0.3)] border-0 cursor-pointer transition-all hover:translate-y-[-1px]">
                     <Plus className="h-4 w-4" /> Add Client Profile
                   </Button>
                 }
               />
-              <DialogContent className="max-w-2xl bg-white border-slate-200 rounded-2xl shadow-xl overflow-hidden p-0">
-                <DialogHeader className="p-6 bg-olive-900 text-white">
+              <DialogContent className="max-w-2xl bg-[#0a1628] border border-white/[0.08] text-white rounded-2xl shadow-xl overflow-hidden p-0 backdrop-blur-xl">
+                <DialogHeader className="p-6 bg-white/[0.02] border-b border-white/[0.06] text-white">
                   <DialogTitle className="text-xl font-bold">Onboard New Corporate Client</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleAddClientSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-olive-800 uppercase">Company Name *</label>
+                      <label className="text-xs font-bold text-white/60 uppercase">Company Name *</label>
                       <Input 
                         placeholder="e.g., Al Futtaim Group" 
                         value={companyName}
                         onChange={(e) => setCompanyName(e.target.value)}
                         required
-                        className="rounded-xl border-slate-200 focus:border-olive-500 focus:ring-olive-500 text-slate-900 bg-white placeholder:text-slate-400"
+                        className="rounded-xl border-white/10 focus:border-blue-500 focus:ring-blue-500 text-white bg-white/[0.03] placeholder:text-white/20"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-olive-800 uppercase">Primary Contact Person</label>
+                      <label className="text-xs font-bold text-white/60 uppercase">Primary Contact Person</label>
                       <Input 
                         placeholder="e.g., Tariq Ahmad" 
                         value={contactPerson}
                         onChange={(e) => setContactPerson(e.target.value)}
-                        className="rounded-xl border-slate-200 focus:border-olive-500 focus:ring-olive-500 text-slate-900 bg-white placeholder:text-slate-400"
+                        className="rounded-xl border-white/10 focus:border-blue-500 focus:ring-blue-500 text-white bg-white/[0.03] placeholder:text-white/20"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-olive-800 uppercase">Corporate Email</label>
+                      <label className="text-xs font-bold text-white/60 uppercase">Corporate Email</label>
                       <Input 
                         type="email" 
                         placeholder="partner@futtaim.ae" 
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="rounded-xl border-slate-200 focus:border-olive-500 focus:ring-olive-500 text-slate-900 bg-white placeholder:text-slate-400"
+                        className="rounded-xl border-white/10 focus:border-blue-500 focus:ring-blue-500 text-white bg-white/[0.03] placeholder:text-white/20"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-olive-800 uppercase">Contact Number</label>
+                      <label className="text-xs font-bold text-white/60 uppercase">Contact Number</label>
                       <Input 
                         placeholder="+971 4 123 4567" 
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        className="rounded-xl border-slate-200 focus:border-olive-500 focus:ring-olive-500 text-slate-900 bg-white placeholder:text-slate-400"
+                        className="rounded-xl border-white/10 focus:border-blue-500 focus:ring-blue-500 text-white bg-white/[0.03] placeholder:text-white/20"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-olive-800 uppercase">HQ Country</label>
+                      <label className="text-xs font-bold text-white/60 uppercase">HQ Country</label>
                       <Input 
                         placeholder="Global" 
                         value={country}
                         onChange={(e) => setCountry(e.target.value)}
-                        className="rounded-xl border-slate-200 focus:border-olive-500 focus:ring-olive-500 text-slate-900 bg-white placeholder:text-slate-400"
+                        className="rounded-xl border-white/10 focus:border-blue-500 focus:ring-blue-500 text-white bg-white/[0.03] placeholder:text-white/20"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-olive-800 uppercase">Operating Timezone</label>
+                      <label className="text-xs font-bold text-white/60 uppercase">Operating Timezone</label>
                       <Input 
                         placeholder="GST (GMT+4)" 
                         value={timezone}
                         onChange={(e) => setTimezone(e.target.value)}
-                        className="rounded-xl border-slate-200 focus:border-olive-500 focus:ring-olive-500 text-slate-900 bg-white placeholder:text-slate-400"
+                        className="rounded-xl border-white/10 focus:border-blue-500 focus:ring-blue-500 text-white bg-white/[0.03] placeholder:text-white/20"
                       />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-xs font-bold text-olive-800 uppercase">Account Health Score (1-5)</label>
+                      <label className="text-xs font-bold text-white/60 uppercase">Account Health Score (1-5)</label>
                       <select 
                         value={healthScore}
                         onChange={(e) => setHealthScore(Number(e.target.value))}
-                        className="w-full h-10 px-3 border border-slate-200 rounded-xl text-sm focus:border-olive-500 focus:ring-olive-500 bg-white text-slate-900"
+                        className="w-full h-10 px-3 border border-white/10 rounded-xl text-sm focus:border-blue-500 focus:ring-blue-500 bg-[#0d1f37] text-white"
                       >
                         <option value={5}>5 - Excellent Relationship</option>
                         <option value={4}>4 - Good Standing</option>
@@ -234,23 +234,23 @@ export default function ClientsCRM() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-olive-800 uppercase">Company Logo / Brand Badge</label>
-                    <div className="flex items-center gap-4 p-3 border border-dashed rounded-xl bg-slate-50/50">
-                      <ImageIcon className="h-8 w-8 text-slate-400 shrink-0" />
+                    <label className="text-xs font-bold text-white/60 uppercase">Company Logo / Brand Badge</label>
+                    <div className="flex items-center gap-4 p-3 border border-dashed border-white/10 rounded-xl bg-white/[0.01]">
+                      <ImageIcon className="h-8 w-8 text-white/20 shrink-0" />
                       <input 
                         type="file" 
                         accept="image/*" 
                         onChange={handleLogoChange}
-                        className="text-xs text-slate-600 file:mr-4 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-olive-50 file:text-olive-700 hover:file:bg-olive-100 cursor-pointer"
+                        className="text-xs text-white/60 file:mr-4 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-500/10 file:text-blue-300 hover:file:bg-blue-500/20 cursor-pointer"
                       />
                       {logoBase64 && (
-                        <img src={logoBase64} alt="Preview" className="h-10 w-10 object-contain rounded border bg-white ml-auto" />
+                        <img src={logoBase64} alt="Preview" className="h-10 w-10 object-contain rounded border border-white/10 bg-white ml-auto" />
                       )}
                     </div>
                   </div>
 
                   <div className="space-y-2.5">
-                    <label className="text-xs font-bold text-olive-800 uppercase">Subscribed Retainer Services</label>
+                    <label className="text-xs font-bold text-white/60 uppercase">Subscribed Retainer Services</label>
                     <div className="flex flex-wrap gap-2 pt-1">
                       {AVAILABLE_SERVICES.map(svc => {
                         const active = servicesSubscribed.includes(svc);
@@ -259,10 +259,10 @@ export default function ClientsCRM() {
                             key={svc}
                             type="button"
                             onClick={() => toggleService(svc)}
-                            className={`px-3 py-1.5 rounded-xl border text-xs font-medium transition-all ${
+                            className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                               active 
-                                ? "bg-olive-600 text-white border-olive-600 shadow-sm" 
-                                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                                ? "bg-[#2563eb] text-white border-[#2563eb] shadow-[0_0_15px_rgba(37,99,235,0.25)]" 
+                                : "bg-white/[0.02] text-white/60 border-white/10 hover:bg-white/5 hover:text-white"
                             }`}
                           >
                             {svc}
@@ -272,20 +272,20 @@ export default function ClientsCRM() {
                     </div>
                   </div>
 
-                  <DialogFooter className="pt-4 border-t gap-2 sm:gap-0">
+                  <DialogFooter className="pt-4 border-t border-white/[0.06] gap-2 sm:gap-0">
                     <Button 
                       type="button" 
                       variant="outline" 
                       onClick={() => setIsAddOpen(false)}
                       disabled={saving}
-                      className="rounded-xl border-slate-200"
+                      className="rounded-xl border-white/10 text-white/60 hover:text-white hover:bg-white/5"
                     >
                       Cancel
                     </Button>
                     <Button 
                       type="submit" 
                       disabled={saving || !companyName.trim()} 
-                      className="bg-olive-600 hover:bg-olive-700 text-white rounded-xl"
+                      className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl font-bold shadow-[0_0_24px_rgba(37,99,235,0.3)] border-0 cursor-pointer"
                     >
                       {saving ? "Onboarding..." : "Establish Client Profile"}
                     </Button>
@@ -296,12 +296,12 @@ export default function ClientsCRM() {
           </RoleGuard>
         </div>
 
-        <div className="bg-white p-4 rounded-xl border shadow-sm flex flex-col sm:flex-row gap-4">
+        <div className="border border-white/[0.08] bg-white/[0.02] p-4 rounded-xl shadow-card backdrop-blur-xl flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-white/40" />
             <Input
               placeholder="Search clients by company or contact name..."
-              className="pl-9 bg-muted/50 rounded-xl border-slate-200"
+              className="pl-9 bg-white/[0.03] text-white placeholder:text-white/20 rounded-xl border-white/10 focus:border-blue-500 focus:ring-blue-500"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -309,40 +309,42 @@ export default function ClientsCRM() {
         </div>
 
         {loading ? (
-          <div className="text-center py-12 text-olive-600 font-medium">Querying secure CRM records...</div>
+          <div className="text-center py-12 text-blue-400 font-bold">Querying secure CRM records...</div>
         ) : filteredClients.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-xl border border-dashed flex flex-col items-center border-slate-200 p-8">
-            <Building2 className="h-12 w-12 text-slate-400/40 mb-4" />
-            <h3 className="text-lg font-semibold text-slate-800">No Clients Discovered</h3>
-            <p className="text-sm text-slate-500 mt-1">Try adjusting search parameters or add a new brand profile.</p>
+          <div className="text-center py-16 bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl rounded-2xl flex flex-col items-center p-8">
+            <Building2 className="h-12 w-12 text-white/20 mb-4" />
+            <h3 className="text-lg font-bold text-white/80">No Clients Discovered</h3>
+            <p className="text-sm text-white/40 mt-1">Try adjusting search parameters or add a new brand profile.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredClients.map((client) => (
-              <Card 
+              <div 
                 key={client.id} 
-                onClick={() => router.push(`/dashboard/clients/${client.id}`)}
-                className="hover:shadow-md transition-shadow cursor-pointer overflow-hidden group border-slate-200 bg-white flex flex-col justify-between"
+                className="border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.04] hover:shadow-card transition-all overflow-hidden group rounded-2xl flex flex-col justify-between"
               >
                 <div>
-                  <div className="h-1.5 bg-olive-100 group-hover:bg-olive-600 transition-colors"></div>
-                  <CardHeader className="pb-3">
+                  <div className="h-1.5 bg-white/[0.04] group-hover:bg-blue-600 transition-colors"></div>
+                  <div className="p-5 pb-3">
                     <div className="flex justify-between items-start gap-4">
-                      <div className="flex gap-3">
+                      <div 
+                        className="flex gap-3 cursor-pointer"
+                        onClick={() => router.push(`/dashboard/clients/${client.id}`)}
+                      >
                         {client.logo ? (
-                          <img src={client.logo} alt="" className="h-12 w-12 object-contain rounded-xl border bg-white shrink-0 p-1" />
+                          <img src={client.logo} alt="" className="h-12 w-12 object-contain rounded-xl border border-white/10 bg-white shrink-0 p-1" />
                         ) : (
-                          <div className="h-12 w-12 rounded-xl bg-olive-50 flex items-center justify-center text-olive-600 font-bold text-lg shrink-0 border border-olive-100">
+                          <div className="h-12 w-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-300 font-bold text-lg shrink-0 border border-blue-500/20">
                             {client.companyName?.substring(0, 2).toUpperCase()}
                           </div>
                         )}
                         <div>
-                          <CardTitle className="text-lg font-bold text-slate-900 group-hover:text-olive-700 transition-colors">
+                          <h3 className="text-lg font-bold text-white group-hover:text-blue-400 transition-colors">
                             {client.companyName}
-                          </CardTitle>
-                          <CardDescription className="flex items-center gap-1 mt-1 text-slate-500 font-medium">
+                          </h3>
+                          <div className="flex items-center gap-1 mt-1 text-white/40 font-semibold text-xs">
                             <Globe className="h-3 w-3 shrink-0" /> {client.country || "Global"} ({client.timezone || "GST"})
-                          </CardDescription>
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
@@ -360,7 +362,7 @@ export default function ClientsCRM() {
                                 }
                               }
                             }}
-                            className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-slate-100 transition-colors border border-transparent hover:border-slate-200"
+                            className="p-1.5 text-white/40 hover:text-rose-400 rounded-lg hover:bg-white/5 transition-colors border border-transparent hover:border-white/10"
                             title="Delete Client"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -368,51 +370,52 @@ export default function ClientsCRM() {
                         )}
                       </div>
                     </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2 text-sm text-slate-600 font-medium">
+                  </div>
+                  
+                  <div className="p-5 pt-0 space-y-4">
+                    <div className="space-y-2 text-xs text-white/60 font-semibold">
                       {client.contactPerson && (
                         <div className="flex items-center gap-2.5">
-                          <User className="h-4 w-4 text-slate-400 shrink-0" />
+                          <User className="h-4 w-4 text-white/30 shrink-0" />
                           <span>{client.contactPerson}</span>
                         </div>
                       )}
                       <div className="flex items-center gap-2.5">
-                        <Mail className="h-4 w-4 text-slate-400 shrink-0" />
+                        <Mail className="h-4 w-4 text-white/30 shrink-0" />
                         <span className="truncate">{client.email || "No email"}</span>
                       </div>
                       <div className="flex items-center gap-2.5">
-                        <Phone className="h-4 w-4 text-slate-400 shrink-0" />
+                        <Phone className="h-4 w-4 text-white/30 shrink-0" />
                         <span>{client.phone || "No phone"}</span>
                       </div>
                     </div>
                     
-                    <div className="pt-3 border-t border-slate-100">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Services Subscribed</p>
+                    <div className="pt-3 border-t border-white/[0.06]">
+                      <p className="text-[9px] font-bold text-white/40 uppercase tracking-wider mb-2">Services Subscribed</p>
                       <div className="flex flex-wrap gap-1.5">
                         {client.servicesSubscribed?.slice(0, 3).map((svc: string) => (
-                          <Badge key={svc} variant="secondary" className="font-medium text-xs bg-slate-50 text-slate-600 border border-slate-200/80 shadow-none rounded-lg">
+                          <Badge key={svc} variant="secondary" className="font-bold text-[10px] bg-white/[0.02] text-white/80 border border-white/10 shadow-none rounded-lg">
                             {svc}
                           </Badge>
                         ))}
                         {client.servicesSubscribed?.length > 3 && (
-                          <Badge variant="secondary" className="font-semibold text-xs bg-olive-50 text-olive-700 border border-olive-100 shadow-none rounded-lg">
+                          <Badge variant="secondary" className="font-bold text-[10px] bg-blue-500/10 text-blue-300 border border-blue-500/20 shadow-none rounded-lg">
                             +{client.servicesSubscribed.length - 3} more
                           </Badge>
                         )}
                         {!client.servicesSubscribed?.length && (
-                          <span className="text-xs text-slate-400 italic">None subscribed yet</span>
+                          <span className="text-xs text-white/40 italic">None subscribed yet</span>
                         )}
                       </div>
                     </div>
-                  </CardContent>
+                  </div>
                 </div>
                 
-                <CardContent className="pt-0 pb-6">
-                  <div className="pt-4 border-t border-slate-100 flex gap-2 relative z-10">
+                <div className="p-5 pt-0 pb-5">
+                  <div className="pt-4 border-t border-white/[0.06] flex gap-2 relative z-10">
                     <Button 
                       variant="outline" 
-                      className="w-full text-xs h-9 rounded-xl hover:bg-olive-50 hover:text-olive-700 border-slate-200 font-semibold"
+                      className="w-full text-xs h-9 rounded-xl border-white/10 text-white/60 hover:text-white hover:bg-white/5 font-semibold cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation();
                         router.push(`/dashboard/projects?client=${encodeURIComponent(client.companyName)}`);
@@ -422,7 +425,7 @@ export default function ClientsCRM() {
                     </Button>
                     <Button 
                       variant="outline" 
-                      className="w-full text-xs h-9 rounded-xl hover:bg-olive-50 hover:text-olive-700 border-slate-200 font-semibold"
+                      className="w-full text-xs h-9 rounded-xl border-white/10 text-white/60 hover:text-white hover:bg-white/5 font-semibold cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation();
                         router.push(`/dashboard/clients/${client.id}`);
@@ -431,8 +434,8 @@ export default function ClientsCRM() {
                       CRM Details
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         )}

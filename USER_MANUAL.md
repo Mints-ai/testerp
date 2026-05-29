@@ -201,19 +201,22 @@ The employee database holds active records:
 
 Automates paid time off (PTO) and sick leave management:
 
-* **Leave Requests:** Employees submit requests stating date ranges, leave type (PTO, Sick, Personal), and reasons.
-* **Approval Console:** Managers receive live notifications and can **Approve** or **Reject** leaves with automated reason cards.
-* **Leave Calendars:** Displays system-wide calendars of scheduled absences to plan team capacities.
+* **Leave Requests:** Employees submit requests stating date ranges, leave type (Annual, Sick, Personal, Emergency, Maternity/Paternity), and reasons using a translucent, responsive glass dialog form.
+* **Employee Balance Cards:** Frosted, sleek balance cards dynamically track annual leave balances and show remaining, used, and sick leave summaries with glowing indicators.
+* **Approval Console:** Managers receive live, highlighted pending logs in their dashboards, and can **Approve** or **Reject** requests with single-click actions styled with custom emerald/rose gradients.
+* **Team Leave Calendar:** An elegant, interactive monthly grid detailing all approved leaves. Day cells highlight active employee absences, and a custom blue-glow today indicator anchors current dates.
 
 ---
 
 ## ⏱️ Module 10: Attendance & Location Timecard
 
-The attendance module logs work hours:
+The attendance module tracks daily shift workloads, active presences, and break timelines:
 
-* **Punch In / Out:** Log daily clock-in/clock-out events.
-* **Geolocation Telemetry:** Logs IP geolocation data during punch actions to assure absolute security compliance.
-* **Time Logs:** View a grid of clock hours, overtime periods, and punctuality logs.
+* **Punch In / Out & Break Timer:** A central, glowing glass card displays current worked-today shifts durations, active break schedules, and animated presence tags. Standard terminal buttons allow team members to **Clock In**, **Take Break**, **Resume Work**, or **Clock Out** easily.
+* **Unified Tab Routing**: Features streamlined tab controls ("My Tracker", "Company Live", "All History") governed by the centralized, accessible Tab system.
+* **Live Presence Grid:** An organizational oversight dashboard mapping live active teams, departments, precise worked-hours (highlighting green **OVERTIME** metrics), and chronological activity logs.
+* **Shift Timelines Popup:** Displays a detailed, vertical vertical timeline popup showing exactly when employees clocked in/out or initiated breaks.
+* **Audit History logs:** Accessible dashboards detailing historical shift parameters, custom date filter ranges, and detailed activity timelines popover views.
 
 ---
 
@@ -281,4 +284,5 @@ Founder dashboard tracking company security events, real-time active users, and 
 | **v1.0** | May 2026 | Released | Initial release (Core HR Directory, Attendance Location Logs, Lead CRM Hub) |
 | **v1.1** | May 2026 | Released | Leave Planner workflow, Multi-department employee database structures, Static Webhooks |
 | **v1.2** | May 2026 | Released | Complete Client Billing Suite, Secure File Explorer Drive (RBAC), Gantt Capacity Heatmap, dynamic Weekly Timesheet matrix spreadsheet, Live Presence Map, and custom Discord settings telemetry center. |
-| **v1.3** | May 2026 | **Active Production** | Implemented dynamic department-based specialization subroles, multi-card badge limits (with dynamic overflow +N counts), self-healing deduplicated department chat rooms (Marketing, IT, Operations), and admin add-member action routing controls. |
+| **v1.3** | May 2026 | Released | Implemented dynamic department-based specialization subroles, multi-card badge limits (with dynamic overflow +N counts), self-healing deduplicated department chat rooms (Marketing, IT, Operations), and admin add-member action routing controls. |
+| **v1.4** | May 2026 | **Active Production** | Complete visual restyling of both the Attendance tracker (featuring standard Tabs routing and chronological timelines popups) and the Leave Management dashboard (featuring the team calendar month grid and glassmorphic balances cards), unifying both modules with the modern Sleek Modern Blue Glassmorphic design language. |

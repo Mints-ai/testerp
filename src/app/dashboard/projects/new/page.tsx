@@ -89,7 +89,7 @@ export default function CreateProject() {
 
   useEffect(() => {
     const fetchManagers = async () => {
-      const q = query(collection(db, "employees"), where("role", "in", ["manager", "c_suite", "founder"]));
+      const q = query(collection(db, "employees"), where("role", "in", ["manager", "system_admin", "c_suite", "founder"]));
       const snapshot = await getDocs(q);
       const mgrs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setManagers(mgrs);
@@ -193,7 +193,7 @@ export default function CreateProject() {
                           <select 
                             onChange={field.onChange} 
                             value={field.value || ""} 
-                            className="w-full h-10 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#0d1f3c] text-white"
+                            className="w-full h-10 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-white"
                           >
                             <option value="">Select account...</option>
                             {clients.map(c => (
@@ -216,7 +216,7 @@ export default function CreateProject() {
                           <select 
                             onChange={field.onChange} 
                             value={field.value || ""} 
-                            className="w-full h-10 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#0d1f3c] text-white"
+                            className="w-full h-10 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-white"
                           >
                             <option value="">Select scope...</option>
                             {SERVICES.map(s => (
@@ -241,7 +241,7 @@ export default function CreateProject() {
                           <select 
                             onChange={field.onChange} 
                             value={field.value || ""} 
-                            className="w-full h-10 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#0d1f3c] text-white"
+                            className="w-full h-10 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-white"
                           >
                             <option value="">Select director...</option>
                             {managers.map(m => (

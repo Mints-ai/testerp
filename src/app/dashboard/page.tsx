@@ -41,7 +41,7 @@ export default function DashboardHome() {
   const [loadingStats, setLoadingStats] = useState(true);
   const [employees, setEmployees] = useState<any[]>([]);
   
-  const isExecutive = role === "founder" || role === "c_suite" || role === "manager";
+  const isExecutive = role === "founder" || role === "system_admin" || role === "c_suite" || role === "manager";
 
   useEffect(() => {
     if (!user) return;

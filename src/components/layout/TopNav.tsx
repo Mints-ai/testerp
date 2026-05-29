@@ -117,12 +117,13 @@ export function TopNav() {
                   colorScheme: "dark"
                 }}
               >
-                <option value="founder" className="bg-[#0d1f3c] text-white">Founder (Admin)</option>
-                <option value="c_suite" className="bg-[#0d1f3c] text-white">C-Suite</option>
-                <option value="manager" className="bg-[#0d1f3c] text-white">Manager</option>
-                <option value="senior_employee" className="bg-[#0d1f3c] text-white">Senior Employee</option>
-                <option value="employee" className="bg-[#0d1f3c] text-white">Employee</option>
-                <option value="intern" className="bg-[#0d1f3c] text-white">Intern</option>
+                <option value="founder" className="bg-[#121813] text-white">Founder (Admin)</option>
+                <option value="system_admin" className="bg-[#121813] text-white">System Admin</option>
+                <option value="c_suite" className="bg-[#121813] text-white">C-Suite</option>
+                <option value="manager" className="bg-[#121813] text-white">Manager</option>
+                <option value="senior_employee" className="bg-[#121813] text-white">Senior Employee</option>
+                <option value="employee" className="bg-[#121813] text-white">Employee</option>
+                <option value="intern" className="bg-[#121813] text-white">Intern</option>
               </select>
             </div>
           )}
@@ -136,7 +137,7 @@ export function TopNav() {
                 </button>
               }
             />
-            <SheetContent side="right" className="w-[360px] p-6 border-l border-white/[0.08] bg-[#0d1f3c] text-white flex flex-col h-full">
+            <SheetContent side="right" className="w-[360px] p-6 border-l border-white/[0.08] bg-[#121813] text-white flex flex-col h-full">
               <SheetHeader className="border-b border-white/[0.06] pb-4 mb-4">
                 <SheetTitle className="flex justify-between items-center text-white">
                   <span className="text-base font-bold">Notifications</span>
@@ -199,7 +200,7 @@ export function TopNav() {
                 </button>
               }
             />
-            <DropdownMenuContent align="end" className="w-56 shadow-xl border-white/[0.08] bg-[#0d1f3c] text-white">
+            <DropdownMenuContent align="end" className="w-56 shadow-xl border-white/[0.08] bg-[#121813] text-white">
               <DropdownMenuGroup>
                 <DropdownMenuLabel className="text-white/40 text-xs">My Account</DropdownMenuLabel>
               </DropdownMenuGroup>

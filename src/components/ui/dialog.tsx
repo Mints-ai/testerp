@@ -11,16 +11,32 @@ function Dialog({ ...props }: DialogPrimitive.Root.Props) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />
 }
 
-function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {
-  return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />
+function DialogTrigger({ nativeButton, render, ...props }: DialogPrimitive.Trigger.Props) {
+  const isCustomElement = render && React.isValidElement(render) && typeof render.type !== "string";
+  return (
+    <DialogPrimitive.Trigger 
+      data-slot="dialog-trigger" 
+      render={render}
+      nativeButton={nativeButton ?? (isCustomElement ? false : undefined)}
+      {...props} 
+    />
+  )
 }
 
 function DialogPortal({ ...props }: DialogPrimitive.Portal.Props) {
   return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />
 }
 
-function DialogClose({ ...props }: DialogPrimitive.Close.Props) {
-  return <DialogPrimitive.Close data-slot="dialog-close" {...props} />
+function DialogClose({ nativeButton, render, ...props }: DialogPrimitive.Close.Props) {
+  const isCustomElement = render && React.isValidElement(render) && typeof render.type !== "string";
+  return (
+    <DialogPrimitive.Close 
+      data-slot="dialog-close" 
+      render={render}
+      nativeButton={nativeButton ?? (isCustomElement ? false : undefined)}
+      {...props} 
+    />
+  )
 }
 
 function DialogOverlay({
@@ -60,7 +76,7 @@ function DialogContent({
       >
         {children}
         {showCloseButton && (
-          <DialogPrimitive.Close
+          <DialogClose
             data-slot="dialog-close"
             render={
               <Button
@@ -73,7 +89,7 @@ function DialogContent({
             <XIcon
             />
             <span className="sr-only">Close</span>
-          </DialogPrimitive.Close>
+          </DialogClose>
         )}
       </DialogPrimitive.Popup>
     </DialogPortal>
@@ -109,9 +125,9 @@ function DialogFooter({
     >
       {children}
       {showCloseButton && (
-        <DialogPrimitive.Close render={<Button variant="outline" />}>
+        <DialogClose render={<Button variant="outline" />}>
           Close
-        </DialogPrimitive.Close>
+        </DialogClose>
       )}
     </div>
   )

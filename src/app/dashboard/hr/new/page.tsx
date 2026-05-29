@@ -303,7 +303,7 @@ export default function AddEmployee() {
                           <select 
                             onChange={field.onChange} 
                             value={field.value || ""} 
-                            className="w-full h-10 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#0d1f3c] text-white"
+                            className="w-full h-10 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-white"
                           >
                             <option value="">Select role...</option>
                             {Object.entries(ROLE_META).map(([key, meta]) => (
@@ -336,7 +336,7 @@ export default function AddEmployee() {
                                 return (
                                   <FormItem
                                     key={dept}
-                                    className="flex flex-row items-start space-x-2 space-y-0 rounded-md border border-white/5 bg-[#0d1f3c] p-2 hover:bg-white/5 transition-colors cursor-pointer"
+                                    className="flex flex-row items-start space-x-2 space-y-0 rounded-md border border-white/5 bg-[#121813] p-2 hover:bg-white/5 transition-colors cursor-pointer"
                                   >
                                     <FormControl>
                                       <Checkbox

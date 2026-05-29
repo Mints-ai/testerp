@@ -357,7 +357,7 @@ export default function SecureMail() {
     name ? name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() : "M";
 
   return (
-    <div className="h-[calc(100vh-120px)] flex bg-[#0c1a30]/40 backdrop-blur-xl border border-white/[0.08] rounded-2xl overflow-hidden text-white">
+    <div className="h-[calc(100vh-120px)] flex bg-[#121813]/40 backdrop-blur-xl border border-white/[0.08] rounded-2xl overflow-hidden text-white">
       
       {/* 1. Left Folders Navigation */}
       <div className="w-56 bg-white/[0.01] border-r border-white/[0.06] flex flex-col p-4 shrink-0">
@@ -369,7 +369,7 @@ export default function SecureMail() {
               </button>
             }
           />
-          <DialogContent className="sm:max-w-[500px] bg-[#0d1f3c] border border-white/[0.08] text-white p-6 rounded-2xl shadow-xl">
+          <DialogContent className="sm:max-w-[500px] bg-[#121813] border border-white/[0.08] text-white p-6 rounded-2xl shadow-xl">
             <DialogHeader>
               <DialogTitle className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
                 <Sparkles className="h-4.5 w-4.5 text-blue-500" /> New Secure Memo
@@ -412,7 +412,7 @@ export default function SecureMail() {
                       className="glass-input h-10 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full"
                     />
                     {recipientSearchText.trim() && (
-                      <div className="absolute top-11 left-0 right-0 max-h-40 overflow-y-auto bg-[#0d1f3c] border border-white/[0.08] rounded-xl z-50 divide-y divide-white/[0.03] shadow-2xl">
+                      <div className="absolute top-11 left-0 right-0 max-h-40 overflow-y-auto bg-[#1c241e] border border-white/[0.08] rounded-xl z-50 divide-y divide-white/[0.03] shadow-2xl">
                         {employees.filter(emp => {
                           const text = recipientSearchText.toLowerCase().trim();
                           return emp.fullName?.toLowerCase().includes(text) || emp.email?.toLowerCase().includes(text);
@@ -463,7 +463,7 @@ export default function SecureMail() {
                   <select
                     value={composePriority}
                     onChange={(e) => setComposePriority(e.target.value as PriorityType)}
-                    className="w-full h-10 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#0d1f3c] text-white"
+                    className="w-full h-10 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-white"
                   >
                     <option value="low">Low</option>
                     <option value="normal">Normal</option>
@@ -480,7 +480,7 @@ export default function SecureMail() {
                   placeholder="Type secure internal memo details..."
                   value={composeBody}
                   onChange={(e) => setComposeBody(e.target.value)}
-                  className="w-full border border-white/10 rounded-xl p-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#0d1f3c] text-white placeholder:text-white/20"
+                  className="w-full border border-white/10 rounded-xl p-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-white placeholder:text-white/20"
                 />
               </div>
 

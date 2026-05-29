@@ -10,7 +10,7 @@ import {
   LayoutDashboard, Users, Briefcase, CheckSquare, UserSquare2,
   Wallet, CalendarOff, Bell, BarChart3, Settings, LogOut,
   Clock, Target, Monitor, TrendingUp, AlignLeft, Cloud,
-  MessageSquare, ChevronRight, Zap, Menu, X, Mail
+  MessageSquare, ChevronRight, Zap, Menu, X, Mail, ShieldAlert
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -60,7 +60,8 @@ const NAV_GROUPS = [
   {
     label: "System",
     items: [
-      { name: "Settings",     href: "/dashboard/settings",           icon: Settings,         permission: "SYSTEM_SETTINGS" },
+      { name: "Settings",       href: "/dashboard/settings",          icon: Settings,     permission: "SYSTEM_SETTINGS" },
+      { name: "Security Audit", href: "/dashboard/security",          icon: ShieldAlert,  permission: "VIEW_AUDIT_LOG"  },
     ]
   }
 ];
@@ -214,7 +215,7 @@ export function Sidebar() {
 
       {/* Mobile drawer */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="w-[280px] p-0 border-r border-white/[0.08] bg-[#0d1f3c] text-white">
+        <SheetContent side="left" className="w-[280px] p-0 border-r border-white/[0.08] bg-[#121813] text-white">
           <SidebarContent isExpanded={true} onNavigate={() => setMobileOpen(false)} />
         </SheetContent>
       </Sheet>

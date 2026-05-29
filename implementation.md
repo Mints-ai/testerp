@@ -13,7 +13,7 @@ Following the comprehensive code audits and feature upgrades, the status of the 
 | **Auth & Security** | 🔴 Critical Flaw (Auto-founder) | 🟢 Secure link profiles & locking bypass | **10/10** |
 | **Theme & CSS** | 🟡 Broken Olive / CSS import compile | 🟢 Sleek Modern Blue Glassmorphic theme | **10/10** |
 | **Corporate Mail** | 🔴 Absent | 🟢 Real-time Firestore 3-pane client | **10/10** |
-| **Core Modules** | 🟡 Outdated tables & colors | 🟢 8 glassmorphic modules with glowing indicators | **10/10** |
+| **Core Modules** | 🟡 Outdated tables & colors | 🟢 9 glassmorphic modules with glowing indicators | **10/10** |
 | **System Compile** | 🔴 Blocked Turbopack CSS rules | 🟢 100% successful Next.js production builds | **10/10** |
 
 ---
@@ -139,15 +139,19 @@ The following section details every core workspace, module, page, dialog, and au
 - **Asset registration dialog**: Interactive popup form to add new hardware profiles with automatic active/maintenance badges.
 
 #### 13. Attendance & Presence Tracker
-- **Clock In / Out buttons**: Real-time timestamp logger records presence coordinates, daily log durations, and active times.
-- **Presence logs table**: Month-by-month grid auditing active hours and statuses.
+- **Integrated Tabs Routing**: Leverages the custom unified `@/components/ui/tabs` component to switch views ("My Tracker", "Company Live", "All History") seamlessly with unified state and styling.
+- **Clock In / Out & Break Timer**: Translucent glass clock card displaying daily progress, break timers, worked shift summaries, and animated status badges.
+- **Company Live Presence**: Modern dark list grid displaying active shift runtimes, glowing overtime tags, and instant timeline click logs.
+- **Shift Timelines Popups**: Detailed chronological popups mapping terminal logs (Clock In/Out, Breaks, Resume) with modern vertical nodes.
 
 #### 14. Goals & OKRs Hub
 - **Corporate Objectives Tracker**: Allows managers to define key results and targets. Displays team progress indicators and target scores.
 
 #### 15. Leave History & Time-Off approvals
-- **Leave Request form**: Submits annual, sick, or casual leave requests with calendars.
-- **Approver dashboard**: Frosted lists for managers to approve or reject pending leave requests instantly.
+- **Leave Request form**: Submits annual, sick, or casual leave requests with calendar dates through a translucent, responsive glass dialog form.
+- **Employee Balance Cards**: Modern frosted cards showing annual and sick leave balances with glowing blue status indicators.
+- **Approver dashboard**: Lists managers to approve or reject pending leave requests instantly with custom emerald and rose glass action controls.
+- **Interactive Monthly Team Calendar**: An elegant calendar grid detailing month days, today indicators, and employee absence events with translucent badges.
 
 ---
 

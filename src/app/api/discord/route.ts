@@ -14,15 +14,20 @@ export async function POST(request: Request) {
       const docSnap = await getDoc(doc(db, "settings", "discordWebhook"));
       if (docSnap.exists()) {
         const data = docSnap.data();
-        if (data.url) {
+        
+        let eventKey = body.eventType || "generic";
+        if (eventKey === "hr") eventKey = "auth"; // HR routes as Auth trigger
+        
+        // 1. Resolve specific channel webhook if configured, else fallback to global
+        if (data.urls && data.urls[eventKey]) {
+          webhookUrl = data.urls[eventKey];
+        } else if (data.url) {
           webhookUrl = data.url;
         }
-        if (data.events && body.eventType) {
-          let eventKey = body.eventType;
-          if (eventKey === "hr") eventKey = "auth"; // HR routes as Auth trigger
-          if (data.events[eventKey] !== undefined) {
-            isEventEnabled = !!data.events[eventKey];
-          }
+        
+        // 2. Check if this specific event category is enabled
+        if (data.events && data.events[eventKey] !== undefined) {
+          isEventEnabled = !!data.events[eventKey];
         }
       }
     } catch (fsErr) {

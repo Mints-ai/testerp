@@ -62,13 +62,14 @@ export default function EmployeeDirectory() {
   };
 
   const founders = filteredEmployees.filter(
-    e => (e.role === "founder" || e.role === "c_suite") && 
+    e => (e.role === "founder" || e.role === "system_admin" || e.role === "c_suite") && 
          e.fullName !== "System Administrator" && 
          e.email !== "admin@mintsglobal.ae" && 
          e.email !== "admin@mintsgloabal.ae"
   );
   const others = filteredEmployees.filter(
     e => e.role !== "founder" && 
+         e.role !== "system_admin" && 
          e.role !== "c_suite" && 
          e.fullName !== "System Administrator"
   );
@@ -136,7 +137,7 @@ export default function EmployeeDirectory() {
             <SelectTrigger className="flex-1 bg-white/[0.03] border-white/10 text-white placeholder:text-white/20 focus:ring-blue-500/60 h-9 text-xs rounded-xl">
               <SelectValue placeholder="All Departments" />
             </SelectTrigger>
-            <SelectContent className="bg-[#0d1f3c] border-white/[0.08] text-white">
+            <SelectContent className="bg-[#121813] border-white/[0.08] text-white">
               <SelectItem value="all" className="text-xs hover:bg-white/5 focus:bg-white/5">All Departments</SelectItem>
               {departments.map((dept: any) => (
                 <SelectItem key={dept} value={dept} className="text-xs hover:bg-white/5 focus:bg-white/5">{dept}</SelectItem>
@@ -148,7 +149,7 @@ export default function EmployeeDirectory() {
             <SelectTrigger className="flex-1 bg-white/[0.03] border-white/10 text-white placeholder:text-white/20 focus:ring-blue-500/60 h-9 text-xs rounded-xl">
               <SelectValue placeholder="All Roles" />
             </SelectTrigger>
-            <SelectContent className="bg-[#0d1f3c] border-white/[0.08] text-white">
+            <SelectContent className="bg-[#121813] border-white/[0.08] text-white">
               <SelectItem value="all" className="text-xs hover:bg-white/5 focus:bg-white/5">All Roles</SelectItem>
               {Object.entries(ROLE_META).map(([key, meta]) => (
                 <SelectItem key={key} value={key} className="text-xs hover:bg-white/5 focus:bg-white/5">{meta.label}</SelectItem>
@@ -318,7 +319,7 @@ export default function EmployeeDirectory() {
 
       {/* Detail Drawer */}
       <Sheet open={!!selectedEmployee} onOpenChange={(open) => !open && setSelectedEmployee(null)}>
-        <SheetContent className="w-[400px] sm:w-[520px] overflow-y-auto border-l border-white/[0.08] bg-[#0d1f3c] text-white flex flex-col p-6">
+        <SheetContent className="w-[400px] sm:w-[520px] overflow-y-auto border-l border-white/[0.08] bg-[#121813] text-white flex flex-col p-6">
           {selectedEmployee && (
             <div className="space-y-6 pb-12 mt-6">
               <SheetHeader className="text-left flex flex-row items-center gap-4 border-b border-white/[0.06] pb-6 shrink-0">

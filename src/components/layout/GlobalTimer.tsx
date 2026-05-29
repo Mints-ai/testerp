@@ -171,14 +171,14 @@ export function GlobalTimer() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="mb-4 bg-white rounded-xl shadow-xl border border-olive-100 overflow-hidden w-[320px]"
+            className="mb-4 bg-[#0a1628]/95 rounded-2xl shadow-xl border border-white/[0.08] overflow-hidden w-[320px] backdrop-blur-xl"
           >
-            <div className="bg-olive-900 text-white p-3 flex justify-between items-center">
-              <div className="flex items-center gap-2 font-medium">
-                <Clock className="w-4 h-4" />
+            <div className="bg-white/[0.02] border-b border-white/[0.06] text-white p-3 flex justify-between items-center">
+              <div className="flex items-center gap-2 font-bold text-sm">
+                <Clock className="w-4 h-4 text-blue-400" />
                 Time Tracker
               </div>
-              <button onClick={() => setIsOpen(false)} className="hover:bg-olive-800 p-1 rounded transition-colors">
+              <button onClick={() => setIsOpen(false)} className="hover:bg-white/5 p-1 rounded-xl transition-colors text-white/60 hover:text-white">
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -186,50 +186,50 @@ export function GlobalTimer() {
             <div className="p-4 space-y-4">
               <div className="text-center">
                 <div className={cn(
-                  "text-4xl font-mono font-bold tracking-tight mb-1 transition-colors",
-                  isRunning ? "text-olive-600" : "text-slate-700"
+                  "text-4xl font-mono font-black tracking-tight mb-1 transition-colors",
+                  isRunning ? "text-blue-400" : "text-white/60"
                 )}>
                   {formatTime(elapsedSeconds)}
                 </div>
-                <div className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
+                <div className="text-xs text-white/40 uppercase tracking-wider font-bold">
                   {isRunning ? "Tracking..." : "Paused"}
                 </div>
               </div>
               
               <div className="space-y-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-500 uppercase">Project</label>
+                  <label className="text-xs font-bold text-white/60 uppercase">Project</label>
                   <Select value={selectedProjectId} onValueChange={(val) => setSelectedProjectId(val || "")}>
-                    <SelectTrigger className="h-8 text-sm text-slate-900 bg-white border-slate-200">
+                    <SelectTrigger className="h-8 text-sm text-white bg-white/[0.03] border-white/10 rounded-xl">
                       <SelectValue placeholder="Select a project..." />
                     </SelectTrigger>
-                    <SelectContent className="bg-white text-slate-900 border-slate-200">
-                      <SelectItem value="internal">Internal / General</SelectItem>
+                    <SelectContent className="bg-[#0d1f37] text-white border-white/[0.08] rounded-xl">
+                      <SelectItem value="internal" className="focus:bg-white/5 focus:text-white cursor-pointer">Internal / General</SelectItem>
                       {projects.map(p => (
-                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                        <SelectItem key={p.id} value={p.id} className="focus:bg-white/5 focus:text-white cursor-pointer">{p.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
                 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-500 uppercase">What are you working on?</label>
+                  <label className="text-xs font-bold text-white/60 uppercase">What are you working on?</label>
                   <Input 
                     value={taskDescription}
                     onChange={(e) => setTaskDescription(e.target.value)}
                     placeholder="E.g., Keyword research for SEO..." 
-                    className="h-8 text-sm text-slate-900 bg-white placeholder:text-slate-400 border-slate-200"
+                    className="h-8 text-sm text-white bg-white/[0.03] placeholder:text-white/20 border-white/10 rounded-xl focus:border-[#2563eb] focus:ring-[#2563eb]"
                   />
                 </div>
               </div>
               
-              <div className="pt-2 border-t flex justify-between gap-2">
+              <div className="pt-2 border-t border-white/[0.06] flex justify-between gap-2">
                 <Button 
                   variant="outline" 
                   size="sm" 
                   onClick={handleDiscard}
                   disabled={elapsedSeconds === 0}
-                  className="w-full text-xs h-8 text-slate-700 hover:text-slate-900 hover:bg-slate-100 border-slate-200"
+                  className="w-full text-xs h-8 text-white/60 hover:text-white hover:bg-white/5 border-white/10 rounded-xl"
                 >
                   Discard
                 </Button>
@@ -237,7 +237,7 @@ export function GlobalTimer() {
                   onClick={handleSave}
                   disabled={isSaving || elapsedSeconds === 0 || isRunning}
                   size="sm" 
-                  className="w-full bg-olive-500 hover:bg-olive-600 text-white text-xs h-8"
+                  className="w-full bg-[#2563eb] hover:bg-[#1d4ed8] text-white text-xs h-8 shadow-[0_0_20px_rgba(37,99,235,0.25)] border-0 rounded-xl font-bold cursor-pointer"
                 >
                   <CheckCircle2 className="w-3 h-3 mr-1" /> Log Time
                 </Button>
@@ -246,24 +246,24 @@ export function GlobalTimer() {
           </motion.div>
         )}
       </AnimatePresence>
-
+ 
       <button 
         onClick={handleStartStop}
         className={cn(
-          "flex items-center gap-2 rounded-full px-4 py-3 font-medium shadow-lg transition-all transform hover:scale-105 active:scale-95 border",
+          "flex items-center gap-2 rounded-full px-4 py-3 font-bold shadow-lg transition-all transform hover:scale-105 active:scale-95 border cursor-pointer",
           isRunning 
-            ? "bg-olive-600 text-white border-olive-700 hover:bg-olive-700 shadow-olive-600/30 animate-pulse-slow" 
-            : "bg-white text-olive-900 border-olive-200 hover:bg-olive-50"
+            ? "bg-[#2563eb] text-white border-0 shadow-[0_0_24px_rgba(37,99,235,0.3)] hover:bg-[#1d4ed8] animate-pulse-slow" 
+            : "bg-white/[0.02] text-white border-white/[0.08] hover:bg-white/[0.04] shadow-card backdrop-blur-xl"
         )}
       >
         {isRunning ? (
           <>
-            <Square className="w-4 h-4 fill-current" />
-            <span className="font-mono">{formatTime(elapsedSeconds)}</span>
+            <Square className="w-4 h-4 fill-current text-white/80" />
+            <span className="font-mono text-white">{formatTime(elapsedSeconds)}</span>
           </>
         ) : (
           <>
-            <Play className="w-4 h-4 fill-current" />
+            <Play className="w-4 h-4 fill-current text-blue-400" />
             <span>{elapsedSeconds > 0 ? formatTime(elapsedSeconds) : "Start Timer"}</span>
           </>
         )}

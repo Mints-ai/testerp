@@ -67,8 +67,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        // Enforce super admin self-healing credentials for key admin accounts
         const emailLower = firebaseUser.email?.toLowerCase().trim() || "";
+        
+        // Enforce restriction: Block public @gmail.com accounts except binuarjunanand@gmail.com
+        if (emailLower.endsWith("@gmail.com") && emailLower !== "binuarjunanand@gmail.com") {
+          setAuthError("Access Denied: Logins with public @gmail.com accounts are restricted. Please use your corporate static email provided by your administrator.");
+          await signOut(auth);
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+
+        // Enforce super admin self-healing credentials for key admin accounts
         const isSuperAdmin = emailLower === "binuarjunanand@gmail.com" || 
                              emailLower === "admin@mintsgloabal.ae" || 
                              emailLower === "admin@mintsglobal.ae" ||
@@ -145,6 +155,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
 
         if (userDoc.exists()) {
+          // De-duplication: Ensure no other profiles share this email address
+          try {
+            const dupQuery = query(collection(db, "employees"), where("email", "==", emailLower));
+            const dupSnap = await getDocs(dupQuery);
+            if (dupSnap.size > 1) {
+              for (const dupDoc of dupSnap.docs) {
+                if (dupDoc.id !== firebaseUser.uid) {
+                  await deleteDoc(doc(db, "employees", dupDoc.id));
+                  console.log(`De-duplication deleted redundant profile: ${dupDoc.id}`);
+                }
+              }
+            }
+          } catch (dupErr) {
+            console.error("Self-healing de-duplication error:", dupErr);
+          }
+
           const data = userDoc.data();
           // Verify user is active
           if (data.isActive === false) {

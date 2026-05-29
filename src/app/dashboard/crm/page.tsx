@@ -331,7 +331,7 @@ export default function CRMDashboard() {
       </div>
       {/* Lead Detail Sheet */}
       <Sheet open={!!selectedLead} onOpenChange={(open) => !open && setSelectedLead(null)}>
-        <SheetContent side="right" className="w-[400px] p-6 border-l border-white/[0.08] bg-[#0d1f3c] text-white flex flex-col h-full overflow-y-auto">
+        <SheetContent side="right" className="w-[400px] p-6 border-l border-white/[0.08] bg-[#121813] text-white flex flex-col h-full overflow-y-auto">
           {selectedLead && (
             <>
               <SheetHeader className="border-b border-white/[0.06] pb-4 mb-4 shrink-0">

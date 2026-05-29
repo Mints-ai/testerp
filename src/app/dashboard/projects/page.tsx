@@ -176,7 +176,7 @@ export default function ProjectsList() {
               <SelectTrigger className="w-full md:w-[180px] bg-white/[0.03] border-white/10 text-white placeholder:text-white/20 focus:ring-blue-500/60 h-9 text-xs rounded-xl">
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
-              <SelectContent className="bg-[#0d1f3c] border-white/[0.08] text-white">
+              <SelectContent className="bg-[#121813] border-white/[0.08] text-white">
                 <SelectItem value="all" className="text-xs hover:bg-white/5 focus:bg-white/5">All Statuses</SelectItem>
                 <SelectItem value="pitch" className="text-xs hover:bg-white/5 focus:bg-white/5">Pitch</SelectItem>
                 <SelectItem value="active" className="text-xs hover:bg-white/5 focus:bg-white/5">Active</SelectItem>

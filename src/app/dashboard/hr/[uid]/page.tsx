@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { doc, onSnapshot, deleteDoc, query, collection, where, getDocs, addDoc, serverTimestamp, orderBy, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
+import { sendPasswordResetEmail } from "firebase/auth";
 import { ROLE_META, canAccess } from "@/lib/permissions";
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -92,6 +93,49 @@ export default function EmployeeProfile() {
   const [loadingNotes, setLoadingNotes] = useState(true);
   const [newNote, setNewNote] = useState("");
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
+
+  // Admin Security Controls State & Handlers
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [isTogglingStatus, setIsTogglingStatus] = useState(false);
+
+  const handlePasswordReset = async () => {
+    if (!employee?.email) return;
+    if (!window.confirm(`Send a secure password reset email to ${employee.fullName} (${employee.email})?`)) return;
+
+    setIsResettingPassword(true);
+    try {
+      await sendPasswordResetEmail(auth, employee.email);
+      alert(`Password reset link successfully dispatched to ${employee.email}!`);
+    } catch (err: any) {
+      console.error("Error triggering password reset:", err);
+      alert(err.message || "Failed to trigger password reset.");
+    } finally {
+      setIsResettingPassword(false);
+    }
+  };
+
+  const handleToggleStatus = async () => {
+    if (!employee) return;
+    const targetStatus = !employee.isActive;
+    const actionLabel = targetStatus ? "reactivate" : "deactivate";
+    
+    if (!window.confirm(`Are you sure you want to ${actionLabel} ${employee.fullName}'s account? This will ${targetStatus ? "restore" : "suspend"} their system login access.`)) return;
+
+    setIsTogglingStatus(true);
+    try {
+      await updateDoc(doc(db, "employees", uid as string), {
+        isActive: targetStatus,
+        isArchived: !targetStatus ? true : false, // Synchronize archived state for safety
+        updatedAt: new Date().toISOString()
+      });
+      alert(`User successfully ${targetStatus ? "reactivated" : "deactivated"}!`);
+    } catch (err: any) {
+      console.error("Error toggling account status:", err);
+      alert(err.message || "Failed to toggle account status.");
+    } finally {
+      setIsTogglingStatus(false);
+    }
+  };
 
   // Edit Modal state variables
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -296,7 +340,7 @@ export default function EmployeeProfile() {
   const roleMeta = ROLE_META[employee.role] || { label: "Employee", color: "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20" };
   const getInitials = (name: string) => name ? name.split(" ").map((n: string) => n[0]).join("").substring(0, 2).toUpperCase() : "U";
 
-  const isManagerOrAbove = ["founder", "c_suite", "manager"].includes(role || "");
+  const isManagerOrAbove = ["founder", "system_admin", "c_suite", "manager"].includes(role || "");
   const isSelf = user?.uid === uid;
 
   const handleDeleteEmployee = async () => {
@@ -353,12 +397,12 @@ export default function EmployeeProfile() {
 
       {/* Header Profile Card */}
       <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
-        <div className="h-28 bg-gradient-to-r from-blue-900/60 to-[#0d1f3c] border-b border-white/[0.06] relative overflow-hidden">
+        <div className="h-28 bg-gradient-to-r from-[#708238]/30 to-[#121813] border-b border-white/[0.06] relative overflow-hidden">
           <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
         </div>
         <div className="px-6 pb-6 relative">
           <div className="flex flex-col md:flex-row gap-6 items-start md:items-end -mt-12 md:-mt-10">
-            <Avatar className="h-24 w-24 border-4 border-[#0a1628] shadow-lg bg-[#0d1f3c] rounded-2xl">
+            <Avatar className="h-24 w-24 border-4 border-[#0a0e0b] shadow-lg bg-[#121813] rounded-2xl">
               <AvatarImage src={employee.profilePhotoURL} alt={employee.fullName} />
               <AvatarFallback className="bg-blue-500/10 text-blue-300 text-xl font-bold">
                 {getInitials(employee.fullName)}
@@ -477,6 +521,62 @@ export default function EmployeeProfile() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Admin Security & Lifecycle Panel */}
+            {canAccess(role, "MANAGE_USERS") && (
+              <Card className="glass-card border-white/[0.08] bg-white/[0.02] overflow-hidden md:col-span-2">
+                <CardHeader className="p-5 border-b border-white/[0.06] bg-blue-950/20">
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-blue-400" />
+                    <CardTitle className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1">Admin Security & Lifecycle Panel</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-5 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                    <div>
+                      <p className="text-xs font-bold text-white">System Access Status</p>
+                      <p className="text-[10px] text-white/40 uppercase tracking-wider mt-1">Current state in Firebase Auth & Firestore</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Badge className={cn("font-bold text-[10px] uppercase tracking-wider py-1 px-3 shadow-none border", 
+                        employee.isActive 
+                          ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-300"
+                          : "bg-rose-500/10 border-rose-500/20 text-rose-300"
+                      )}>
+                        {employee.isActive ? "Active / Allowed Access" : "Deactivated / Access Blocked"}
+                      </Badge>
+                      <Button
+                        type="button"
+                        onClick={handleToggleStatus}
+                        disabled={isTogglingStatus || isSelf}
+                        className={cn("h-8 text-xs font-bold px-3 rounded-lg shrink-0", 
+                          employee.isActive 
+                            ? "bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30" 
+                            : "bg-emerald-600 hover:bg-emerald-500 text-white shadow-glow-emerald"
+                        )}
+                      >
+                        {employee.isActive ? "Deactivate Account" : "Reactivate Account"}
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+                    <div>
+                      <p className="text-xs font-bold text-white">Account Password Control</p>
+                      <p className="text-[10px] text-white/40 uppercase tracking-wider mt-1">Dispatches secure email to set a new password</p>
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={handlePasswordReset}
+                      disabled={isResettingPassword || !employee.email}
+                      className="bg-blue-600 hover:bg-blue-500 text-white h-8 text-xs font-bold px-4 rounded-lg shrink-0 shadow-glow-blue flex items-center gap-1.5"
+                    >
+                      <Plus className="h-3.5 w-3.5 rotate-45" /> Dispatch Password Reset
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </TabsContent>
 
@@ -722,7 +822,7 @@ export default function EmployeeProfile() {
                 <select 
                   value={editForm.role} 
                   onChange={e => setEditForm({...editForm, role: e.target.value})} 
-                  className="w-full h-10 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#0d1f3c] text-white"
+                  className="w-full h-10 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-white"
                   required
                 >
                   <option value="">Select role...</option>
@@ -745,7 +845,7 @@ export default function EmployeeProfile() {
                   return (
                     <div
                       key={dept}
-                      className="flex flex-row items-center space-x-2 rounded-md border border-white/5 bg-[#0d1f3c] p-2 hover:bg-white/5 transition-colors"
+                      className="flex flex-row items-center space-x-2 rounded-md border border-white/5 bg-[#121813] p-2 hover:bg-white/5 transition-colors"
                     >
                       <Checkbox
                         id={deptId}

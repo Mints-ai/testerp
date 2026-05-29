@@ -633,7 +633,7 @@ export default function FinanceDashboard() {
                       </button>
                     }
                   />
-                  <DialogContent className="sm:max-w-[500px] bg-[#0d1f3c] border border-white/[0.08] text-white p-6 rounded-2xl shadow-xl max-h-[85vh] overflow-y-auto">
+                  <DialogContent className="sm:max-w-[500px] bg-[#121813] border border-white/[0.08] text-white p-6 rounded-2xl shadow-xl max-h-[85vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle className="text-base font-bold text-white">Create Client Invoice</DialogTitle>
                     </DialogHeader>
@@ -645,7 +645,7 @@ export default function FinanceDashboard() {
                             required 
                             value={invoiceNumber} 
                             onChange={(e) => setInvoiceNumber(e.target.value)} 
-                            className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full bg-[#0d1f3c]"
+                            className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full bg-[#121813]"
                           />
                         </div>
                         <div className="grid gap-2">
@@ -655,7 +655,7 @@ export default function FinanceDashboard() {
                             type="date" 
                             value={invoiceDueDate} 
                             onChange={(e) => setInvoiceDueDate(e.target.value)} 
-                            className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full bg-[#0d1f3c]"
+                            className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full bg-[#121813]"
                           />
                         </div>
                       </div>
@@ -666,7 +666,7 @@ export default function FinanceDashboard() {
                           required
                           value={invoiceClientName} 
                           onChange={(e) => setInvoiceClientName(e.target.value)} 
-                          className="w-full h-9 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#0d1f3c] text-white font-semibold"
+                          className="w-full h-9 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-white font-semibold"
                         >
                           <option value="">-- Select Client --</option>
                           {clientsList.map(c => (
@@ -690,7 +690,7 @@ export default function FinanceDashboard() {
                                 placeholder="Item description" 
                                 value={item.description}
                                 onChange={(e) => updateInvoiceItem(idx, 'description', e.target.value)}
-                                className="glass-input h-8 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 flex-1 bg-[#0d1f3c]"
+                                className="glass-input h-8 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 flex-1 bg-[#121813]"
                               />
                               <Input 
                                 required 
@@ -698,7 +698,7 @@ export default function FinanceDashboard() {
                                 placeholder="Amount" 
                                 value={item.amount || ""}
                                 onChange={(e) => updateInvoiceItem(idx, 'amount', Number(e.target.value))}
-                                className="glass-input h-8 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-24 font-mono text-right bg-[#0d1f3c]"
+                                className="glass-input h-8 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-24 font-mono text-right bg-[#121813]"
                               />
                               {invoiceItems.length > 1 && (
                                 <button type="button" onClick={() => removeInvoiceItem(idx)} className="text-rose-400 hover:text-rose-300 font-bold text-xs p-1">✕</button>
@@ -715,7 +715,7 @@ export default function FinanceDashboard() {
                             type="number" 
                             value={invoiceTax} 
                             onChange={(e) => setInvoiceTax(e.target.value)} 
-                            className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono bg-[#0d1f3c]"
+                            className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono bg-[#121813]"
                           />
                         </div>
                         <div className="grid gap-2">
@@ -724,7 +724,7 @@ export default function FinanceDashboard() {
                             type="number" 
                             value={invoiceDiscount} 
                             onChange={(e) => setInvoiceDiscount(e.target.value)} 
-                            className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono bg-[#0d1f3c]"
+                            className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono bg-[#121813]"
                           />
                         </div>
                       </div>
@@ -855,7 +855,7 @@ export default function FinanceDashboard() {
                         </button>
                       }
                     />
-                    <DialogContent className="sm:max-w-[425px] bg-[#0d1f3c] border border-white/[0.08] text-white p-6 rounded-2xl shadow-xl">
+                    <DialogContent className="sm:max-w-[425px] bg-[#121813] border border-white/[0.08] text-white p-6 rounded-2xl shadow-xl">
                       <DialogHeader>
                         <DialogTitle className="text-base font-bold text-white flex items-center gap-2">
                           <Sparkles className="h-5 w-5 text-blue-400" /> AI Receipt Scanner
@@ -934,7 +934,7 @@ export default function FinanceDashboard() {
                         </button>
                       }
                     />
-                    <DialogContent className="sm:max-w-[425px] bg-[#0d1f3c] border border-white/[0.08] text-white p-6 rounded-2xl shadow-xl">
+                    <DialogContent className="sm:max-w-[425px] bg-[#121813] border border-white/[0.08] text-white p-6 rounded-2xl shadow-xl">
                       <DialogHeader>
                         <DialogTitle className="text-base font-bold text-white">Log Corporate Expense</DialogTitle>
                       </DialogHeader>
@@ -954,7 +954,7 @@ export default function FinanceDashboard() {
                           <select 
                             value={manualCategory} 
                             onChange={(e) => setManualCategory(e.target.value)} 
-                            className="w-full h-9 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#0d1f3c] text-white"
+                            className="w-full h-9 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-white"
                           >
                             <option value="Software">Software & Subscriptions</option>
                             <option value="Marketing">Marketing & Advertising</option>
@@ -1103,7 +1103,7 @@ export default function FinanceDashboard() {
                 <select 
                   value={payrollPeriod}
                   onChange={(e) => setPayrollPeriod(e.target.value)}
-                  className="h-8 border border-white/10 rounded-lg px-2 text-xs focus:ring-0 bg-[#0d1f3c] text-white font-semibold"
+                  className="h-8 border border-white/10 rounded-lg px-2 text-xs focus:ring-0 bg-[#121813] text-white font-semibold"
                 >
                   <option value="May 2026">May 2026</option>
                   <option value="June 2026">June 2026</option>
@@ -1205,7 +1205,7 @@ export default function FinanceDashboard() {
                             placeholder="e.g. 1500"
                             value={payrollBonus} 
                             onChange={(e) => setPayrollBonus(e.target.value)}
-                            className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 font-mono text-white bg-[#0d1f3c]"
+                            className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 font-mono text-white bg-[#121813]"
                           />
                         </div>
                         <div className="grid gap-2">
@@ -1215,7 +1215,7 @@ export default function FinanceDashboard() {
                             placeholder="e.g. 300"
                             value={payrollDeduction} 
                             onChange={(e) => setPayrollDeduction(e.target.value)}
-                            className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 font-mono text-white bg-[#0d1f3c]"
+                            className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 font-mono text-white bg-[#121813]"
                           />
                         </div>
                       </div>

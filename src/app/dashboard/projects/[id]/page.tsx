@@ -253,7 +253,7 @@ export default function ProjectDetail() {
                   <SelectTrigger className={`h-7 w-32 text-xs uppercase tracking-wider font-bold shadow-none border-transparent rounded-full px-3 ${statusColors[project.status] || statusColors.pitch}`}>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#0d1f3c] border-white/10 text-white">
+                  <SelectContent className="bg-[#121813] border-white/10 text-white">
                     <SelectItem value="pitch">Pitch</SelectItem>
                     <SelectItem value="active">Active</SelectItem>
                     <SelectItem value="on_hold">On Hold</SelectItem>
@@ -329,7 +329,7 @@ export default function ProjectDetail() {
                             "absolute -left-[31px] top-1 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors",
                             m.completed 
                               ? "bg-emerald-500 border-emerald-400 text-white" 
-                              : "bg-[#0d1f3c] border-white/20 text-transparent"
+                              : "bg-[#121813] border-white/20 text-transparent"
                           )}>
                             {m.completed && <Check className="h-2.5 w-2.5" />}
                           </div>
@@ -397,7 +397,7 @@ export default function ProjectDetail() {
                 </CardContent>
               </Card>
 
-              {["founder", "c_suite", "manager"].includes(role || "") && project.budget && (
+              {["founder", "c_suite", "system_admin", "manager"].includes(role || "") && project.budget && (
                 <Card className="border-white/10 shadow-sm bg-white/[0.02]">
                   <CardContent className="p-6">
                     <div className="flex justify-between items-center mb-2">
@@ -492,7 +492,7 @@ export default function ProjectDetail() {
                       <select 
                         value={newTaskPriority}
                         onChange={e => setNewTaskPriority(e.target.value as any)}
-                        className="w-full h-9 border border-white/10 rounded-xl px-2 text-xs bg-[#0d1f3c] text-white font-semibold focus:border-indigo-500/60 focus:ring-0"
+                        className="w-full h-9 border border-white/10 rounded-xl px-2 text-xs bg-[#121813] text-white font-semibold focus:border-indigo-500/60 focus:ring-0"
                       >
                         <option value="low">Low</option>
                         <option value="normal">Normal</option>
@@ -561,7 +561,7 @@ export default function ProjectDetail() {
                       <DialogTrigger className="text-[10px] bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 px-2 py-0.5 rounded-sm font-bold uppercase tracking-wider flex items-center gap-1 transition-colors">
                         <Plus className="h-3 w-3" /> Assign
                       </DialogTrigger>
-                      <DialogContent className="bg-[#0d1f3c] border-white/10 text-white sm:max-w-[425px]">
+                      <DialogContent className="bg-[#121813] border-white/10 text-white sm:max-w-[425px]">
                         <DialogHeader>
                           <DialogTitle className="text-white">Assign Team Members</DialogTitle>
                         </DialogHeader>
@@ -613,7 +613,7 @@ export default function ProjectDetail() {
                     project.memberIds.slice(0, 4).map((id: string) => {
                       const emp = employees.find(e => e.id === id);
                       return (
-                        <Avatar key={id} className="inline-block border-2 border-[#0d1f3c] h-8 w-8 shadow-sm" title={emp?.fullName || "User"}>
+                        <Avatar key={id} className="inline-block border-2 border-[#121813] h-8 w-8 shadow-sm" title={emp?.fullName || "User"}>
                           <AvatarFallback className="bg-blue-600 text-blue-100 text-xs font-bold">
                             {emp?.fullName?.charAt(0) || "U"}
                           </AvatarFallback>

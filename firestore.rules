@@ -17,6 +17,11 @@ service cloud.firestore {
       return getEmployee().role in ['founder', 'c_suite', 'manager'];
     }
 
+    // Helper: Founder or System Admin only (apex roles)
+    function isFounderOrAdmin() {
+      return getEmployee().role in ['founder', 'system_admin'];
+    }
+
     // Helper function to check if the user is finance admin
     function isFinanceAdmin() {
       return getEmployee().role in ['founder', 'c_suite', 'manager'];
@@ -96,9 +101,29 @@ service cloud.firestore {
     }
 
     // Audit Log Collection Rules
+    // SECURITY: auditLog is append-only. Tampering (update/delete) is permanently denied.
+    // Only Founders and System Admins may read sensitive security events.
     match /auditLog/{logId} {
-      allow read: if isAuth() && isManagerOrAbove();
+      allow read:   if isAuth() && isFounderOrAdmin();
       allow create: if isAuth();
+      allow update: if false; // Tamper-proof: audit records are immutable
+      allow delete: if false; // Tamper-proof: audit records cannot be purged
+    }
+
+    // PDF Vault Collection Rules (stores metadata for uploaded documents)
+    match /pdfVaults/{vaultId} {
+      allow read:   if isAuth() && isFinanceAdmin();
+      allow create: if isAuth() && isManagerOrAbove();
+      allow update: if false;
+      allow delete: if isAuth() && isFounderOrAdmin();
+    }
+
+    // Security Events Collection Rules (blocked logins, de-duplication events)
+    match /securityEvents/{eventId} {
+      allow read:   if isAuth() && isFounderOrAdmin();
+      allow create: if isAuth(); // Written by server-side auth hooks
+      allow update: if false;
+      allow delete: if false;
     }
 
     // Internal Mails Collection Rules

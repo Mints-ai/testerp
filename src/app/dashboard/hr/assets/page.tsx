@@ -100,7 +100,7 @@ export default function AssetManagement() {
                   </button>
                 }
               />
-              <DialogContent className="sm:max-w-[425px] bg-[#0d1f3c] border border-white/[0.08] text-white p-6 rounded-2xl shadow-xl">
+              <DialogContent className="sm:max-w-[425px] bg-[#121813] border border-white/[0.08] text-white p-6 rounded-2xl shadow-xl">
                 <DialogHeader>
                   <DialogTitle className="text-base font-bold text-white">Register Corporate Asset</DialogTitle>
                 </DialogHeader>
@@ -121,7 +121,7 @@ export default function AssetManagement() {
                       <select 
                         value={type} 
                         onChange={(e) => setType(e.target.value as AssetType)}
-                        className="w-full h-9 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#0d1f3c] text-white"
+                        className="w-full h-9 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-white"
                       >
                         <option value="laptop">Laptop / PC</option>
                         <option value="monitor">Monitor / Display</option>

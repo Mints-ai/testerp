@@ -212,7 +212,7 @@ export default function Announcements() {
             <DialogTrigger className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold h-10 px-5 bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-all hover:translate-y-[-1px]">
               Post Announcement
             </DialogTrigger>
-            <DialogContent className="max-w-3xl bg-[#0d1f3c] border-white/10 rounded-2xl shadow-xl text-white">
+            <DialogContent className="max-w-3xl bg-[#121813] border-white/10 rounded-2xl shadow-xl text-white">
               <DialogHeader>
                 <DialogTitle className="text-xl font-bold text-white">New Announcement</DialogTitle>
               </DialogHeader>
@@ -235,7 +235,7 @@ export default function Announcements() {
                       <SelectTrigger className="bg-white/5 border-white/10 rounded-xl text-white">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-[#0d1f3c] border-white/10 text-white">
+                      <SelectContent className="bg-[#121813] border-white/10 text-white">
                         <SelectItem value="all">All Staff</SelectItem>
                         <SelectItem value="department">Specific Department</SelectItem>
                         <SelectItem value="role">Specific Role</SelectItem>
@@ -248,7 +248,7 @@ export default function Announcements() {
                       <Label className="text-xs font-bold text-white/60 uppercase">Select Department</Label>
                       <Select value={targetValue} onValueChange={(val) => setTargetValue(val || "")}>
                         <SelectTrigger className="bg-white/5 border-white/10 rounded-xl text-white"><SelectValue placeholder="Choose department" /></SelectTrigger>
-                        <SelectContent className="bg-[#0d1f3c] border-white/10 text-white">
+                        <SelectContent className="bg-[#121813] border-white/10 text-white">
                           {DEPARTMENTS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                         </SelectContent>
                       </Select>
@@ -260,7 +260,7 @@ export default function Announcements() {
                       <Label className="text-xs font-bold text-white/60 uppercase">Select Role</Label>
                       <Select value={targetValue} onValueChange={(val) => setTargetValue(val || "")}>
                         <SelectTrigger className="bg-white/5 border-white/10 rounded-xl text-white"><SelectValue placeholder="Choose role" /></SelectTrigger>
-                        <SelectContent className="bg-[#0d1f3c] border-white/10 text-white">
+                        <SelectContent className="bg-[#121813] border-white/10 text-white">
                           {Object.entries(ROLE_META).map(([key, meta]) => (
                             <SelectItem key={key} value={key}>{meta.label}</SelectItem>
                           ))}
@@ -335,7 +335,7 @@ export default function Announcements() {
                   ) : (
                     <Badge className="bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/10 shadow-none group cursor-pointer transition-colors rounded-lg font-semibold"
                            onClick={() => markAsRead(ann.id)}>
-                      <AlertCircle className="h-3 w-3 mr-1 fill-blue-500 text-[#0d1f3c]" /> 
+                      <AlertCircle className="h-3 w-3 mr-1 fill-blue-500 text-[#121813]" /> 
                       <span className="group-hover:underline">Mark as Read</span>
                     </Badge>
                   )}

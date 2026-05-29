@@ -49,7 +49,16 @@ export default function SettingsDashboard() {
   const [webhookEvents, setWebhookEvents] = useState({
     auth: true,
     finance: true,
-    projects: true
+    projects: true,
+    security: true,
+    ocr: true
+  });
+  const [webhookUrls, setWebhookUrls] = useState({
+    auth: "",
+    finance: "",
+    projects: "",
+    security: "",
+    ocr: ""
   });
   const [testingWebhook, setTestingWebhook] = useState(false);
   const [savingWebhook, setSavingWebhook] = useState(false);
@@ -170,7 +179,10 @@ export default function SettingsDashboard() {
           const data = docSnap.data();
           setDiscordWebhookUrl(data.url || "");
           if (data.events) {
-            setWebhookEvents(data.events);
+            setWebhookEvents(prev => ({ ...prev, ...data.events }));
+          }
+          if (data.urls) {
+            setWebhookUrls(prev => ({ ...prev, ...data.urls }));
           }
         }
       });
@@ -648,6 +660,7 @@ export default function SettingsDashboard() {
                           <div className="flex items-center gap-3">
                             <div className={cn("w-2.5 h-2.5 rounded-full shrink-0", 
                               key === "founder" ? "bg-blue-500" :
+                              key === "system_admin" ? "bg-red-500" :
                               key === "c_suite" ? "bg-purple-500" :
                               key === "manager" ? "bg-indigo-500" :
                               key === "senior_employee" ? "bg-cyan-500" :
@@ -1134,19 +1147,34 @@ export default function SettingsDashboard() {
                       
                       <div className="space-y-3.5 mt-4">
                         {[
-                          { key: "auth", label: "User Authentication & Sign-ins", desc: "Monitors successful employee logins and new sessions." },
-                          { key: "finance", label: "Financial Actions & Billing Suite", desc: "Routes invoice generation, payroll issuances, and client payments." },
-                          { key: "projects", label: "Project Creations & Handover Deliveries", desc: "Routes timeline schedules and deliverable file publications." }
+                          { key: "auth", label: "User Authentication & Sign-ins", desc: "Monitors successful employee logins, profile creations, and self-heal hooks." },
+                          { key: "finance", label: "Financial Actions & Billing Suite", desc: "Routes invoice generation, expense approvals, and payroll ledger changes." },
+                          { key: "projects", label: "Project Management & Timeline Schedules", desc: "Routes client allocations, active gantt milestones, and deliverable updates." },
+                          { key: "security", label: "Security Breach Alerts & Audit Logs", desc: "Monitors blocked credentials, active role changes, and account suspensions." },
+                          { key: "ocr", label: "Document Processing & OCR Scans", desc: "Monitors vaulted receipts, parsed invoices, and cognitive extraction alerts." }
                         ].map(item => (
-                          <div key={item.key} className="flex items-center justify-between p-3.5 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-slate-50 transition-colors">
-                            <div>
-                              <h5 className="text-xs font-bold text-slate-900">{item.label}</h5>
-                              <p className="text-[10px] text-slate-500 font-semibold mt-0.5">{item.desc}</p>
+                          <div key={item.key} className="p-4 rounded-xl border border-slate-100 bg-slate-50/30 hover:bg-slate-50/60 transition-all space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <h5 className="text-xs font-bold text-slate-900">{item.label}</h5>
+                                <p className="text-[10px] text-slate-500 font-semibold mt-0.5">{item.desc}</p>
+                              </div>
+                              <Switch
+                                checked={(webhookEvents as any)[item.key]}
+                                onCheckedChange={(checked) => setWebhookEvents(prev => ({ ...prev, [item.key]: checked }))}
+                              />
                             </div>
-                            <Switch
-                              checked={(webhookEvents as any)[item.key]}
-                              onCheckedChange={(checked) => setWebhookEvents(prev => ({ ...prev, [item.key]: checked }))}
-                            />
+                            {(webhookEvents as any)[item.key] && (
+                              <div className="pt-2 border-t border-slate-100/50 space-y-1.5 animate-in fade-in duration-200">
+                                <Label className="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Specific Channel Webhook URL (Optional)</Label>
+                                <Input
+                                  value={(webhookUrls as any)[item.key] || ""}
+                                  onChange={(e) => setWebhookUrls(prev => ({ ...prev, [item.key]: e.target.value }))}
+                                  placeholder="Defaults to main global webhook destination above if left empty..."
+                                  className="bg-white border-slate-200 text-xs font-medium text-slate-800 placeholder:text-slate-400"
+                                />
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -1162,6 +1190,7 @@ export default function SettingsDashboard() {
                             await setDoc(docRef(dbRef, "settings", "discordWebhook"), {
                               url: discordWebhookUrl,
                               events: webhookEvents,
+                              urls: webhookUrls,
                               updatedAt: new Date().toISOString()
                             });
                             showToast("Discord Integration Settings saved successfully.", "success");

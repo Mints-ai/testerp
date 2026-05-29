@@ -1,6 +1,65 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+// ─── Firebase Storage Vault ────────────────────────────────────────────────────
+// Every generated document is archived in Firebase Storage in addition to the
+// local browser download. This enables audit retrieval without relying on the
+// user's local filesystem.
+
+/**
+ * Uploads a jsPDF document blob to Firebase Storage and indexes the metadata
+ * in the Firestore `pdfVaults` collection.
+ *
+ * @param doc       - The jsPDF instance (already fully rendered)
+ * @param vaultPath - Storage path e.g. "vaults/invoices/INV-2026-1234.pdf"
+ * @param meta      - Additional metadata to persist alongside the download URL
+ * @returns         - The Firebase Storage download URL, or null if upload fails
+ */
+async function uploadToVault(
+  doc: jsPDF,
+  vaultPath: string,
+  meta: Record<string, any>
+): Promise<string | null> {
+  try {
+    // Import lazily so this only runs in the browser environment
+    const { getStorage, ref, uploadBytes, getDownloadURL } = await import("firebase/storage");
+    const { getFirestore, collection, addDoc, serverTimestamp } = await import("firebase/firestore");
+
+    const storage = getStorage();
+    const storageRef = ref(storage, vaultPath);
+
+    // Convert jsPDF output to a Uint8Array blob for upload
+    const pdfBlob = new Blob([doc.output("arraybuffer")], { type: "application/pdf" });
+    const uploadResult = await uploadBytes(storageRef, pdfBlob, {
+      contentType: "application/pdf",
+      customMetadata: {
+        generatedAt: new Date().toISOString(),
+        ...Object.fromEntries(Object.entries(meta).map(([k, v]) => [k, String(v)])),
+      },
+    });
+
+    const downloadURL = await getDownloadURL(uploadResult.ref);
+
+    // Index in Firestore for audit retrieval
+    const db = getFirestore();
+    await addDoc(collection(db, "pdfVaults"), {
+      ...meta,
+      storagePath: vaultPath,
+      downloadURL,
+      createdAt: serverTimestamp(),
+    });
+
+    console.info(`[pdfVault] Archived → ${vaultPath}`);
+    return downloadURL;
+  } catch (err) {
+    // Non-fatal: vault upload failure should never block the local download
+    console.warn("[pdfVault] Upload failed (non-fatal):", err);
+    return null;
+  }
+}
+
+// ─── End Vault Utilities ───────────────────────────────────────────────────────
+
 export const generateInternCertificate = (internName: string, department: string, issueDate: string) => {
   const doc = new jsPDF("landscape", "pt", "a4");
   const width = doc.internal.pageSize.getWidth();
@@ -263,4 +322,121 @@ export const generatePayslip = (
   doc.text("This is a computer-generated document and requires no physical signature.", width / 2, finalY + 50, { align: "center" });
 
   doc.save(`Payslip_${payslipData.employeeName.replace(/\s+/g, '_')}_${payslipData.period.replace(/\s+/g, '')}.pdf`);
+
+  // Archive to Firebase Storage vault (non-blocking)
+  uploadToVault(doc, `vaults/payslips/${payslipData.payslipNumber}.pdf`, {
+    type: "payslip",
+    payslipNumber: payslipData.payslipNumber,
+    employeeName: payslipData.employeeName,
+    period: payslipData.period,
+    netPay: payslipData.netPay,
+  }).then(url => {
+    if (url) console.info("[pdfVault] Payslip archived:", url);
+  });
 };
+
+// ─── Vault-Aware Async Wrappers ────────────────────────────────────────────────
+// These wrappers wrap the sync generators above to also push a copy to
+// Firebase Storage. They do NOT replace the sync functions — existing callers
+// continue to work unchanged. New integrations (e.g., Finance page confirmation
+// toasts) can await these for the storage download URL.
+
+/**
+ * Generates an invoice PDF, saves it locally, AND archives it to Firebase Storage.
+ * @returns Promise<string | null> - The Firebase Storage download URL, or null on failure
+ */
+export async function generateAndVaultInvoice(
+  invoiceData: Parameters<typeof generateInvoice>[0]
+): Promise<string | null> {
+  const doc = new jsPDF("portrait", "pt", "a4");
+  const width = doc.internal.pageSize.getWidth();
+
+  // Reproduce the invoice content on the doc (same as generateInvoice)
+  doc.setFontSize(28); doc.setFont("helvetica", "bold"); doc.setTextColor(20, 24, 16);
+  doc.text("INVOICE", 40, 60);
+  doc.setFontSize(12); doc.setTextColor(138, 155, 106); doc.text("MINTS GLOBAL", 40, 80);
+  doc.setFontSize(10); doc.setTextColor(100, 100, 100);
+  doc.text("123 Creative Avenue, Suite 100", 40, 95); doc.text("Global HQ", 40, 110);
+  doc.setFontSize(12); doc.setTextColor(20, 24, 16); doc.setFont("helvetica", "bold");
+  doc.text("Billed To:", width - 200, 60);
+  doc.setFont("helvetica", "normal");
+  doc.text(invoiceData.clientName, width - 200, 80);
+  doc.text(`Invoice Number: ${invoiceData.invoiceNumber}`, width - 200, 110);
+  doc.text(`Date: ${invoiceData.date}`, width - 200, 125);
+  doc.text(`Status: ${invoiceData.status.toUpperCase()}`, width - 200, 140);
+
+  const tableData = invoiceData.items.map(item => [item.description, `$${item.amount.toFixed(2)}`]);
+  autoTable(doc, {
+    startY: 180, head: [["Description", "Amount"]], body: tableData,
+    foot: [["Total", `$${invoiceData.total.toFixed(2)}`]], theme: "striped",
+    headStyles: { fillColor: [107, 124, 75] }, footStyles: { fillColor: [20, 24, 16], fontStyle: "bold" },
+    columnStyles: { 1: { halign: "right" } }
+  });
+
+  const finalY = (doc as any).lastAutoTable.finalY || 180;
+  doc.setFontSize(10); doc.setTextColor(150, 150, 150);
+  doc.text("Thank you for your business!", width / 2, finalY + 50, { align: "center" });
+
+  // Browser download
+  doc.save(`Invoice_${invoiceData.invoiceNumber}.pdf`);
+
+  // Vault archive (non-blocking)
+  return uploadToVault(doc, `vaults/invoices/Invoice_${invoiceData.invoiceNumber}.pdf`, {
+    type: "invoice",
+    invoiceNumber: invoiceData.invoiceNumber,
+    clientName: invoiceData.clientName,
+    total: invoiceData.total,
+    status: invoiceData.status,
+    date: invoiceData.date,
+  });
+}
+
+/**
+ * Generates a quote PDF, saves it locally, AND archives it to Firebase Storage.
+ * @returns Promise<string | null> - The Firebase Storage download URL, or null on failure
+ */
+export async function generateAndVaultQuote(
+  quoteData: Parameters<typeof generateQuote>[0]
+): Promise<string | null> {
+  const doc = new jsPDF("portrait", "pt", "a4");
+  const width = doc.internal.pageSize.getWidth();
+
+  doc.setFontSize(28); doc.setFont("helvetica", "bold"); doc.setTextColor(20, 24, 16);
+  doc.text("PROPOSAL & QUOTE", 40, 60);
+  doc.setFontSize(12); doc.setTextColor(138, 155, 106); doc.text("MINTS GLOBAL", 40, 80);
+  doc.setFontSize(10); doc.setTextColor(100, 100, 100);
+  doc.text("123 Creative Avenue, Suite 100", 40, 95); doc.text("Global HQ", 40, 110);
+  doc.setFontSize(12); doc.setTextColor(20, 24, 16); doc.setFont("helvetica", "bold");
+  doc.text("Prepared For:", width - 200, 60);
+  doc.setFont("helvetica", "normal");
+  doc.text(quoteData.clientName, width - 200, 80);
+  doc.text(quoteData.contactName, width - 200, 95);
+  doc.text(`Quote Number: ${quoteData.quoteNumber}`, width - 200, 125);
+  doc.text(`Date: ${quoteData.date}`, width - 200, 140);
+  doc.text("Valid For: 30 Days", width - 200, 155);
+
+  const tableData = quoteData.items.map(item => [item.description, `${item.amount.toLocaleString()} AED`]);
+  autoTable(doc, {
+    startY: 190, head: [["Service Description", "Investment"]], body: tableData,
+    foot: [["Total Investment", `${quoteData.total.toLocaleString()} AED`]], theme: "striped",
+    headStyles: { fillColor: [107, 124, 75] }, footStyles: { fillColor: [20, 24, 16], fontStyle: "bold" },
+    columnStyles: { 1: { halign: "right" } }
+  });
+
+  const finalY = (doc as any).lastAutoTable.finalY || 190;
+  doc.setFontSize(10); doc.setTextColor(100, 100, 100);
+  doc.text("This quote is subject to our standard terms of service.", 40, finalY + 40);
+  doc.text("To accept this proposal, please sign and return this document.", 40, finalY + 55);
+  doc.line(40, finalY + 120, 240, finalY + 120); doc.text("Client Signature", 100, finalY + 135);
+  doc.line(width - 240, finalY + 120, width - 40, finalY + 120); doc.text("Date", width - 150, finalY + 135);
+
+  doc.save(`Quote_${quoteData.quoteNumber}.pdf`);
+
+  return uploadToVault(doc, `vaults/quotes/Quote_${quoteData.quoteNumber}.pdf`, {
+    type: "quote",
+    quoteNumber: quoteData.quoteNumber,
+    clientName: quoteData.clientName,
+    total: quoteData.total,
+    date: quoteData.date,
+  });
+}
