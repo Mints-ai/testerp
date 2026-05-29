@@ -12,12 +12,11 @@ function Dialog({ ...props }: DialogPrimitive.Root.Props) {
 }
 
 function DialogTrigger({ nativeButton, render, ...props }: DialogPrimitive.Trigger.Props) {
-  const isCustomElement = render && React.isValidElement(render) && typeof render.type !== "string";
   return (
     <DialogPrimitive.Trigger 
       data-slot="dialog-trigger" 
       render={render}
-      nativeButton={nativeButton ?? (isCustomElement ? false : undefined)}
+      nativeButton={nativeButton}
       {...props} 
     />
   )
@@ -28,12 +27,11 @@ function DialogPortal({ ...props }: DialogPrimitive.Portal.Props) {
 }
 
 function DialogClose({ nativeButton, render, ...props }: DialogPrimitive.Close.Props) {
-  const isCustomElement = render && React.isValidElement(render) && typeof render.type !== "string";
   return (
     <DialogPrimitive.Close 
       data-slot="dialog-close" 
       render={render}
-      nativeButton={nativeButton ?? (isCustomElement ? false : undefined)}
+      nativeButton={nativeButton}
       {...props} 
     />
   )
