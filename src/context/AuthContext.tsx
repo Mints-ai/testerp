@@ -91,6 +91,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           if (email.includes("anand.binuarjun")) return "Anand Binuarjun";
           return "Binu Arjun Anand";
         };
+
+        const getAdminFallbackRole = (email: string) => {
+          if (email === "binuarjunanand@gmail.com") return "founder";
+          return "system_admin";
+        };
+
+        const getAdminFallbackJobTitle = (email: string) => {
+          if (email === "binuarjunanand@gmail.com") return "Super Admin";
+          if (email.includes("anand.binuarjun")) return "Director IT & Cyber Security";
+          return "System Admin";
+        };
         
         const userDocRef = doc(db, "employees", firebaseUser.uid);
         let userDoc = await getDoc(userDocRef);
@@ -102,10 +113,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             await setDoc(userDocRef, {
               fullName: firebaseUser.displayName || getAdminFallbackName(emailLower),
               email: emailLower,
-              role: "founder",
+              role: getAdminFallbackRole(emailLower),
               department: "OPERATIONS",
               departments: ["OPERATIONS"],
-              jobTitle: "Super Admin",
+              jobTitle: getAdminFallbackJobTitle(emailLower),
               phone: "",
               isIntern: false,
               isActive: true,
@@ -115,10 +126,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             userDoc = await getDoc(userDocRef);
           } else {
             const data = userDoc.data();
-            if (data?.role !== "founder" || data?.isActive !== true) {
+            const expectedRole = getAdminFallbackRole(emailLower);
+            if (data?.role !== expectedRole || data?.isActive !== true) {
               await setDoc(userDocRef, {
                 ...data,
-                role: "founder",
+                role: expectedRole,
                 isActive: true,
                 fullName: data?.fullName || getAdminFallbackName(emailLower),
                 updatedAt: new Date().toISOString()
