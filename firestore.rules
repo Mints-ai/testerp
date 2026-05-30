@@ -14,7 +14,7 @@ service cloud.firestore {
 
     // Helper function to check if the user is a manager or above
     function isManagerOrAbove() {
-      return getEmployee().role in ['founder', 'c_suite', 'manager'];
+      return getEmployee().role in ['founder', 'system_admin', 'c_suite', 'manager'];
     }
 
     // Helper: Founder or System Admin only (apex roles)
@@ -24,7 +24,7 @@ service cloud.firestore {
 
     // Helper function to check if the user is finance admin
     function isFinanceAdmin() {
-      return getEmployee().role in ['founder', 'c_suite', 'manager'];
+      return getEmployee().role in ['founder', 'system_admin', 'c_suite', 'manager'];
     }
 
     // Employees Collection Rules
