@@ -93,7 +93,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         };
 
         const getAdminFallbackRole = (email: string) => {
-          if (email === "binuarjunanand@gmail.com") return "founder";
+          if (email === "binuarjunanand@gmail.com" || email === "arya@mintsglobal.ae") return "founder";
           return "system_admin";
         };
 

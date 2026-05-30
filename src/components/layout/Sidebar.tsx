@@ -10,7 +10,7 @@ import {
   LayoutDashboard, Users, Briefcase, CheckSquare, UserSquare2,
   Wallet, CalendarOff, Bell, BarChart3, Settings, LogOut,
   Clock, Target, Monitor, TrendingUp, AlignLeft, Cloud,
-  MessageSquare, ChevronRight, Zap, Menu, X, Mail, ShieldAlert
+  MessageSquare, ChevronRight, Zap, Menu, X, Mail, ShieldAlert, Inbox
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -62,6 +62,7 @@ const NAV_GROUPS = [
     items: [
       { name: "Settings",       href: "/dashboard/settings",          icon: Settings,     permission: "SYSTEM_SETTINGS" },
       { name: "Security Audit", href: "/dashboard/security",          icon: ShieldAlert,  permission: "VIEW_AUDIT_LOG"  },
+      { name: "Notifications",  href: "/dashboard/notifications",     icon: Inbox,        permission: null },
     ]
   }
 ];

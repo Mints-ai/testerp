@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, where, doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, where, doc, getDoc, updateDoc, deleteDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { canAccess } from "@/lib/permissions";
@@ -26,7 +26,10 @@ export default function Chat() {
   const [activeChannel, setActiveChannel] = useState<string>("");
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState("");
+  const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const lastTypingTimeRef = useRef<number>(0);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Employees & Profile State
   const [employees, setEmployees] = useState<any[]>([]);
@@ -164,12 +167,89 @@ export default function Chat() {
     return () => unsubscribe();
   }, [activeChannel, user]);
 
+  // Listen to typing indicators in active channel
+  useEffect(() => {
+    if (!activeChannel || !user) return;
+
+    const docRef = doc(db, "chatTyping", activeChannel);
+    const unsub = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data() || {};
+        const activeTyping: string[] = [];
+        const now = Date.now();
+        Object.entries(data).forEach(([uid, val]: [string, any]) => {
+          if (uid !== user.uid && val?.isTyping && (now - (val?.updatedAt || 0)) < 5000) {
+            activeTyping.push(val.name || "Someone");
+          }
+        });
+        setTypingUsers(activeTyping);
+      } else {
+        setTypingUsers([]);
+      }
+    });
+
+    return () => unsub();
+  }, [activeChannel, user]);
+
+  const handleTyping = async () => {
+    if (!user || !activeChannel) return;
+    const now = Date.now();
+
+    if (now - lastTypingTimeRef.current > 2000) {
+      lastTypingTimeRef.current = now;
+      const docRef = doc(db, "chatTyping", activeChannel);
+      try {
+        await updateDoc(docRef, {
+          [user.uid]: {
+            name: user.fullName || user.displayName || "Someone",
+            isTyping: true,
+            updatedAt: now
+          }
+        });
+      } catch (err) {
+        try {
+          await setDoc(docRef, {
+            [user.uid]: {
+              name: user.fullName || user.displayName || "Someone",
+              isTyping: true,
+              updatedAt: now
+            }
+          }, { merge: true });
+        } catch (e) {}
+      }
+    }
+
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(async () => {
+      const docRef = doc(db, "chatTyping", activeChannel);
+      try {
+        await updateDoc(docRef, {
+          [user.uid]: {
+            name: user.fullName || user.displayName || "Someone",
+            isTyping: false,
+            updatedAt: Date.now()
+          }
+        });
+      } catch (err) {}
+    }, 3500);
+  };
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !user || !activeChannel) return;
 
     const messageText = newMessage;
     setNewMessage(""); 
+
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    const docRef = doc(db, "chatTyping", activeChannel);
+    updateDoc(docRef, {
+      [user.uid]: {
+        name: user.fullName || user.displayName || "Someone",
+        isTyping: false,
+        updatedAt: Date.now()
+      }
+    }).catch(err => {});
 
     try {
       await addDoc(collection(db, "messages"), {
@@ -872,6 +952,18 @@ export default function Chat() {
           )}
         </div>
 
+        {/* Typing Indicators */}
+        {typingUsers.length > 0 && (
+          <div className="px-6 py-1.5 bg-slate-50 text-[10px] text-indigo-600 font-bold flex items-center gap-1.5 animate-pulse shrink-0 border-t border-slate-100">
+            <span className="flex gap-0.5">
+              <span className="w-1 h-1 rounded-full bg-indigo-500 animate-bounce delay-100" style={{ animationDuration: '0.6s' }} />
+              <span className="w-1 h-1 rounded-full bg-indigo-500 animate-bounce delay-200" style={{ animationDuration: '0.6s' }} />
+              <span className="w-1 h-1 rounded-full bg-indigo-500 animate-bounce delay-300" style={{ animationDuration: '0.6s' }} />
+            </span>
+            {typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
+          </div>
+        )}
+
         {/* Message Input */}
         <div className="p-4 bg-white border-t border-slate-200">
           <form onSubmit={handleSendMessage} className="flex items-center gap-2">
@@ -880,7 +972,10 @@ export default function Chat() {
             </Button>
             <Input
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={(e) => {
+                setNewMessage(e.target.value);
+                handleTyping();
+              }}
               placeholder={`Message ${activeInfo.name}...`}
               className="flex-1 bg-slate-50 border-slate-200 focus-visible:ring-indigo-500 rounded-full px-4 text-slate-950 font-medium text-xs h-9"
             />

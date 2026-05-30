@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, where, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { RoleGuard } from "@/components/layout/RoleGuard";
@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Monitor, Laptop, Key, Search, Plus, AlertCircle, Laptop2, HelpCircle } from "lucide-react";
+import { Monitor, Laptop, Key, Search, Plus, AlertCircle, Laptop2, HelpCircle, Wrench, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type AssetType = "laptop" | "monitor" | "software" | "other";
@@ -27,6 +27,78 @@ export default function AssetManagement() {
   const [serialNumber, setSerialNumber] = useState("");
   const [assignedTo, setAssignedTo] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Asset Maintenance History Ledger States
+  const [selectedAsset, setSelectedAsset] = useState<any>(null);
+  const [isMaintenanceOpen, setIsMaintenanceOpen] = useState(false);
+  const [maintenanceLogs, setMaintenanceLogs] = useState<any[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
+
+  // Form State for Log Repair
+  const [mIssue, setMIssue] = useState("");
+  const [mCost, setMCost] = useState("");
+  const [mStatus, setMStatus] = useState<"under_repair" | "resolved" | "scrapped">("under_repair");
+  const [isSubmittingLog, setIsSubmittingLog] = useState(false);
+
+  useEffect(() => {
+    if (!selectedAsset) {
+      setMaintenanceLogs([]);
+      return;
+    }
+    setLoadingLogs(true);
+    const q = query(
+      collection(db, "assetMaintenanceLogs"),
+      where("assetId", "==", selectedAsset.id)
+    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      logs.sort((a: any, b: any) => (b.loggedAt?.seconds || 0) - (a.loggedAt?.seconds || 0));
+      setMaintenanceLogs(logs);
+      setLoadingLogs(false);
+    }, (error) => {
+      console.error("Error loading maintenance logs:", error);
+      setLoadingLogs(false);
+    });
+    return () => unsubscribe();
+  }, [selectedAsset]);
+
+  const handleAddMaintenance = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedAsset || !mIssue || !mCost) return;
+
+    setIsSubmittingLog(true);
+    try {
+      await addDoc(collection(db, "assetMaintenanceLogs"), {
+        assetId: selectedAsset.id,
+        issue: mIssue,
+        cost: Number(mCost),
+        status: mStatus,
+        loggedAt: serverTimestamp()
+      });
+
+      const assetStatusMap = {
+        under_repair: "under_repair",
+        resolved: "active",
+        scrapped: "scrapped"
+      };
+      
+      await updateDoc(doc(db, "assets", selectedAsset.id), {
+        status: assetStatusMap[mStatus]
+      });
+
+      setSelectedAsset((prev: any) => ({
+        ...prev,
+        status: assetStatusMap[mStatus]
+      }));
+
+      setMIssue("");
+      setMCost("");
+      setMStatus("under_repair");
+    } catch (err) {
+      console.error("Error adding maintenance log:", err);
+    }
+    setIsSubmittingLog(false);
+  };
 
   useEffect(() => {
     const q = query(collection(db, "assets"), orderBy("createdAt", "desc"));
@@ -184,8 +256,15 @@ export default function AssetManagement() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredAssets.map((asset) => (
-                      <tr key={asset.id} className="hover:bg-white/[0.02] transition-colors">
+                     {filteredAssets.map((asset) => (
+                      <tr 
+                        key={asset.id} 
+                        onClick={() => {
+                          setSelectedAsset(asset);
+                          setIsMaintenanceOpen(true);
+                        }}
+                        className="hover:bg-white/[0.04] transition-colors cursor-pointer group"
+                      >
                         <td>
                           <div className="flex items-center gap-3">
                             <div className="bg-blue-500/10 p-2.5 rounded-xl text-blue-400 border border-blue-500/20 shrink-0">
@@ -203,9 +282,11 @@ export default function AssetManagement() {
                         <td>
                           <Badge variant="outline" className={cn(
                             "font-bold text-[9px] py-0.5 tracking-wider uppercase shadow-none",
-                            asset.status === 'active' ? "bg-emerald-600/15 text-emerald-300 border-emerald-500/20" : "bg-amber-600/15 text-amber-300 border-amber-500/20"
+                            asset.status === 'active' ? "bg-emerald-600/15 text-emerald-300 border-emerald-500/20" : 
+                            asset.status === 'under_repair' ? "bg-amber-600/15 text-amber-300 border-amber-500/20 shadow-glow-amber animate-pulse" :
+                            "bg-rose-600/15 text-rose-300 border-rose-500/20"
                           )}>
-                            {asset.status || 'ACTIVE'}
+                            {asset.status === 'under_repair' ? 'repairing' : (asset.status || 'ACTIVE')}
                           </Badge>
                         </td>
                       </tr>
@@ -216,6 +297,134 @@ export default function AssetManagement() {
             )}
           </CardContent>
         </Card>
+        <Dialog open={isMaintenanceOpen} onOpenChange={setIsMaintenanceOpen}>
+          <DialogContent className="sm:max-w-[650px] bg-[#121813] border border-white/[0.08] text-white p-6 rounded-2xl shadow-xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-base font-bold text-white flex items-center gap-2">
+                <Wrench className="h-5 w-5 text-indigo-400" /> Asset Health & Maintenance Ledger
+              </DialogTitle>
+            </DialogHeader>
+
+            {selectedAsset && (
+              <div className="space-y-6 py-4">
+                {/* Asset Metadata Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-white/[0.02] border border-white/[0.06] rounded-2xl">
+                  <div>
+                    <span className="text-[9px] font-bold text-white/35 uppercase tracking-wider block">Asset Model</span>
+                    <span className="text-xs font-bold text-white block mt-0.5">{selectedAsset.name}</span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-bold text-white/35 uppercase tracking-wider block">Serial ID</span>
+                    <span className="text-xs font-mono font-bold text-indigo-300 block mt-0.5">{selectedAsset.serialNumber}</span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-bold text-white/35 uppercase tracking-wider block">Custodian</span>
+                    <span className="text-xs font-bold text-white/80 block mt-0.5">{selectedAsset.assignedTo || "Unassigned"}</span>
+                  </div>
+                  <div>
+                    <span className="text-[9px] font-bold text-white/35 uppercase tracking-wider block">Status</span>
+                    <Badge variant="outline" className={cn(
+                      "font-bold text-[9px] py-0.5 tracking-wider uppercase shadow-none mt-1",
+                      selectedAsset.status === 'active' ? "bg-emerald-600/15 text-emerald-300 border-emerald-500/20" :
+                      selectedAsset.status === 'under_repair' ? "bg-amber-600/15 text-amber-300 border-amber-500/20 shadow-glow-amber animate-pulse" :
+                      "bg-rose-600/15 text-rose-300 border-rose-500/20"
+                    )}>
+                      {selectedAsset.status === 'under_repair' ? 'repairing' : (selectedAsset.status || 'ACTIVE')}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* History Logs Feed */}
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-bold text-white/70 uppercase tracking-wider flex items-center gap-1.5">
+                      <Activity className="h-3.5 w-3.5 text-indigo-400" /> Maintenance Logs
+                    </h4>
+                    
+                    <div className="space-y-3 max-h-[250px] overflow-y-auto pr-2">
+                      {loadingLogs ? (
+                        <p className="text-[10px] text-white/35 font-bold uppercase tracking-wider text-center py-6 animate-pulse">Loading service logs...</p>
+                      ) : maintenanceLogs.length === 0 ? (
+                        <p className="text-[10px] text-white/30 italic text-center py-8">No maintenance history recorded for this asset.</p>
+                      ) : (
+                        maintenanceLogs.map((log) => {
+                          const badgeColor = 
+                            log.status === 'resolved' ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
+                            log.status === 'under_repair' ? "bg-amber-500/10 text-amber-400 border-amber-500/20" :
+                            "bg-rose-500/10 text-rose-400 border-rose-500/20";
+                          return (
+                            <div key={log.id} className="p-3 bg-white/[0.02] border border-white/5 rounded-xl space-y-2">
+                              <div className="flex justify-between items-start">
+                                <span className="text-[11px] font-bold text-white leading-tight">{log.issue}</span>
+                                <Badge variant="outline" className={`font-bold text-[8px] py-0 tracking-wider uppercase ${badgeColor}`}>
+                                  {log.status === 'under_repair' ? 'repairing' : log.status}
+                                </Badge>
+                              </div>
+                              <div className="flex justify-between items-center text-[9px] text-white/40 font-mono uppercase tracking-wider">
+                                <span>Cost: {Number(log.cost).toLocaleString()} AED</span>
+                                <span>{log.loggedAt ? new Date(log.loggedAt.seconds * 1000).toLocaleDateString() : 'Just now'}</span>
+                              </div>
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Register Repair Form */}
+                  <div className="space-y-4 bg-white/[0.01] border border-white/[0.04] p-4 rounded-2xl">
+                    <h4 className="text-xs font-bold text-white/70 uppercase tracking-wider">Log Service Event</h4>
+                    
+                    <form onSubmit={handleAddMaintenance} className="space-y-3.5">
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-bold text-white/50 uppercase tracking-wider">Service details / Issue</label>
+                        <Input 
+                          required 
+                          placeholder="e.g. Broken screen replacement" 
+                          value={mIssue} 
+                          onChange={e => setMIssue(e.target.value)} 
+                          className="glass-input h-8.5 text-xs border-white/10 placeholder:text-white/20 focus:border-indigo-500/60 focus:ring-0 w-full"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <label className="text-[9px] font-bold text-white/50 uppercase tracking-wider">Cost of Repair (AED)</label>
+                          <Input 
+                            required 
+                            type="number"
+                            placeholder="e.g. 450" 
+                            value={mCost} 
+                            onChange={e => setMCost(e.target.value)} 
+                            className="glass-input h-8.5 text-xs border-white/10 placeholder:text-white/20 focus:border-indigo-500/60 focus:ring-0 w-full font-mono"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-[9px] font-bold text-white/50 uppercase tracking-wider">New Status</label>
+                          <select 
+                            value={mStatus} 
+                            onChange={(e) => setMStatus(e.target.value as any)}
+                            className="w-full h-8.5 border border-white/10 rounded-xl px-2.5 text-xs focus:border-indigo-500/60 focus:ring-0 bg-[#121813] text-white"
+                          >
+                            <option value="under_repair">Under Repair</option>
+                            <option value="resolved">Resolved (Active)</option>
+                            <option value="scrapped">Scrapped</option>
+                          </select>
+                        </div>
+                      </div>
+                      <button 
+                        type="submit" 
+                        disabled={isSubmittingLog} 
+                        className="btn-primary w-full h-8.5 text-[10px] font-bold uppercase tracking-wider flex items-center justify-center cursor-pointer shadow-glow-blue mt-3"
+                      >
+                        {isSubmittingLog ? "Submitting Log..." : "Log Service Record"}
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </RoleGuard>
   );

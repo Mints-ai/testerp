@@ -148,6 +148,49 @@ export default function EmployeeProfile() {
     }
   };
 
+  const handleUpdateOnboarding = async (taskKey: string, status: "pending" | "completed" | "rejected") => {
+    if (!employee || !uid) return;
+    try {
+      const defaultOnboardingChecklist = {
+        nda: "pending",
+        visa: "pending",
+        emiratesId: "pending",
+        digitalSetup: "pending",
+        hardware: "pending",
+        training: "pending",
+      };
+      const updatedChecklist = {
+        ...(employee.onboardingChecklist || defaultOnboardingChecklist),
+        [taskKey]: status
+      };
+      await updateDoc(doc(db, "employees", uid as string), {
+        onboardingChecklist: updatedChecklist,
+        updatedAt: new Date().toISOString()
+      });
+      
+      const statusLabels = { pending: "Logged", completed: "Completed", rejected: "Rejected" };
+      const getTaskName = (key: string) => {
+        if (key === "nda") return "Signed NDA / Employment Contract";
+        if (key === "visa") return "Residency Visa Processing & Dispatch";
+        if (key === "emiratesId") return "Emirates ID Copy Received";
+        if (key === "digitalSetup") return "Digital Access Setup (Secure Mail & Chat)";
+        if (key === "hardware") return "Corporate Hardware & Laptop Provisioning";
+        return "Cybersecurity Training & Compliance Certificate";
+      };
+
+      await addDoc(collection(db, "notifications"), {
+        userId: uid,
+        title: `Onboarding Milestone ${statusLabels[status]}`,
+        message: `Your milestone "${getTaskName(taskKey)}" was marked as ${statusLabels[status]} by ${user?.fullName || "HR Admin"}.`,
+        read: false,
+        createdAt: serverTimestamp()
+      });
+    } catch (err: any) {
+      console.error("Error updating onboarding:", err);
+      alert("Failed to update onboarding milestone.");
+    }
+  };
+
   // Edit Modal state variables
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -510,6 +553,7 @@ export default function EmployeeProfile() {
           {(isManagerOrAbove || isSelf) && (
             <TabsTrigger value="notes" className="glass-tab">Private Notes</TabsTrigger>
           )}
+          <TabsTrigger value="onboarding" className="glass-tab">Onboarding Tracker</TabsTrigger>
         </TabsList>
         
         <TabsContent value="overview" className="mt-4 space-y-6">
@@ -815,6 +859,120 @@ export default function EmployeeProfile() {
             </Card>
           </TabsContent>
         )}
+
+        <TabsContent value="onboarding" className="mt-4">
+          <div className="grid md:grid-cols-3 gap-6">
+            {/* Circular Progress Gauge */}
+            <Card className="glass-card border-white/[0.08] bg-white/[0.02] p-6 flex flex-col items-center justify-center text-center">
+              <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Onboarding Completion</h4>
+              
+              <div className="relative w-36 h-36 flex items-center justify-center">
+                <svg className="w-full h-full transform -rotate-90">
+                  {/* Background Circle */}
+                  <circle
+                    cx="72"
+                    cy="72"
+                    r="54"
+                    className="stroke-white/5 fill-none"
+                    strokeWidth="8"
+                  />
+                  {/* Glow active Ring */}
+                  <circle
+                    cx="72"
+                    cy="72"
+                    r="54"
+                    className="stroke-indigo-500 fill-none transition-all duration-500"
+                    strokeWidth="8"
+                    strokeDasharray={2 * Math.PI * 54}
+                    strokeDashoffset={2 * Math.PI * 54 - (Math.round((Object.values(employee?.onboardingChecklist || {
+                      nda: "pending", visa: "pending", emiratesId: "pending", digitalSetup: "pending", hardware: "pending", training: "pending"
+                    }).filter(s => s === "completed").length / 6) * 100) / 100) * (2 * Math.PI * 54)}
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <div className="absolute flex flex-col items-center">
+                  <span className="text-2xl font-extrabold text-white font-mono tracking-tight">
+                    {Math.round((Object.values(employee?.onboardingChecklist || {
+                      nda: "pending", visa: "pending", emiratesId: "pending", digitalSetup: "pending", hardware: "pending", training: "pending"
+                    }).filter(s => s === "completed").length / 6) * 100)}%
+                  </span>
+                  <span className="text-[9px] font-bold text-white/40 uppercase tracking-wider mt-0.5">Verified</span>
+                </div>
+              </div>
+
+              <p className="text-[10px] text-white/50 font-bold uppercase tracking-wider mt-4">
+                {Object.values(employee?.onboardingChecklist || {
+                  nda: "pending", visa: "pending", emiratesId: "pending", digitalSetup: "pending", hardware: "pending", training: "pending"
+                }).filter(s => s === "completed").length} of 6 Milestones Complete
+              </p>
+            </Card>
+
+            {/* Checklist List */}
+            <Card className="glass-card border-white/[0.08] bg-white/[0.02] md:col-span-2 overflow-hidden">
+              <CardHeader className="p-5 border-b border-white/[0.06]">
+                <CardTitle className="text-xs font-bold text-white uppercase tracking-wider">Milestone Progress Ledger</CardTitle>
+                <CardDescription className="text-[10px] text-white/40">Verify residency documentation, digital accounts, and hardware allocation tracks.</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0 divide-y divide-white/[0.04]">
+                {Object.entries(employee?.onboardingChecklist || {
+                  nda: "pending", visa: "pending", emiratesId: "pending", digitalSetup: "pending", hardware: "pending", training: "pending"
+                }).map(([taskKey, taskVal]: [string, any]) => {
+                  const label = (() => {
+                    if (taskKey === "nda") return "Signed NDA / Employment Contract";
+                    if (taskKey === "visa") return "Residency Visa Processing & Dispatch";
+                    if (taskKey === "emiratesId") return "Emirates ID Copy Received";
+                    if (taskKey === "digitalSetup") return "Digital Access Setup (Secure Mail & Chat)";
+                    if (taskKey === "hardware") return "Corporate Hardware & Laptop Provisioning";
+                    return "Cybersecurity Training & Compliance Certificate";
+                  })();
+
+                  const statusColor = 
+                    taskVal === "completed" ? "bg-emerald-600/10 text-emerald-400 border-emerald-500/20" :
+                    taskVal === "rejected" ? "bg-rose-600/10 text-rose-400 border-rose-500/20 shadow-glow-red" :
+                    "bg-amber-600/10 text-amber-400 border-amber-500/20";
+
+                  return (
+                    <div key={taskKey} className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 hover:bg-white/[0.01] transition-colors">
+                      <div className="space-y-1">
+                        <span className="text-xs font-bold text-white block">{label}</span>
+                        <span className="text-[9px] font-mono text-white/30 uppercase tracking-widest block">{taskKey}</span>
+                      </div>
+                      
+                      <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                        <Badge variant="outline" className={`font-bold text-[9px] py-0.5 tracking-wider uppercase shadow-none shrink-0 ${statusColor}`}>
+                          {taskVal || "pending"}
+                        </Badge>
+
+                        {canAccess(role, "MANAGE_USERS") && (
+                          <div className="flex gap-1.5">
+                            <button
+                              onClick={() => handleUpdateOnboarding(taskKey, "completed")}
+                              className="px-2 py-1 rounded bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 text-[9px] font-bold text-emerald-400 transition-colors uppercase cursor-pointer"
+                            >
+                              Verify
+                            </button>
+                            <button
+                              onClick={() => handleUpdateOnboarding(taskKey, "rejected")}
+                              className="px-2 py-1 rounded bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 text-[9px] font-bold text-rose-400 transition-colors uppercase cursor-pointer"
+                            >
+                              Reject
+                            </button>
+                            <button
+                              onClick={() => handleUpdateOnboarding(taskKey, "pending")}
+                              className="px-2 py-1 rounded bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/25 text-[9px] font-bold text-amber-400 transition-colors uppercase cursor-pointer"
+                            >
+                              Log
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
       </Tabs>
 
       {/* Edit Profile Modal */}

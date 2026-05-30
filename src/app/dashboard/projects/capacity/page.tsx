@@ -40,7 +40,7 @@ interface TimesheetRow {
 
 export default function CapacityPlanning() {
   const { showToast } = useToast();
-  const [activeTab, setActiveTab] = useState<"capacity" | "timesheet">("capacity");
+  const [activeTab, setActiveTab] = useState<"capacity" | "timesheet" | "gantt">("capacity");
   
   // Capacity States
   const [teamCapacity, setTeamCapacity] = useState<CapacityData[]>([]);
@@ -266,6 +266,12 @@ export default function CapacityPlanning() {
   const overbookedCount = teamCapacity.filter(t => t.status === "Overbooked").length;
   const availableCount = teamCapacity.filter(t => t.status === "Available").length;
 
+  const getManagerName = (managerId?: string) => {
+    if (!managerId) return "Unassigned";
+    const found = employees.find(e => e.id === managerId);
+    return found ? found.fullName : "Lead Director";
+  };
+
   return (
     <RoleGuard permission="CREATE_PROJECT" fallback={<div className="p-8 text-center text-white/50">Access Denied. C-Suite credentials required.</div>}>
       <div className="space-y-6 text-white pb-24">
@@ -303,11 +309,22 @@ export default function CapacityPlanning() {
               <FileSpreadsheet className="h-3.5 w-3.5" />
               Timesheet Matrix
             </button>
+            <button
+              onClick={() => setActiveTab("gantt")}
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                activeTab === "gantt"
+                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
+                  : "text-white/50 hover:text-white"
+              }`}
+            >
+              <GanttChartSquare className="h-3.5 w-3.5" />
+              Gantt Timeline
+            </button>
           </div>
         </div>
 
         <AnimatePresence mode="wait">
-          {activeTab === "capacity" ? (
+          {activeTab === "capacity" && (
             <motion.div
               key="capacity-tab"
               initial={{ opacity: 0, y: 15 }}
@@ -416,7 +433,8 @@ export default function CapacityPlanning() {
                 </CardContent>
               </Card>
             </motion.div>
-          ) : (
+          )}
+          {activeTab === "timesheet" && (
             <motion.div
               key="timesheet-tab"
               initial={{ opacity: 0, y: 15 }}
@@ -586,6 +604,163 @@ export default function CapacityPlanning() {
                       </>
                     )}
                   </button>
+                </div>
+              </Card>
+            </motion.div>
+          )}
+
+          {/* Gantt Timeline Tab Render */}
+          {activeTab === "gantt" && (
+            <motion.div
+              key="gantt-tab"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              className="space-y-6"
+            >
+              <Card className="glass-card bg-white/[0.02] border-white/[0.08] overflow-hidden">
+                <div className="p-6 border-b border-white/[0.06] flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/[0.01]">
+                  <div>
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                      <GanttChartSquare className="h-4 w-4 text-indigo-400" /> Active Schedule Gantt & Milestones
+                    </h3>
+                    <p className="text-[10px] text-white/40 mt-1">Cross-project timelines, delivery milestones, and executive accountability indicators.</p>
+                  </div>
+                  <div className="flex items-center gap-4 text-[10px] font-bold text-white/40 tracking-wider">
+                    <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500/20 border border-emerald-500/50" /> Active</span>
+                    <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-500/20 border border-blue-500/50" /> Pitch</span>
+                    <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-indigo-500/20 border border-indigo-500/50" /> Completed</span>
+                    <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-rose-500/20 border border-rose-500/50" /> Suspended</span>
+                  </div>
+                </div>
+
+                <div className="p-6 overflow-x-auto">
+                  <div className="min-w-[800px] space-y-4">
+                    {/* Gantt Timeline Header Columns */}
+                    <div className="flex border-b border-white/[0.06] pb-2 text-[10px] font-bold uppercase tracking-wider text-white/30">
+                      <div className="w-1/4">Project Deliverable</div>
+                      <div className="w-3/4 flex relative">
+                        <div className="w-1/4 text-center border-l border-white/[0.04]">May 2026</div>
+                        <div className="w-1/4 text-center border-l border-white/[0.04]">June 2026</div>
+                        <div className="w-1/4 text-center border-l border-white/[0.04]">July 2026</div>
+                        <div className="w-1/4 text-center border-l border-white/[0.04] border-r border-white/[0.04]">August 2026</div>
+                      </div>
+                    </div>
+
+                    {/* Gantt Project Rows */}
+                    {projects.length === 0 ? (
+                      <div className="py-16 text-center text-white/30 text-xs font-bold uppercase tracking-widest">
+                        No active projects registered in global registry.
+                      </div>
+                    ) : (
+                      projects.map((proj) => {
+                        const { left, width } = (() => {
+                          const gStart = new Date("2026-05-01").getTime();
+                          const gEnd = new Date("2026-08-31").getTime();
+                          const totalMs = gEnd - gStart;
+
+                          const pStart = proj.startDate ? new Date(proj.startDate).getTime() : gStart;
+                          const pEnd = proj.endDate ? new Date(proj.endDate).getTime() : pStart + 30 * 24 * 60 * 60 * 1000;
+
+                          const leftPerc = Math.max(0, Math.min(100, ((pStart - gStart) / totalMs) * 100));
+                          const widthPerc = Math.max(8, Math.min(100 - leftPerc, ((pEnd - pStart) / totalMs) * 100));
+
+                          return { left: `${leftPerc}%`, width: `${widthPerc}%` };
+                        })();
+
+                        const remainingText = (() => {
+                          if (!proj.endDate) return "Ongoing Campaign";
+                          const end = new Date(proj.endDate).getTime();
+                          const now = new Date("2026-05-30").getTime();
+                          const diff = end - now;
+                          if (diff < 0) return "Delivered";
+                          const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+                          return `${days} days remaining`;
+                        })();
+
+                        const progressVal = proj.status === 'completed' ? 100 : proj.status === 'pitch' ? 0 : 65;
+
+                        const barGradient = 
+                          proj.status === 'completed' ? 'from-indigo-600 to-purple-600 border-indigo-500/30' :
+                          proj.status === 'pitch' ? 'from-blue-600 to-cyan-600 border-blue-500/30' :
+                          proj.status === 'suspended' ? 'from-rose-600 to-orange-600 border-rose-500/30' :
+                          'from-emerald-600 to-teal-600 border-emerald-500/30';
+
+                        const mgrName = getManagerName(proj.managerId);
+
+                        const getInitials = (n: string) =>
+                          n.split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase() || "U";
+
+                        return (
+                          <div key={proj.id} className="flex items-center py-3 border-b border-white/[0.04] group/row hover:bg-white/[0.01] transition-colors rounded-xl px-2">
+                            {/* Project Name and Category Info */}
+                            <div className="w-1/4 pr-4">
+                              <span className="font-bold text-xs text-white group-hover/row:text-indigo-400 transition-colors block truncate">{proj.name}</span>
+                              <span className="text-[9px] font-bold text-white/40 uppercase tracking-wider block mt-0.5">{proj.serviceType || "Deliverable"}</span>
+                            </div>
+
+                            {/* Gantt SVG Track & Indicator Bar */}
+                            <div className="w-3/4 h-12 flex items-center relative select-none">
+                              {/* Background month split columns */}
+                              <div className="absolute inset-0 flex pointer-events-none">
+                                <div className="w-1/4 border-l border-white/[0.04]" />
+                                <div className="w-1/4 border-l border-white/[0.04]" />
+                                <div className="w-1/4 border-l border-white/[0.04]" />
+                                <div className="w-1/4 border-l border-white/[0.04] border-r border-white/[0.04]" />
+                              </div>
+
+                              {/* Overlapping Gantt Pill Bar */}
+                              <div
+                                style={{ left, width }}
+                                className={`absolute h-8 bg-gradient-to-r ${barGradient} border rounded-full px-3 flex items-center justify-between shadow-lg shadow-black/20 hover:scale-[1.02] active:scale-95 transition-all duration-300 cursor-pointer relative group/bar`}
+                              >
+                                <span className="text-[9px] font-bold text-white uppercase tracking-wider truncate">{proj.status || "active"}</span>
+                                <span className="text-[9px] font-mono font-bold text-white/80">{progressVal}%</span>
+
+                                {/* Quick Hover Inspector Floating Card (Glass Tooltip) */}
+                                <div className="absolute left-1/2 -translate-x-1/2 bottom-10 w-64 bg-[#121813]/95 border border-white/10 rounded-2xl p-4 shadow-xl pointer-events-none opacity-0 group-hover/bar:opacity-100 transition-all duration-300 translate-y-2 group-hover/bar:translate-y-0 z-50 text-white backdrop-blur-md">
+                                  <div className="space-y-3">
+                                    <div className="flex justify-between items-start">
+                                      <div className="truncate pr-2">
+                                        <p className="text-[10px] font-bold text-white uppercase tracking-wider truncate">{proj.name}</p>
+                                        <p className="text-[8px] font-semibold text-indigo-400 uppercase tracking-widest mt-0.5 truncate">{proj.serviceType}</p>
+                                      </div>
+                                      <span className="text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 shrink-0">{proj.status}</span>
+                                    </div>
+
+                                    {proj.description && (
+                                      <p className="text-[9px] text-white/60 leading-normal line-clamp-2">{proj.description}</p>
+                                    )}
+
+                                    <div className="border-t border-white/[0.06] pt-2.5 grid grid-cols-2 gap-2">
+                                      <div>
+                                        <p className="text-[8px] font-bold text-white/35 uppercase tracking-wider">Lead Director</p>
+                                        <div className="flex items-center gap-1 mt-1">
+                                          <div className="w-4 h-4 rounded-full bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-[7px] font-bold text-indigo-300 shrink-0">
+                                            {getInitials(mgrName)}
+                                          </div>
+                                          <span className="text-[9px] font-semibold text-white/80 truncate max-w-[80px]">{mgrName}</span>
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <p className="text-[8px] font-bold text-white/35 uppercase tracking-wider">Remaining</p>
+                                        <span className="text-[9px] font-semibold text-emerald-400 block mt-1 font-mono">{remainingText}</span>
+                                      </div>
+                                    </div>
+
+                                    <div className="border-t border-white/[0.06] pt-2.5 flex justify-between items-center text-[8px] font-bold text-white/40 uppercase tracking-wider">
+                                      <span>Budget: {proj.budget ? `${Number(proj.budget).toLocaleString()} AED` : "TBD"}</span>
+                                      <span>Mints Global</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
                 </div>
               </Card>
             </motion.div>
