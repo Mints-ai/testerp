@@ -273,53 +273,139 @@ export const generatePayslip = (
   const doc = new jsPDF("portrait", "pt", "a4");
   const width = doc.internal.pageSize.getWidth();
 
-  // Header
-  doc.setFontSize(28);
+  // 1. Draw elegant glowing minimalist logo badge
+  doc.setFillColor(79, 70, 229); // Indigo 600
+  doc.roundedRect(40, 40, 36, 36, 8, 8, "F");
+
+  doc.setFillColor(255, 255, 255);
+  doc.circle(58, 58, 6, "F");
+
+  doc.setTextColor(79, 70, 229);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.text("M", 51, 64);
+
+  // 2. Title and Subtitle to the right of the logo
+  doc.setFontSize(22);
+  doc.setTextColor(15, 23, 42); // Slate 900
+  doc.setFont("helvetica", "bold");
+  doc.text("MINTS GLOBAL", 88, 58);
+
+  doc.setFontSize(9);
+  doc.setTextColor(100, 100, 100);
+  doc.setFont("helvetica", "normal");
+  doc.text("Global Operations Command Center", 88, 72);
+
+  // 3. Document Title
+  doc.setFontSize(24);
   doc.setFont("helvetica", "bold");
   doc.setTextColor(15, 23, 42); // Slate 900
-  doc.text("SALARY PAYSLIP", 40, 60);
+  doc.text("SALARY PAYSLIP", 40, 120);
 
-  doc.setFontSize(12);
-  doc.setTextColor(79, 70, 229); // Indigo 600
-  doc.text("MINTS GLOBAL", 40, 80);
-  
-  doc.setFontSize(10);
+  doc.setDrawColor(79, 70, 229);
+  doc.setLineWidth(2);
+  doc.line(40, 130, 120, 130); // Classy accent line under title
+
+  // 4. Employee & Payperiod details in container
+  doc.setFillColor(248, 250, 252); // Slate 50 (ultra-light gray)
+  doc.setDrawColor(241, 245, 249); // Slate 100
+  doc.setLineWidth(1);
+  doc.roundedRect(40, 150, width - 80, 80, 6, 6, "FD");
+
+  // Details labels & values side-by-side
+  doc.setFontSize(9);
   doc.setTextColor(100, 100, 100);
-  doc.text("123 Creative Avenue, Suite 100", 40, 95);
-  doc.text("Global HQ", 40, 110);
-
-  // Employee Details
-  doc.setFontSize(12);
-  doc.setTextColor(15, 23, 42);
   doc.setFont("helvetica", "bold");
-  doc.text("Employee Details:", width - 200, 60);
-  
-  doc.setFont("helvetica", "normal");
-  doc.text(payslipData.employeeName, width - 200, 80);
-  doc.text(payslipData.role.toUpperCase(), width - 200, 95);
-  
-  doc.text(`Payslip Number: ${payslipData.payslipNumber}`, width - 200, 125);
-  doc.text(`Pay Period: ${payslipData.period}`, width - 200, 140);
+  doc.text("EMPLOYEE NAME:", 60, 175);
+  doc.text("DESIGNATION / ROLE:", 60, 195);
+  doc.text("OFFICE LOCATION:", 60, 215);
 
-  // Salary Table
+  doc.setTextColor(15, 23, 42); // Slate 900
+  doc.setFont("helvetica", "normal");
+  doc.text(payslipData.employeeName, 190, 175);
+  doc.text(payslipData.role.toUpperCase(), 190, 195);
+  doc.text("Mints Global HQ, UAE", 190, 215);
+
+  // Payperiod details on the right side of the container
+  doc.setFontSize(9);
+  doc.setTextColor(100, 100, 100);
+  doc.setFont("helvetica", "bold");
+  doc.text("PAYSLIP NUMBER:", width - 240, 175);
+  doc.text("PAY PERIOD:", width - 240, 195);
+  doc.text("DISPATCH STATUS:", width - 240, 215);
+
+  doc.setTextColor(15, 23, 42);
+  doc.setFont("helvetica", "normal");
+  doc.text(payslipData.payslipNumber, width - 130, 175);
+  doc.text(payslipData.period, width - 130, 195);
+  
+  doc.setTextColor(16, 185, 129); // Emerald 500 green
+  doc.setFont("helvetica", "bold");
+  doc.text("RELEASED / PAID", width - 130, 215);
+
+  // 5. Highly professional 4-column Salary Table
   autoTable(doc, {
-    startY: 180,
-    head: [["Earnings", "Amount"], ["Deductions", "Amount"]],
+    startY: 260,
+    head: [["Earnings Item", "Amount (AED)", "Deductions Item", "Amount (AED)"]],
     body: [
-      ["Base Salary", `${payslipData.baseSalary.toLocaleString()} AED`, "Unpaid Leaves (LWP)", `-${payslipData.deductions.toLocaleString()} AED`],
-      ["", "", `(${payslipData.unpaidLeaves} Days)`, ""]
+      [
+        "Basic Salary (60%)", 
+        `${(payslipData.baseSalary * 0.6).toLocaleString()} AED`, 
+        "Unpaid Leaves (LWP)", 
+        `-${payslipData.deductions.toLocaleString()} AED`
+      ],
+      [
+        "Housing Allowance (25%)", 
+        `${(payslipData.baseSalary * 0.25).toLocaleString()} AED`, 
+        `Deduction Days (${payslipData.unpaidLeaves} Days)`, 
+        ""
+      ],
+      [
+        "Transport & Utility (15%)", 
+        `${(payslipData.baseSalary * 0.15).toLocaleString()} AED`, 
+        "", 
+        ""
+      ]
     ],
-    foot: [["NET PAY", { content: `${payslipData.netPay.toLocaleString()} AED`, colSpan: 3, styles: { halign: 'right' } }]],
     theme: "striped",
-    headStyles: { fillColor: [79, 70, 229] }, // Indigo 600
-    footStyles: { fillColor: [15, 23, 42], fontStyle: "bold" }, // Slate 900
+    headStyles: { 
+      fillColor: [79, 70, 229], // Indigo 600
+      textColor: [255, 255, 255], 
+      fontStyle: "bold",
+      fontSize: 9
+    },
+    bodyStyles: {
+      fontSize: 9,
+      textColor: [15, 23, 42] // Slate 900
+    },
+    columnStyles: {
+      1: { halign: "right" },
+      3: { halign: "right" }
+    }
   });
 
-  // Footer
-  const finalY = (doc as any).lastAutoTable.finalY || 180;
-  doc.setFontSize(10);
-  doc.setTextColor(100, 100, 100);
-  doc.text("This is a computer-generated document and requires no physical signature.", width / 2, finalY + 50, { align: "center" });
+  // 6. Net Salary Summary Card (solves vertical Net Pay squeezing bug)
+  const tableFinalY = (doc as any).lastAutoTable.finalY || 360;
+
+  doc.setFillColor(15, 23, 42); // Slate 900
+  doc.roundedRect(40, tableFinalY + 25, width - 80, 60, 6, 6, "F");
+
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(11);
+  doc.text("NET TAKE-HOME SALARY (AED)", 60, tableFinalY + 60);
+
+  doc.setFontSize(20);
+  doc.setTextColor(129, 140, 248); // Indigo 300
+  doc.text(`${payslipData.netPay.toLocaleString()} AED`, width - 60, tableFinalY + 62, { align: "right" });
+
+  const cardFinalY = tableFinalY + 85;
+
+  // 7. Official Computer-Generated Footer
+  doc.setFontSize(8);
+  doc.setTextColor(150, 150, 150);
+  doc.setFont("helvetica", "italic");
+  doc.text("This is an official computer-generated document released by Mints Global Human Resources and requires no physical signature.", width / 2, cardFinalY + 50, { align: "center" });
 
   doc.save(`Payslip_${payslipData.employeeName.replace(/\s+/g, '_')}_${payslipData.period.replace(/\s+/g, '')}.pdf`);
 
