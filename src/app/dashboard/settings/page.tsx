@@ -36,6 +36,17 @@ const PERMISSION_LABELS: Record<string, string> = {
   VIEW_AUDIT_LOG:       "View Database Audit Trail",
 };
 
+const PRESET_AVATARS = [
+  "https://api.dicebear.com/7.x/bottts/svg?seed=mints1",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=James",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=Sophia",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=Jack",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=Luna"
+];
+
+
 export default function SettingsDashboard() {
   const { user, role } = useAuth();
   const { showToast } = useToast();
@@ -87,8 +98,38 @@ export default function SettingsDashboard() {
 
   // Preferences local states
   const [prefName, setPrefName] = useState("");
+  const [prefPhone, setPrefPhone] = useState("");
+  const [prefPhoto, setPrefPhoto] = useState("");
   const [prefGrid, setPrefGrid] = useState(true);
   const [prefNotifs, setPrefNotifs] = useState({ email: true, app: true });
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert("File size exceeds 2MB limit.");
+      return;
+    }
+
+    setUploadingAvatar(true);
+    try {
+      const { ref, uploadBytes, getDownloadURL } = await import("firebase/storage");
+      const { storage: firebaseStorage } = await import("@/lib/firebase");
+
+      const fileRef = ref(firebaseStorage, `profile-photos/${user?.uid}/${Date.now()}_${file.name}`);
+      await uploadBytes(fileRef, file);
+      const downloadURL = await getDownloadURL(fileRef);
+
+      setPrefPhoto(downloadURL);
+      showToast("Avatar uploaded successfully!", "success");
+    } catch (err: any) {
+      console.error("Avatar upload failed:", err);
+      showToast("Failed to upload avatar to cloud storage.", "error");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   const isFounder = role === "founder";
   const isCSuiteOrAbove = canAccess(role, "SYSTEM_SETTINGS"); // founder, c_suite
@@ -114,6 +155,8 @@ export default function SettingsDashboard() {
       if (docSnap.exists()) {
         const data = docSnap.data();
         if (data.fullName) setPrefName(data.fullName);
+        if (data.phone) setPrefPhone(data.phone);
+        if (data.profilePhotoURL) setPrefPhoto(data.profilePhotoURL);
         if (data.preferences) {
           const prefs = data.preferences;
           if (prefs.hideGrid !== undefined) {
@@ -250,6 +293,8 @@ export default function SettingsDashboard() {
       // 1. Save in Firestore employee record
       await updateDoc(doc(db, "employees", user.uid), {
         fullName: prefName,
+        phone: prefPhone,
+        profilePhotoURL: prefPhoto,
         preferences: {
           hideGrid: !prefGrid,
           emailNotifications: prefNotifs.email,
@@ -502,10 +547,81 @@ export default function SettingsDashboard() {
                 <p className="text-sm text-olive-600">Manage your profile metadata, background settings, and alert options.</p>
               </div>
               <div className="p-8 space-y-8">
+                {/* Profile Photo / Avatar Selection */}
+                <div className="p-5 bg-olive-50/20 rounded-2xl border border-olive-100/50 space-y-4">
+                  <Label className="text-olive-900 font-bold text-xs uppercase tracking-wider text-olive-800 block">Profile Avatar</Label>
+                  
+                  <div className="flex flex-col sm:flex-row gap-5 items-center">
+                    <Avatar className="h-16 w-16 border border-olive-200 shadow-sm bg-olive-100 rounded-xl shrink-0">
+                      <AvatarImage src={prefPhoto} />
+                      <AvatarFallback className="bg-blue-600 text-white text-lg font-bold">
+                        {prefName ? prefName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase() : "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="flex-1 w-full space-y-3">
+                      <div className="flex gap-2">
+                        <input 
+                          type="file" 
+                          id="settings-photo-upload" 
+                          className="hidden" 
+                          accept="image/*"
+                          onChange={handleAvatarUpload}
+                        />
+                        <Button 
+                          type="button" 
+                          onClick={() => document.getElementById('settings-photo-upload')?.click()}
+                          disabled={uploadingAvatar}
+                          variant="outline"
+                          className="text-xs h-9 border-olive-200 text-olive-700 bg-white hover:bg-olive-50 font-bold"
+                        >
+                          {uploadingAvatar ? "Uploading..." : "Upload Photo"}
+                        </Button>
+                        {prefPhoto && (
+                          <Button 
+                            type="button" 
+                            onClick={() => setPrefPhoto("")}
+                            variant="ghost"
+                            className="text-xs h-9 text-rose-600 hover:text-rose-500 hover:bg-rose-50 font-bold"
+                          >
+                            Remove
+                          </Button>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-olive-500 font-semibold">PNG, JPG or WEBP. Max 2MB.</p>
+                    </div>
+                  </div>
+
+                  {/* Presets Grid */}
+                  <div className="space-y-2">
+                    <p className="text-[10px] text-olive-600 uppercase tracking-wider font-bold">Or select a premium preset avatar:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {PRESET_AVATARS.map((avatar, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => setPrefPhoto(avatar)}
+                          className={cn(
+                            "h-10 w-10 rounded-lg overflow-hidden border-2 transition-all p-0.5 bg-[#0a0f18]",
+                            prefPhoto === avatar ? "border-blue-600 scale-105 shadow-md" : "border-olive-100 hover:border-olive-300"
+                          )}
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={avatar} alt={`Preset ${idx + 1}`} className="w-full h-full object-cover rounded-md" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-2">
                     <Label className="text-olive-900 font-bold text-xs uppercase tracking-wider text-olive-800">Full Name</Label>
                     <Input value={prefName} onChange={(e) => setPrefName(e.target.value)} placeholder="Your Full Name" className="border-olive-200 focus-visible:ring-olive-500 bg-olive-50/30 text-olive-950 font-bold" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-olive-900 font-bold text-xs uppercase tracking-wider text-olive-800">Phone Number</Label>
+                    <Input value={prefPhone} onChange={(e) => setPrefPhone(e.target.value)} placeholder="+971 50 123 4567" className="border-olive-200 focus-visible:ring-olive-500 bg-olive-50/30 text-olive-950 font-bold font-mono" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-olive-900 font-bold text-xs uppercase tracking-wider text-olive-800">Email Address</Label>

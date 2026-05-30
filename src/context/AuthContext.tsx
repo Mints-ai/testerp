@@ -178,7 +178,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             await signOut(auth);
             setUser(null);
           } else {
-            appUser = { ...firebaseUser, role: data.role, department: data.department, departments: data.departments || (data.department ? [data.department] : []), fullName: data.fullName, jobTitle: data.jobTitle };
+            appUser = { ...firebaseUser, role: data.role, department: data.department, departments: data.departments || (data.department ? [data.department] : []), fullName: data.fullName, jobTitle: data.jobTitle, photoURL: data.profilePhotoURL || firebaseUser.photoURL };
             setUser(appUser);
 
             // Fetch public IP address and record login trace asynchronously
@@ -244,7 +244,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             userDoc = await getDoc(userDocRef);
             if (userDoc.exists()) {
               const data = userDoc.data();
-              appUser = { ...firebaseUser, role: data.role, department: data.department, departments: data.departments || (data.department ? [data.department] : []), fullName: data.fullName, jobTitle: data.jobTitle };
+              appUser = { ...firebaseUser, role: data.role, department: data.department, departments: data.departments || (data.department ? [data.department] : []), fullName: data.fullName, jobTitle: data.jobTitle, photoURL: data.profilePhotoURL || firebaseUser.photoURL };
               setUser(appUser);
             }
           } catch (healErr) {

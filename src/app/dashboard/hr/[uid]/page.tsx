@@ -70,6 +70,17 @@ const SUBROLES_MAPPING: Record<string, string[]> = {
 };
 
 
+const PRESET_AVATARS = [
+  "https://api.dicebear.com/7.x/bottts/svg?seed=mints1",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=James",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=Sophia",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=Jack",
+  "https://api.dicebear.com/7.x/avataaars/svg?seed=Luna"
+];
+
+
 export default function EmployeeProfile() {
   const { uid } = useParams();
   const router = useRouter();
@@ -147,10 +158,39 @@ export default function EmployeeProfile() {
     departments: [] as string[],
     subRoles: [] as string[],
     isIntern: false,
-    internEndDate: ""
+    internEndDate: "",
+    profilePhotoURL: ""
   });
   const [isSubmittingEdit, setIsSubmittingEdit] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert("File size exceeds 2MB limit.");
+      return;
+    }
+
+    setUploadingAvatar(true);
+    try {
+      const { ref, uploadBytes, getDownloadURL } = await import("firebase/storage");
+      const { storage: firebaseStorage } = await import("@/lib/firebase");
+
+      const fileRef = ref(firebaseStorage, `profile-photos/${uid}/${Date.now()}_${file.name}`);
+      await uploadBytes(fileRef, file);
+      const downloadURL = await getDownloadURL(fileRef);
+
+      setEditForm(prev => ({ ...prev, profilePhotoURL: downloadURL }));
+      alert("Avatar uploaded successfully!");
+    } catch (err: any) {
+      console.error("Avatar upload failed:", err);
+      alert("Failed to upload avatar to cloud storage.");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   const handleOpenEditModal = () => {
     if (!employee) return;
@@ -162,7 +202,8 @@ export default function EmployeeProfile() {
       departments: employee.departments || (employee.department ? [employee.department] : []),
       subRoles: employee.subRoles || [],
       isIntern: !!employee.isIntern,
-      internEndDate: employee.internEndDate || ""
+      internEndDate: employee.internEndDate || "",
+      profilePhotoURL: employee.profilePhotoURL || ""
     });
     setEditError(null);
     setIsEditOpen(true);
@@ -170,46 +211,55 @@ export default function EmployeeProfile() {
 
   const handleUpdateEmployee = async (e: React.FormEvent) => {
     e.preventDefault();
+    const isAdmin = canAccess(role, "MANAGE_USERS");
+    
     if (!editForm.fullName.trim()) {
       setEditError("Full Name is required.");
       return;
     }
-    if (!editForm.jobTitle.trim()) {
-      setEditError("Job Title is required.");
-      return;
-    }
-    if (!editForm.role) {
-      setEditError("System Role is required.");
-      return;
-    }
-    if (editForm.departments.length === 0) {
-      setEditError("Select at least one department.");
-      return;
-    }
-    if (editForm.isIntern && !editForm.internEndDate) {
-      setEditError("Internship expiration date is required when Is Intern is checked.");
-      return;
+    if (isAdmin) {
+      if (!editForm.jobTitle.trim()) {
+        setEditError("Job Title is required.");
+        return;
+      }
+      if (!editForm.role) {
+        setEditError("System Role is required.");
+        return;
+      }
+      if (editForm.departments.length === 0) {
+        setEditError("Select at least one department.");
+        return;
+      }
+      if (editForm.isIntern && !editForm.internEndDate) {
+        setEditError("Internship expiration date is required when Is Intern is checked.");
+        return;
+      }
     }
 
     setIsSubmittingEdit(true);
     setEditError(null);
 
-    // Filter subRoles to ensure only those belonging to selected departments are saved
-    const validSubroles = editForm.subRoles.filter(sub => {
-      return editForm.departments.some(dept => SUBROLES_MAPPING[dept]?.includes(sub));
-    });
-
     try {
-      await updateDoc(doc(db, "employees", uid as string), {
+      const updatedFields: any = {
         fullName: editForm.fullName.trim(),
-        jobTitle: editForm.jobTitle.trim(),
         phone: editForm.phone.trim(),
-        role: editForm.role,
-        departments: editForm.departments,
-        subRoles: validSubroles,
-        isIntern: editForm.isIntern,
-        internEndDate: editForm.isIntern ? editForm.internEndDate : null
-      });
+        profilePhotoURL: editForm.profilePhotoURL || ""
+      };
+
+      if (isAdmin) {
+        const validSubroles = editForm.subRoles.filter(sub => {
+          return editForm.departments.some(dept => SUBROLES_MAPPING[dept]?.includes(sub));
+        });
+
+        updatedFields.jobTitle = editForm.jobTitle.trim();
+        updatedFields.role = editForm.role;
+        updatedFields.departments = editForm.departments;
+        updatedFields.subRoles = validSubroles;
+        updatedFields.isIntern = editForm.isIntern;
+        updatedFields.internEndDate = editForm.isIntern ? editForm.internEndDate : null;
+      }
+
+      await updateDoc(doc(db, "employees", uid as string), updatedFields);
       setIsEditOpen(false);
     } catch (err: any) {
       console.error("Error updating employee details:", err);
@@ -374,7 +424,7 @@ export default function EmployeeProfile() {
         </button>
 
         <div className="flex gap-2">
-          {canAccess(role, "MANAGE_USERS") && (
+          {(canAccess(role, "MANAGE_USERS") || isSelf) && (
             <button 
               onClick={handleOpenEditModal} 
               className="btn-primary h-8 py-0 px-3 text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-glow-blue"
@@ -782,6 +832,73 @@ export default function EmployeeProfile() {
           )}
 
           <form onSubmit={handleUpdateEmployee} className="space-y-5 pt-2">
+            {/* Profile Photo Upload / Curated presets */}
+            <div className="p-4 bg-white/[0.02] rounded-2xl border border-white/[0.06] space-y-4">
+              <label className="text-xs font-bold text-white/60 uppercase tracking-wider block">Profile Avatar</label>
+              
+              <div className="flex flex-col sm:flex-row gap-5 items-center">
+                <Avatar className="h-16 w-16 border-2 border-white/10 bg-[#121813] rounded-xl shrink-0">
+                  <AvatarImage src={editForm.profilePhotoURL} />
+                  <AvatarFallback className="bg-blue-500/10 text-blue-300 text-lg font-bold">
+                    {getInitials(editForm.fullName)}
+                  </AvatarFallback>
+                </Avatar>
+                
+                <div className="flex-1 w-full space-y-3">
+                  <div className="flex gap-2">
+                    <input 
+                      type="file" 
+                      id="profile-photo-upload" 
+                      className="hidden" 
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                    />
+                    <Button 
+                      type="button" 
+                      onClick={() => document.getElementById('profile-photo-upload')?.click()}
+                      disabled={uploadingAvatar}
+                      variant="outline"
+                      className="text-xs h-9 border-white/15 bg-white/5 text-white hover:bg-white/10"
+                    >
+                      {uploadingAvatar ? "Uploading..." : "Upload Photo"}
+                    </Button>
+                    {editForm.profilePhotoURL && (
+                      <Button 
+                        type="button" 
+                        onClick={() => setEditForm({...editForm, profilePhotoURL: ""})}
+                        variant="ghost"
+                        className="text-xs h-9 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
+                      >
+                        Remove
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-white/40">PNG, JPG or WEBP. Max 2MB.</p>
+                </div>
+              </div>
+
+              {/* Presets Row */}
+              <div className="space-y-2">
+                <p className="text-[10px] text-white/50 uppercase tracking-wider font-bold">Or select a premium preset avatar:</p>
+                <div className="flex flex-wrap gap-2.5">
+                  {PRESET_AVATARS.map((avatar, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setEditForm({ ...editForm, profilePhotoURL: avatar })}
+                      className={cn(
+                        "h-10 w-10 rounded-lg overflow-hidden border-2 transition-all p-0.5 bg-[#0a0f18]",
+                        editForm.profilePhotoURL === avatar ? "border-blue-500 scale-105 shadow-glow-blue" : "border-white/10 hover:border-white/30"
+                      )}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={avatar} alt={`Preset ${idx + 1}`} className="w-full h-full object-cover rounded-md" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-white/60 uppercase tracking-wider">Full Name</label>
@@ -812,8 +929,9 @@ export default function EmployeeProfile() {
                   value={editForm.jobTitle} 
                   onChange={e => setEditForm({...editForm, jobTitle: e.target.value})} 
                   placeholder="e.g. Senior Software Architect" 
-                  className="glass-input h-10 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full" 
+                  className="glass-input h-10 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full disabled:opacity-50 disabled:cursor-not-allowed" 
                   required 
+                  disabled={!canAccess(role, "MANAGE_USERS")}
                 />
               </div>
 
@@ -822,8 +940,9 @@ export default function EmployeeProfile() {
                 <select 
                   value={editForm.role} 
                   onChange={e => setEditForm({...editForm, role: e.target.value})} 
-                  className="w-full h-10 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-white"
+                  className="w-full h-10 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-white disabled:opacity-50 disabled:cursor-not-allowed"
                   required
+                  disabled={!canAccess(role, "MANAGE_USERS")}
                 >
                   <option value="">Select role...</option>
                   {Object.entries(ROLE_META).map(([key, meta]) => (
@@ -856,6 +975,7 @@ export default function EmployeeProfile() {
                             : editForm.departments.filter(d => d !== dept);
                           setEditForm({...editForm, departments: updated});
                         }}
+                        disabled={!canAccess(role, "MANAGE_USERS")}
                       />
                       <label 
                         htmlFor={deptId}
@@ -905,6 +1025,7 @@ export default function EmployeeProfile() {
                                       : editForm.subRoles.filter(s => s !== sub);
                                     setEditForm({...editForm, subRoles: updated});
                                   }}
+                                  disabled={!canAccess(role, "MANAGE_USERS")}
                                 />
                                 <label 
                                   htmlFor={checkboxId}
@@ -929,6 +1050,7 @@ export default function EmployeeProfile() {
                   checked={editForm.isIntern}
                   onCheckedChange={(checked) => setEditForm({...editForm, isIntern: !!checked})}
                   id="editIsIntern"
+                  disabled={!canAccess(role, "MANAGE_USERS")}
                 />
                 <div className="space-y-1 leading-none">
                   <label htmlFor="editIsIntern" className="text-xs font-bold text-white/80 cursor-pointer">This employee is an Intern</label>
@@ -945,8 +1067,9 @@ export default function EmployeeProfile() {
                     type="date" 
                     value={editForm.internEndDate} 
                     onChange={e => setEditForm({...editForm, internEndDate: e.target.value})} 
-                    className="glass-input h-10 text-xs border-white/10 focus:border-blue-500/60 focus:ring-0 w-full" 
+                    className="glass-input h-10 text-xs border-white/10 focus:border-blue-500/60 focus:ring-0 w-full disabled:opacity-50" 
                     required={editForm.isIntern}
+                    disabled={!canAccess(role, "MANAGE_USERS")}
                   />
                 </div>
               )}

@@ -62,16 +62,17 @@ export default function EmployeeDirectory() {
   };
 
   const founders = filteredEmployees.filter(
-    e => (e.role === "founder" || e.role === "system_admin" || e.role === "c_suite") && 
+    e => (e.role === "founder" || e.role === "c_suite") && 
          e.fullName !== "System Administrator" && 
          e.email !== "admin@mintsglobal.ae" && 
          e.email !== "admin@mintsgloabal.ae"
   );
   const others = filteredEmployees.filter(
     e => e.role !== "founder" && 
-         e.role !== "system_admin" && 
          e.role !== "c_suite" && 
-         e.fullName !== "System Administrator"
+         e.fullName !== "System Administrator" &&
+         e.email !== "admin@mintsglobal.ae" &&
+         e.email !== "admin@mintsgloabal.ae"
   );
 
   return (
@@ -300,7 +301,7 @@ export default function EmployeeDirectory() {
                         {/* Vertical connector line up */}
                         <div className="absolute -top-6 left-1/2 -ml-px w-0.5 h-6 bg-blue-500/25"></div>
                         <Avatar className={cn("h-12 w-12 shadow-sm z-10 bg-blue-950 border-2", 
-                          emp.role === "manager" || emp.role === "director" ? "border-blue-500" : "border-white/10"
+                          emp.role === "manager" || emp.role === "director" || emp.role === "system_admin" ? "border-blue-500" : "border-white/10"
                         )}>
                           <AvatarImage src={emp.profilePhotoURL} />
                           <AvatarFallback className="bg-blue-800 text-blue-200 font-bold text-xs">{getInitials(emp.fullName)}</AvatarFallback>
