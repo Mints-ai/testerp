@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { collection, query, orderBy, onSnapshot, doc, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { canAccess, ROLE_META, PERMISSIONS } from "@/lib/permissions";
 import { useToast } from "@/context/ToastContext";
@@ -52,8 +52,93 @@ export default function SettingsDashboard() {
   const { showToast } = useToast();
   const [employees, setEmployees] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<"preferences" | "users" | "roles" | "company" | "holidays" | "audit" | "integrations">("preferences");
+  const [activeTab, setActiveTab] = useState<"preferences" | "users" | "roles" | "company" | "holidays" | "audit" | "integrations" | "security">("preferences");
   const [selectedRole, setSelectedRole] = useState<string>("employee");
+
+  // Security Credentials states
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [updatingPassword, setUpdatingPassword] = useState(false);
+
+  const getPasswordStrength = (pass: string) => {
+    let score = 0;
+    if (pass.length === 0) return { score, label: "None", color: "bg-white/10" };
+    if (pass.length >= 8) score++;
+    if (/[a-z]/.test(pass) && /[A-Z]/.test(pass)) score++;
+    if (/\d/.test(pass)) score++;
+    if (/[^A-Za-z0-9]/.test(pass)) score++;
+
+    switch (score) {
+      case 0:
+      case 1:
+        return { score, label: "Very Weak", color: "bg-rose-500 shadow-glow-rose" };
+      case 2:
+        return { score, label: "Weak", color: "bg-orange-500 shadow-glow-orange" };
+      case 3:
+        return { score, label: "Strong", color: "bg-yellow-500 shadow-glow-yellow" };
+      case 4:
+        return { score, label: "Excellent", color: "bg-emerald-500 shadow-glow-emerald" };
+      default:
+        return { score, label: "None", color: "bg-white/10" };
+    }
+  };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      showToast("Please fill in all security credential fields.", "warning");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      showToast("New passwords do not match. Please verify.", "error");
+      return;
+    }
+    
+    const strengthScore = getPasswordStrength(newPassword).score;
+    if (strengthScore < 3) {
+      showToast("Your password is too weak. Please meet the required strength metrics.", "warning");
+      return;
+    }
+
+    setUpdatingPassword(true);
+    try {
+      const { EmailAuthProvider, reauthenticateWithCredential, updatePassword } = await import("firebase/auth");
+      const authUser = auth.currentUser;
+      if (!authUser || !authUser.email) {
+        showToast("No active authenticated session detected.", "error");
+        return;
+      }
+      
+      const credential = EmailAuthProvider.credential(authUser.email, currentPassword);
+      await reauthenticateWithCredential(authUser, credential);
+      await updatePassword(authUser, newPassword);
+
+      // Audit log the password modification for security tracing
+      const { addDoc, collection, serverTimestamp } = await import("firebase/firestore");
+      await addDoc(collection(db, "auditLog"), {
+        actorId: user?.uid,
+        action: "UPDATE_PASSWORD",
+        targetCollection: "users",
+        details: `Successfully modified personal account security password.`,
+        createdAt: serverTimestamp()
+      });
+
+      showToast("Password updated successfully! Keep it secure.", "success");
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err: any) {
+      console.error(err);
+      if (err.code === "auth/wrong-password") {
+        showToast("Incorrect current password. Re-authentication failed.", "error");
+      } else {
+        showToast(err.message || "Failed to update password.", "error");
+      }
+    } finally {
+      setUpdatingPassword(false);
+    }
+  };
 
   // Integrations states
   const [discordWebhookUrl, setDiscordWebhookUrl] = useState("");
@@ -459,6 +544,18 @@ export default function SettingsDashboard() {
             My Preferences
           </button>
 
+          <button 
+            onClick={() => setActiveTab("security")}
+            className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-left border", 
+              activeTab === "security" 
+                ? "bg-blue-600/20 text-blue-300 border-blue-500/25 shadow-sm" 
+                : "text-white/40 border-transparent hover:text-white/80 hover:bg-white/[0.04]"
+            )}
+          >
+            <ShieldCheck className="w-5 h-5" />
+            Security & Password
+          </button>
+
           {isCSuiteOrAbove && (
             <>
               <button 
@@ -538,7 +635,139 @@ export default function SettingsDashboard() {
 
         {/* Content Area */}
         <div className="flex-1 w-full bg-white rounded-2xl border border-white/[0.08] shadow-card overflow-hidden">
-          
+
+          {/* SECURITY & CREDENTIALS */}
+          {activeTab === "security" && (
+            <div className="flex flex-col h-full bg-[#090d16] text-white">
+              <div className="p-6 border-b border-white/[0.08] bg-white/[0.02]">
+                <h3 className="font-bold text-lg text-white">Account Security & Credentials</h3>
+                <p className="text-xs text-white/40 mt-1">Strengthen your security posture by maintaining strong passwords.</p>
+              </div>
+
+              <form onSubmit={handleUpdatePassword} className="p-8 space-y-6 max-w-xl">
+                
+                {/* Current Password */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-white/60 uppercase tracking-wider block">Current Password</label>
+                  <Input 
+                    type="password"
+                    required
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    className="glass-input h-10 border-white/10 text-white placeholder:text-white/20 focus:border-blue-500 focus:ring-0 bg-[#0c1322]"
+                  />
+                </div>
+
+                {/* New Password */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-white/60 uppercase tracking-wider block">New Password</label>
+                  <Input 
+                    type="password"
+                    required
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    className="glass-input h-10 border-white/10 text-white placeholder:text-white/20 focus:border-blue-500 focus:ring-0 bg-[#0c1322]"
+                  />
+                  
+                  {/* Real-time Password Strength Meter */}
+                  {newPassword.length > 0 && (
+                    <div className="space-y-1.5 pt-1">
+                      <div className="flex justify-between items-center text-[10px]">
+                        <span className="text-white/40 font-bold uppercase tracking-wider">Password Strength:</span>
+                        <span className="font-bold text-white">{getPasswordStrength(newPassword).label}</span>
+                      </div>
+                      
+                      {/* Bar indicator */}
+                      <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden flex gap-1">
+                        <div className={cn("h-full transition-all duration-500 rounded-full", 
+                          getPasswordStrength(newPassword).score >= 1 ? getPasswordStrength(newPassword).color : "w-0",
+                          getPasswordStrength(newPassword).score === 1 ? "w-1/4" : 
+                          getPasswordStrength(newPassword).score === 2 ? "w-2/4" : 
+                          getPasswordStrength(newPassword).score === 3 ? "w-3/4" : 
+                          getPasswordStrength(newPassword).score === 4 ? "w-full" : "w-0"
+                        )} />
+                      </div>
+
+                      {/* Criteria feedback list */}
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 pt-1.5 text-[9px] font-semibold text-white/40">
+                        <div className={cn("flex items-center gap-1", newPassword.length >= 8 ? "text-emerald-400" : "text-white/20")}>
+                          <div className={cn("w-1.5 h-1.5 rounded-full", newPassword.length >= 8 ? "bg-emerald-400" : "bg-white/10")} />
+                          At least 8 characters
+                        </div>
+                        <div className={cn("flex items-center gap-1", /[a-z]/.test(newPassword) && /[A-Z]/.test(newPassword) ? "text-emerald-400" : "text-white/20")}>
+                          <div className={cn("w-1.5 h-1.5 rounded-full", /[a-z]/.test(newPassword) && /[A-Z]/.test(newPassword) ? "bg-emerald-400" : "bg-white/10")} />
+                          Case mix (aA)
+                        </div>
+                        <div className={cn("flex items-center gap-1", /\d/.test(newPassword) ? "text-emerald-400" : "text-white/20")}>
+                          <div className={cn("w-1.5 h-1.5 rounded-full", /\d/.test(newPassword) ? "bg-emerald-400" : "bg-white/10")} />
+                          Contains number (0-9)
+                        </div>
+                        <div className={cn("flex items-center gap-1", /[^A-Za-z0-9]/.test(newPassword) ? "text-emerald-400" : "text-white/20")}>
+                          <div className={cn("w-1.5 h-1.5 rounded-full", /[^A-Za-z0-9]/.test(newPassword) ? "bg-emerald-400" : "bg-white/10")} />
+                          Special symbol (!@#)
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Confirm Password */}
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-white/60 uppercase tracking-wider block">Confirm New Password</label>
+                  <Input 
+                    type="password"
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    className="glass-input h-10 border-white/10 text-white placeholder:text-white/20 focus:border-blue-500 focus:ring-0 bg-[#0c1322]"
+                  />
+                  {confirmPassword.length > 0 && (
+                    <div className="flex items-center gap-1 text-[9px] font-bold">
+                      {newPassword === confirmPassword ? (
+                        <span className="text-emerald-400 shadow-glow-emerald">✓ Passwords match</span>
+                      ) : (
+                        <span className="text-rose-400">✗ Passwords do not match</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Action buttons */}
+                <div className="pt-4 flex gap-3">
+                  <Button 
+                    type="submit" 
+                    disabled={updatingPassword}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl h-10 px-6 shadow-glow-blue flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    {updatingPassword ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Hardening credentials...
+                      </>
+                    ) : (
+                      "Update Credentials"
+                    )}
+                  </Button>
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setCurrentPassword("");
+                      setNewPassword("");
+                      setConfirmPassword("");
+                    }}
+                    className="px-4 py-2 rounded-xl text-xs font-bold bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:text-white cursor-pointer"
+                  >
+                    Reset Form
+                  </button>
+                </div>
+
+              </form>
+            </div>
+          )}
+
           {/* MY PREFERENCES */}
           {activeTab === "preferences" && (
             <div className="flex flex-col h-full">

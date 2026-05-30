@@ -8,11 +8,12 @@ import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Clock, MessageSquare, CheckSquare, Target, Lock, Play, Kanban as KanbanIcon, Trash2 } from "lucide-react";
+import { Plus, Clock, MessageSquare, CheckSquare, Target, Lock, Play, Kanban as KanbanIcon, Trash2, Download } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { downloadCSV } from "@/lib/exportUtils";
 
 type TaskStatus = "backlog" | "in_progress" | "review" | "done";
 type TaskPriority = "low" | "normal" | "high" | "urgent";
@@ -304,6 +305,21 @@ export default function TaskBoard() {
      return 0;
    });
 
+  const handleExportCSV = () => {
+    const flatList = Object.values(tasks).flat();
+    const employeesMap = new Map(employeesList.map(e => [e.id, e.fullName]));
+    const formatted = flatList.map(t => ({
+      ...t,
+      assigneeName: employeesMap.get(t.assignedTo) || "Unassigned"
+    }));
+    downloadCSV(
+      formatted,
+      ["Task Title", "Project Name", "Assignee Name", "Priority", "Status", "Blocked", "Due Date"],
+      ["title", "projectName", "assigneeName", "priority", "status", "blocked", "dueDate"],
+      "Mints_Global_Tasks_Kanban.csv"
+    );
+  };
+
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)] text-white">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -345,6 +361,14 @@ export default function TaskBoard() {
               <span className={myTasksOnly ? "font-bold text-white" : "text-white/40 font-bold"}>Mine</span>
             </div>
           )}
+
+          <button 
+            onClick={handleExportCSV}
+            className="px-4 h-9 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-1.5 cursor-pointer border bg-white/5 border-white/10 text-white/60 hover:bg-white/10 hover:text-white"
+          >
+            <Download className="h-4 w-4 text-emerald-400" />
+            Export CSV
+          </button>
 
           <button 
             onClick={() => {

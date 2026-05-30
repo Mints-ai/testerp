@@ -29,9 +29,11 @@ import {
   User,
   Coffee,
   Play,
-  Square
+  Square,
+  Download
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { downloadCSV } from "@/lib/exportUtils";
 
 // Formatting Helpers
 const formatElapsed = (totalSeconds: number) => {
@@ -155,6 +157,26 @@ export function AttendanceHistory() {
     }
   };
 
+  const handleExportCSV = () => {
+    const formatted = filteredRecords.map(rec => {
+      const clockInLog = rec.logs?.find((l: any) => l.type === "in")?.time || "N/A";
+      const clockOutLog = rec.logs?.slice().reverse().find((l: any) => l.type === "out")?.time || "Active";
+      return {
+        ...rec,
+        clockIn: clockInLog,
+        clockOut: clockOutLog,
+        workingTime: formatElapsed(rec.totalWorkingSeconds || 0),
+        breakTime: formatElapsed(rec.totalBreakSeconds || 0),
+      };
+    });
+    downloadCSV(
+      formatted,
+      ["Date", "Employee Name", "Clock In", "Clock Out", "Working Hours", "Break Hours"],
+      ["date", "employeeName", "clockIn", "clockOut", "workingTime", "breakTime"],
+      `Mints_Global_Attendance_${startDate}_to_${endDate}.csv`
+    );
+  };
+
   return (
     <div className="space-y-6 text-white pb-6">
       {/* Search & Filter Control Panel */}
@@ -267,9 +289,19 @@ export function AttendanceHistory() {
             <Clock className="w-5 h-5 text-blue-400" />
             <h3 className="font-bold text-white text-lg">Historical Records Log</h3>
           </div>
-          <Badge variant="outline" className="text-xs text-blue-300 font-bold bg-blue-500/10 border-blue-500/20 px-3 py-1 rounded-full shadow-none">
-            Found {filteredRecords.length} records
-          </Badge>
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={handleExportCSV}
+              variant="outline"
+              className="h-8 px-3 rounded-lg text-xs bg-white/5 border-white/10 text-white/80 hover:bg-white/10 hover:text-white"
+            >
+              <Download className="mr-1.5 h-3.5 w-3.5 text-emerald-400" />
+              Export Timesheets
+            </Button>
+            <Badge variant="outline" className="text-xs text-blue-300 font-bold bg-blue-500/10 border-blue-500/20 px-3 py-1 rounded-full shadow-none">
+              Found {filteredRecords.length} records
+            </Badge>
+          </div>
         </CardHeader>
         
         <CardContent className="p-0">

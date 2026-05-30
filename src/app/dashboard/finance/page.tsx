@@ -20,6 +20,7 @@ import { Banknote, FileText, Receipt, TrendingUp, AlertCircle, Plus, FileDown, A
 import { motion } from "framer-motion";
 import { CHART_COLORS, CHART_STYLE } from "@/lib/chartTheme";
 import { cn } from "@/lib/utils";
+import { downloadCSV } from "@/lib/exportUtils";
 
 const mockFinancialData: any[] = [
   { name: "Jan", revenue: 45000, profit: 12000 },
@@ -424,6 +425,35 @@ export default function FinanceDashboard() {
     return val.toLocaleString();
   };
 
+  const handleExportCSV = () => {
+    const invoiceRows = invoices.map(inv => ({
+      date: inv.dueDate || "N/A",
+      type: "Invoice (Inflow)",
+      party: inv.clientId || "Client",
+      category: "Sales/Revenue",
+      amount: inv.total || 0,
+      status: inv.status || "Pending",
+    }));
+
+    const expenseRows = expenses.map(exp => ({
+      date: exp.date || "N/A",
+      type: "Expense (Outflow)",
+      party: exp.vendor || "Vendor",
+      category: exp.category || "Other",
+      amount: exp.amount || 0,
+      status: exp.status || "Pending",
+    }));
+
+    const consolidated = [...invoiceRows, ...expenseRows].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    downloadCSV(
+      consolidated,
+      ["Transaction Date", "Transaction Type", "Party / Client / Vendor", "Category", "Amount (AED)", "Status"],
+      ["date", "type", "party", "category", "amount", "status"],
+      "Mints_Global_Financial_Ledger.csv"
+    );
+  };
+
   return (
     <RoleGuard permission="VIEW_DEPT_FINANCE" fallback={<div className="p-8 text-center text-white/40 font-bold uppercase tracking-wider text-xs">Access Denied.</div>}>
       <div className="space-y-6 pb-12 text-white">
@@ -435,8 +465,11 @@ export default function FinanceDashboard() {
             <p className="text-xs text-white/40 mt-1">Manage agency revenue, cash flow, invoices, and expenses.</p>
           </div>
           <div className="flex items-center gap-3">
-            <button className="btn-ghost py-0 px-4 h-9 text-xs font-bold border-white/10 text-white/70 hover:text-white flex items-center justify-center cursor-pointer">
-              <FileDown className="w-4 h-4 mr-2" /> Export CSV
+            <button 
+              onClick={handleExportCSV}
+              className="btn-ghost py-0 px-4 h-9 text-xs font-bold border-white/10 text-white/70 hover:text-white flex items-center justify-center cursor-pointer gap-1.5"
+            >
+              <FileDown className="w-4 h-4 text-emerald-400" /> Export CSV
             </button>
           </div>
         </div>

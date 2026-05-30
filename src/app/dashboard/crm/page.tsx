@@ -11,11 +11,12 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Plus, PhoneCall, Mail, Building, DollarSign, FileText, MoreHorizontal, User } from "lucide-react";
+import { Search, Plus, PhoneCall, Mail, Building, DollarSign, FileText, MoreHorizontal, User, Download } from "lucide-react";
 import { generateQuote } from "@/lib/pdfGenerator";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
+import { downloadCSV } from "@/lib/exportUtils";
 
 const STAGES = ["Lead", "Meeting", "Negotiation", "Won", "Lost"];
 
@@ -54,6 +55,15 @@ export default function CRMDashboard() {
     });
     return () => unsubscribe();
   }, [selectedLead]);
+
+  const handleExportCSV = () => {
+    downloadCSV(
+      filteredLeads,
+      ["Company Name", "Contact Person", "Email", "Assigned To", "Stage", "Deal Value (AED)"],
+      ["company", "contactName", "email", "assignedTo", "stage", "value"],
+      "Mints_Global_CRM_Leads.csv"
+    );
+  };
 
   const handleAddLead = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -207,6 +217,14 @@ export default function CRMDashboard() {
               />
             </div>
             
+            <Button
+              onClick={handleExportCSV}
+              variant="outline"
+              className="glass-card border-white/10 hover:bg-white/5 hover:text-white text-white/80 rounded-xl font-semibold h-10 px-4"
+            >
+              <Download className="mr-2 h-4 w-4 text-emerald-400" /> Export CSV
+            </Button>
+
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
               <DialogTrigger 
                 render={

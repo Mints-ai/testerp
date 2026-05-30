@@ -4,6 +4,7 @@ import { RouteGuard } from "@/components/layout/RoleGuard";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { TopNav } from "@/components/layout/TopNav";
 import { GlobalTimer } from "@/components/layout/GlobalTimer";
+import { CommandPalette } from "@/components/layout/CommandPalette";
 import { ToastProvider } from "@/context/ToastContext";
 
 export default function DashboardLayout({
@@ -23,6 +24,7 @@ export default function DashboardLayout({
             </main>
           </div>
           <GlobalTimer />
+          <CommandPalette />
         </div>
       </ToastProvider>
     </RouteGuard>
