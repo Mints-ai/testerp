@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, orderBy, onSnapshot, doc, updateDoc } from "firebase/firestore";
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { canAccess, ROLE_META, PERMISSIONS } from "@/lib/permissions";
@@ -341,6 +341,31 @@ export default function SettingsDashboard() {
     } catch (err) {
       console.error("Error updating status:", err);
       showToast("Failed to change user account status.", "error");
+    }
+  };
+
+  const handleDeleteEmployee = async (employeeId: string, employeeName: string) => {
+    if (!confirm(`Are you absolutely sure you want to permanently delete the account of ${employeeName}? This action is irreversible.`)) {
+      return;
+    }
+
+    try {
+      await deleteDoc(doc(db, "employees", employeeId));
+      
+      // Also audit log this security event
+      const { addDoc, collection: collRef, serverTimestamp } = await import("firebase/firestore");
+      await addDoc(collRef(db, "auditLog"), {
+        actorId: user?.uid,
+        action: "DELETE_USER",
+        targetCollection: "employees",
+        details: `Permanently deleted employee account record of ${employeeName} (${employeeId}).`,
+        createdAt: serverTimestamp()
+      });
+
+      showToast(`Account of ${employeeName} has been permanently deleted from the database.`, "success");
+    } catch (err) {
+      console.error("Error deleting employee:", err);
+      showToast("Failed to delete the user account.", "error");
     }
   };
 
@@ -962,12 +987,25 @@ export default function SettingsDashboard() {
                         </td>
                         <td className="px-6 py-4 font-mono text-xs text-slate-500 font-semibold">{emp.lastLoginIP || "N/A"}</td>
                         <td className="px-6 py-4 text-center">
-                          <Switch 
-                            checked={emp.isActive} 
-                            onCheckedChange={() => toggleEmployeeStatus(emp.id, emp.isActive)}
-                            disabled={emp.id === user?.uid}
-                            className="data-[state=checked]:bg-green-500"
-                          />
+                          <div className="flex items-center justify-center gap-4">
+                            <Switch 
+                              checked={emp.isActive} 
+                              onCheckedChange={() => toggleEmployeeStatus(emp.id, emp.isActive)}
+                              disabled={emp.id === user?.uid}
+                              className="data-[state=checked]:bg-green-500"
+                            />
+                            {emp.id !== user?.uid && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg cursor-pointer flex items-center justify-center shrink-0 border border-transparent hover:border-red-200"
+                                onClick={() => handleDeleteEmployee(emp.id, emp.fullName || emp.name)}
+                                title="Permanently Delete Account"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}
