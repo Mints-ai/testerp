@@ -159,10 +159,28 @@ service cloud.firestore {
       allow write: if isAuth() && isManagerOrAbove();
     }
 
-    // Assets Collection Rules
+     // Assets Collection Rules
     match /assets/{assetId} {
       allow read: if isAuth();
       allow write: if isAuth() && isManagerOrAbove();
+    }
+
+    // Asset Maintenance Logs Collection Rules
+    match /assetMaintenanceLogs/{logId} {
+      allow read: if isAuth();
+      allow write: if isAuth() && isManagerOrAbove();
+    }
+
+    // Notifications Collection Rules
+    match /notifications/{notificationId} {
+      allow read: if isAuth() && (resource.data.userId == request.auth.uid || isManagerOrAbove());
+      allow write: if isAuth();
+    }
+
+    // Chat Typing Presence Collection Rules
+    match /chatTyping/{typingId} {
+      allow read: if isAuth();
+      allow write: if isAuth();
     }
   }
 }
