@@ -34,8 +34,13 @@ export default function ClientsCRM() {
   const router = useRouter();
   const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddOpen, setIsAddOpen] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Form Fields
   const [companyName, setCompanyName] = useState("");
@@ -308,7 +313,7 @@ export default function ClientsCRM() {
           </div>
         </div>
 
-        {loading ? (
+        {!mounted || loading ? (
           <div className="text-center py-12 text-blue-400 font-bold">Querying secure CRM records...</div>
         ) : filteredClients.length === 0 ? (
           <div className="text-center py-16 bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl rounded-2xl flex flex-col items-center p-8">
@@ -342,8 +347,11 @@ export default function ClientsCRM() {
                           <h3 className="text-lg font-bold text-white group-hover:text-blue-400 transition-colors">
                             {client.companyName}
                           </h3>
-                          <div className="flex items-center gap-1 mt-1 text-white/40 font-semibold text-xs">
-                            <Globe className="h-3 w-3 shrink-0" /> {client.country || "Global"} ({client.timezone || "GST"})
+                          <div className="flex items-center flex-wrap gap-1.5 mt-1 text-white/40 font-semibold text-xs min-w-0">
+                            <Globe className="h-3 w-3 shrink-0 text-white/30" /> 
+                            <span className="truncate">{client.country || "Global"}</span>
+                            <span className="text-white/20">·</span>
+                            <span className="truncate">{client.timezone || "GST"}</span>
                           </div>
                         </div>
                       </div>

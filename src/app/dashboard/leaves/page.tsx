@@ -210,7 +210,7 @@ export default function LeaveManagement() {
                 </Select>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold text-white/70">Start Date</Label>
                   <Input type="date" required min={new Date().toISOString().split("T")[0]} 
@@ -313,7 +313,7 @@ export default function LeaveManagement() {
                       {leaves.map((leave) => (
                         <tr key={leave.id} className="hover:bg-white/[0.02] transition-colors border-b border-white/[0.04] last:border-b-0">
                           <td className="px-6 py-4 font-bold text-white/90">{leave.leaveType}</td>
-                          <td className="px-6 py-4 text-white/60">
+                          <td className="px-6 py-4 text-white/60 whitespace-nowrap">
                             {leave.startDate} to {leave.endDate}
                           </td>
                           <td className="px-6 py-4 text-center font-bold font-mono text-blue-400">{leave.daysCount}</td>
@@ -544,7 +544,7 @@ export default function LeaveManagement() {
                               </div>
                             </td>
                             <td className="px-6 py-4 text-white/60">{leave.leaveType}</td>
-                            <td className="px-6 py-4 text-white/60">
+                            <td className="px-6 py-4 text-white/60 whitespace-nowrap">
                               {leave.startDate} to {leave.endDate}
                             </td>
                             <td className="px-6 py-4 text-center font-bold font-mono text-blue-400">{leave.daysCount}</td>

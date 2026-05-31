@@ -81,6 +81,13 @@ service cloud.firestore {
       allow write: if isAuth() && (attendanceId.substring(0, request.auth.uid.size()) == request.auth.uid || isManagerOrAbove());
     }
 
+    // Attendance Corrections Collection Rules
+    match /attendanceCorrections/{requestId} {
+      allow read: if isAuth() && (resource.data.uid == request.auth.uid || isManagerOrAbove());
+      allow create: if isAuth() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isAuth() && isManagerOrAbove();
+    }
+
     // Shoutouts Collection Rules
     match /shoutouts/{shoutoutId} {
       allow read: if isAuth();
@@ -98,6 +105,17 @@ service cloud.firestore {
     match /settings/{settingId} {
       allow read: if isAuth();
       allow write: if isAuth() && isManagerOrAbove();
+    }
+
+    // CRM Leads Collection Rules
+    match /leads/{leadId} {
+      allow read: if isAuth();
+      allow create, update: if isAuth();
+      allow delete: if isAuth() && isManagerOrAbove();
+
+      match /emails/{emailId} {
+        allow read, write: if isAuth();
+      }
     }
 
     // Audit Log Collection Rules
@@ -173,7 +191,7 @@ service cloud.firestore {
 
     // Notifications Collection Rules
     match /notifications/{notificationId} {
-      allow read: if isAuth() && (resource.data.userId == request.auth.uid || isManagerOrAbove());
+      allow read: if isAuth() && (resource.data.userId == request.auth.uid || resource.data.userId == 'global' || isManagerOrAbove());
       allow write: if isAuth();
     }
 

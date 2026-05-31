@@ -30,6 +30,8 @@ export function TopNav() {
     );
     const unsub = onSnapshot(q, (snapshot) => {
       setNotifications(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }, (error) => {
+      console.error("Error fetching notifications in TopNav:", error);
     });
     return () => unsub();
   }, [user]);

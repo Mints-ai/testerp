@@ -21,8 +21,13 @@ export default function ClientProfile({ params }: { params: Promise<{ id: string
 
   const [client, setClient] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const [projects, setProjects] = useState<any[]>([]);
   const [invoices, setInvoices] = useState<any[]>([]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   // CRM Notes state
   const [notes, setNotes] = useState("");
@@ -99,7 +104,7 @@ export default function ClientProfile({ params }: { params: Promise<{ id: string
     return "text-rose-300 bg-rose-500/10 border-rose-500/20 animate-pulse";
   };
 
-  if (loading) {
+  if (!mounted || loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-blue-400 font-bold gap-3">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>

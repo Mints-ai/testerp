@@ -43,6 +43,9 @@ export default function CRMDashboard() {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setLeads(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       setLoading(false);
+    }, (error) => {
+      console.error("Error fetching leads:", error);
+      setLoading(false);
     });
     return () => unsubscribe();
   }, []);
@@ -52,6 +55,8 @@ export default function CRMDashboard() {
     const q = query(collection(db, `leads/${selectedLead.id}/emails`), orderBy("createdAt", "desc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setLeadEmails(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+    }, (error) => {
+      console.error("Error fetching lead emails:", error);
     });
     return () => unsubscribe();
   }, [selectedLead]);
@@ -206,33 +211,34 @@ export default function CRMDashboard() {
             <p className="text-white/40 mt-1">Track leads, generate quotes, and close deals.</p>
           </div>
           
-          <div className="flex items-center gap-4 w-full sm:w-auto">
-            <div className="relative flex-1 sm:w-64">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+            <div className="relative w-full sm:w-64">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-white/40" />
               <Input
                 placeholder="Search leads..."
-                className="pl-9 glass-card border-white/10 text-white placeholder:text-white/30"
+                className="pl-9 glass-card border-white/10 text-white placeholder:text-white/30 w-full animate-none"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
             
-            <Button
-              onClick={handleExportCSV}
-              variant="outline"
-              className="glass-card border-white/10 hover:bg-white/5 hover:text-white text-white/80 rounded-xl font-semibold h-10 px-4"
-            >
-              <Download className="mr-2 h-4 w-4 text-emerald-400" /> Export CSV
-            </Button>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Button
+                onClick={handleExportCSV}
+                variant="outline"
+                className="glass-card border-white/10 hover:bg-white/5 hover:text-white text-white/80 rounded-xl font-semibold h-10 px-4 flex-1 sm:flex-none cursor-pointer"
+              >
+                <Download className="mr-2 h-4 w-4 text-emerald-400 shrink-0" /> Export CSV
+              </Button>
 
-            <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-              <DialogTrigger 
-                render={
-                  <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-md rounded-xl font-semibold h-10 px-5">
-                    <Plus className="mr-2 h-4 w-4" /> New Lead
-                  </Button>
-                }
-              />
+              <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+                <DialogTrigger 
+                  render={
+                    <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-md rounded-xl font-semibold h-10 px-5 flex-1 sm:flex-none cursor-pointer">
+                      <Plus className="mr-2 h-4 w-4 shrink-0" /> New Lead
+                    </Button>
+                  }
+                />
               <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                   <DialogTitle>Add New Lead</DialogTitle>
@@ -263,6 +269,7 @@ export default function CRMDashboard() {
             </Dialog>
           </div>
         </div>
+      </div>
 
         {/* Kanban Board */}
         <div className="flex-1 overflow-x-auto pb-4 hide-scrollbar">

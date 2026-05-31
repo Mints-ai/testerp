@@ -78,16 +78,28 @@ export default function Chat() {
   useEffect(() => {
     if (!user) return;
 
-    const q = query(collection(db, "chatChannels"));
-    const unsubscribe = onSnapshot(q, async (snapshot) => {
-      const fetched = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as any));
-      setChannels(fetched);
+    let publicChannels: any[] = [];
+    let privateChannels: any[] = [];
+
+    const updateCombinedChannels = async (pub: any[], priv: any[]) => {
+      const allMerged = [...pub, ...priv];
+      const seen = new Set<string>();
+      const deduplicated: any[] = [];
+      
+      for (const ch of allMerged) {
+        if (!seen.has(ch.id)) {
+          seen.add(ch.id);
+          deduplicated.push(ch);
+        }
+      }
+
+      setChannels(deduplicated);
       setLoadingChannels(false);
 
       // Self-healing database cleanup: Delete existing duplicate or obsolete department channel documents from Firestore
       const validDepts = ["OPERATIONS", "IT & CYBER SECURITY", "MARKETING"];
       const seenDeptKeys = new Set<string>();
-      for (const channel of fetched) {
+      for (const channel of deduplicated) {
         if (channel.type === "department") {
           const deptKey = channel.department;
           const isObsolete = !validDepts.includes(deptKey);
@@ -112,7 +124,7 @@ export default function Chat() {
       ];
 
       for (const req of requiredChannels) {
-        const exists = fetched.some(c => 
+        const exists = deduplicated.some(c => 
           c.type === req.type && 
           (req.type === "global" ? c.name === req.name : c.department === req.department)
         );
@@ -128,9 +140,28 @@ export default function Chat() {
           }
         }
       }
+    };
+
+    const qPublic = query(collection(db, "chatChannels"), where("type", "in", ["global", "department"]));
+    const unsubPublic = onSnapshot(qPublic, (snapshot) => {
+      publicChannels = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      updateCombinedChannels(publicChannels, privateChannels);
+    }, (error) => {
+      console.error("Firestore onSnapshot error (public channels):", error);
     });
 
-    return () => unsubscribe();
+    const qPrivate = query(collection(db, "chatChannels"), where("members", "array-contains", user.uid));
+    const unsubPrivate = onSnapshot(qPrivate, (snapshot) => {
+      privateChannels = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      updateCombinedChannels(publicChannels, privateChannels);
+    }, (error) => {
+      console.error("Firestore onSnapshot error (private channels):", error);
+    });
+
+    return () => {
+      unsubPublic();
+      unsubPrivate();
+    };
   }, [user]);
 
   // 5. Default to 'General' channel on load
