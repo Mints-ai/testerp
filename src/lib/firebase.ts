@@ -1,6 +1,6 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 // Determine if we are running in the server/build phase
@@ -33,7 +33,23 @@ const isFirebaseConfigured = !!firebaseConfig.apiKey;
 if (isFirebaseConfigured) {
   app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
   auth = getAuth(app);
-  db = getFirestore(app);
+  
+  if (typeof window === "undefined") {
+    db = getFirestore(app);
+  } else {
+    try {
+      db = initializeFirestore(app, {
+        localCache: persistentLocalCache({
+          tabManager: persistentMultipleTabManager()
+        })
+      });
+      console.log("Mints Global ERP: Firestore Multi-Tab Offline Persistence successfully initialized.");
+    } catch (err) {
+      console.warn("Mints Global ERP: Offline persistence failed to initialize, falling back to standard memory cache.", err);
+      db = getFirestore(app);
+    }
+  }
+  
   storage = getStorage(app);
 } else {
   // If we are on the client and configuration is missing, we create a proxy
