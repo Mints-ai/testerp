@@ -77,13 +77,26 @@ service cloud.firestore {
 
     // Attendance Collection Rules
     match /attendance/{attendanceId} {
-      allow read: if isAuth() && (attendanceId.substring(0, request.auth.uid.size()) == request.auth.uid || isManagerOrAbove());
-      allow write: if isAuth() && (attendanceId.substring(0, request.auth.uid.size()) == request.auth.uid || isManagerOrAbove());
+      allow get: if isAuth() && (attendanceId[0:request.auth.uid.size()] == request.auth.uid || isManagerOrAbove());
+      allow list: if isAuth() && isManagerOrAbove();
+      allow list: if isAuth() && resource.data.uid == request.auth.uid;
+      allow write: if isAuth() && (attendanceId[0:request.auth.uid.size()] == request.auth.uid || isManagerOrAbove());
     }
 
     // Attendance Corrections Collection Rules
     match /attendanceCorrections/{requestId} {
-      allow read: if isAuth() && (resource.data.uid == request.auth.uid || isManagerOrAbove());
+      allow get: if isAuth() && (resource.data.uid == request.auth.uid || isManagerOrAbove());
+      allow list: if isAuth() && isManagerOrAbove();
+      allow list: if isAuth() && resource.data.uid == request.auth.uid;
+      allow create: if isAuth() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isAuth() && isManagerOrAbove();
+    }
+
+    // Status Reports Collection Rules
+    match /statusReports/{reportId} {
+      allow get: if isAuth() && (resource.data.uid == request.auth.uid || isManagerOrAbove());
+      allow list: if isAuth() && isManagerOrAbove();
+      allow list: if isAuth() && resource.data.uid == request.auth.uid;
       allow create: if isAuth() && request.resource.data.uid == request.auth.uid;
       allow update, delete: if isAuth() && isManagerOrAbove();
     }

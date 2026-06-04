@@ -320,7 +320,7 @@ export default function CRMDashboard() {
                                       Move to {s}
                                     </DropdownMenuItem>
                                   ))}
-                                  {currentRole === "founder" && (
+                                  {(currentRole === "founder" || currentRole === "system_admin") && (
                                     <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDeleteLead(lead.id); }} className="text-red-400 focus:text-red-300">
                                       Delete Lead
                                     </DropdownMenuItem>

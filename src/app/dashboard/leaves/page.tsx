@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CalendarIcon, Clock, CheckCircle2, XCircle, ChevronLeft, ChevronRight } from "lucide-react";
+import { CalendarIcon, Clock, CheckCircle2, XCircle, ChevronLeft, ChevronRight, Edit } from "lucide-react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths } from "date-fns";
 import { cn, sendDiscordNotification } from "@/lib/utils";
 
@@ -38,6 +38,9 @@ export default function LeaveManagement() {
   const [balance, setBalance] = useState({ totalAnnual: 30, usedAnnual: 0, usedSick: 0 });
   const [loading, setLoading] = useState(true);
   const [employeesMap, setEmployeesMap] = useState<Record<string, any>>({});
+  // Admin edit state
+  const [selectedLeave, setSelectedLeave] = useState<any>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   
   const [isApplyOpen, setIsApplyOpen] = useState(false);
   const [newLeave, setNewLeave] = useState({ type: "", startDate: "", endDate: "", reason: "" });
@@ -159,6 +162,32 @@ export default function LeaveManagement() {
       });
     } catch (err) {
       console.error(`Error updating leave status to ${status}:`, err);
+    }
+  };
+
+  // Open edit dialog with selected leave
+  const handleEditOpen = (leave: any) => {
+    setSelectedLeave(leave);
+    setIsEditOpen(true);
+  };
+
+  // Save edited leave details
+  const handleEditSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedLeave) return;
+    const { id, leaveType, startDate, endDate, reason } = selectedLeave;
+    try {
+      await updateDoc(doc(db, "leaves", id), {
+        leaveType,
+        startDate,
+        endDate,
+        reason,
+        updatedAt: serverTimestamp(),
+      });
+      setIsEditOpen(false);
+      setSelectedLeave(null);
+    } catch (err) {
+      console.error("Error editing leave:", err);
     }
   };
 
@@ -393,17 +422,22 @@ export default function LeaveManagement() {
                         <div className="flex gap-4 pt-2 border-t border-white/[0.06]">
                           <Button 
                             className="flex-1 h-10 text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-glow-emerald border-0 cursor-pointer" 
-                            onClick={() => handleApproveReject(leave.id, "approved")}
-                          >
+                            onClick={() => handleApproveReject(leave.id, "approved")}>
                             <CheckCircle2 className="mr-2 h-4 w-4" /> Approve
                           </Button>
-                          <Button 
+                          <Button
                             variant="destructive" 
-                            className="flex-1 h-10 text-xs bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl shadow-glow-rose border-0 cursor-pointer"
-                            onClick={() => handleApproveReject(leave.id, "rejected")}
-                          >
+                            className="flex-1 h-10 text-xs bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl shadow-glow-rose border-0 cursor-pointer" 
+                            onClick={() => handleApproveReject(leave.id, "rejected")}>
                             <XCircle className="mr-2 h-4 w-4" /> Reject
                           </Button>
+                          {canAccess(role, "EDIT_LEAVE") && (
+                            <Button
+                              className="flex-1 h-10 text-xs bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-xl shadow-glow-gray border-0 cursor-pointer" 
+                              onClick={() => handleEditOpen({ ...leave })}>
+                              Edit
+                            </Button>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -412,6 +446,76 @@ export default function LeaveManagement() {
               </div>
             )}
           </TabsContent>
+
+{/* Edit Leave Dialog */}
+<Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+  <DialogContent className="max-w-md bg-[#0a1628] border border-white/[0.08] text-white backdrop-blur-xl rounded-2xl shadow-2xl">
+    <DialogHeader>
+      <DialogTitle className="text-xl font-bold text-white flex items-center gap-2">
+        <Edit className="w-5 h-5 text-blue-400 animate-pulse" /> Edit Leave
+      </DialogTitle>
+      <DialogDescription className="text-white/40 text-xs mt-1">
+        Modify leave details and save.
+      </DialogDescription>
+    </DialogHeader>
+    {selectedLeave && (
+      <form onSubmit={handleEditSave} className="space-y-4 pt-4">
+        <div className="space-y-1.5">
+          <Label className="text-xs font-semibold text-white/70">Leave Type</Label>
+          <Select
+            value={selectedLeave.leaveType}
+            onValueChange={(val) => setSelectedLeave({ ...selectedLeave, leaveType: val })}
+          >
+            <SelectTrigger className="glass-input h-10 text-xs border-white/10 px-3 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 text-white bg-[#0c1322]">
+              <SelectValue placeholder="Select type" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#0c1322] border border-white/10 text-white rounded-xl">
+              {LEAVE_TYPES.map((t) => (
+                <SelectItem key={t} value={t} className="focus:bg-white/5 cursor-pointer">
+                  {t}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold text-white/70">Start Date</Label>
+            <Input
+              type="date"
+              required
+              value={selectedLeave.startDate}
+              onChange={(e) => setSelectedLeave({ ...selectedLeave, startDate: e.target.value })}
+              className="glass-input h-10 text-xs border-white/10 px-3 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 text-white"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold text-white/70">End Date</Label>
+            <Input
+              type="date"
+              required
+              value={selectedLeave.endDate}
+              onChange={(e) => setSelectedLeave({ ...selectedLeave, endDate: e.target.value })}
+              className="glass-input h-10 text-xs border-white/10 px-3 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 text-white"
+            />
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs font-semibold text-white/70">Reason (Optional)</Label>
+          <Textarea
+            placeholder="Brief explanation..."
+            value={selectedLeave.reason}
+            onChange={(e) => setSelectedLeave({ ...selectedLeave, reason: e.target.value })}
+            className="glass-input min-h-[80px] text-xs border-white/10 p-3 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 text-white"
+          />
+        </div>
+        <Button type="submit" className="w-full h-11 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-glow-blue border-0 cursor-pointer rounded-xl">
+          Save Changes
+        </Button>
+      </form>
+    )}
+  </DialogContent>
+</Dialog>
 
           <TabsContent value="calendar" className="focus-visible:outline-none">
             <Card className="border-white/[0.08] bg-white/[0.02] shadow-card rounded-2xl overflow-hidden backdrop-blur-xl text-white">
@@ -523,7 +627,8 @@ export default function LeaveManagement() {
                         <th className="px-6 py-4 font-bold">Type</th>
                         <th className="px-6 py-4 font-bold">Dates</th>
                         <th className="px-6 py-4 font-bold text-center">Days</th>
-                        <th className="px-6 py-4 font-bold text-center">Status</th>
+                        <th className="px-6 py-4 font-bold text-center">Actions</th>
+<th className="px-6 py-4 font-bold text-center">Status</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/[0.04]">
@@ -548,6 +653,18 @@ export default function LeaveManagement() {
                               {leave.startDate} to {leave.endDate}
                             </td>
                             <td className="px-6 py-4 text-center font-bold font-mono text-blue-400">{leave.daysCount}</td>
+                            <td className="px-6 py-4 text-center">
+                              {canAccess(role, "EDIT_LEAVE") && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 px-2 text-xs"
+                                  onClick={() => handleEditOpen({ ...leave })}
+                                >
+                                  Edit
+                                </Button>
+                              )}
+                            </td>
                             <td className="px-6 py-4 text-center">
                               <Badge variant="outline" className={cn("font-bold shadow-none text-xs", STATUS_COLORS[leave.status] || STATUS_COLORS.pending)}>
                                 {leave.status.charAt(0).toUpperCase() + leave.status.slice(1)}

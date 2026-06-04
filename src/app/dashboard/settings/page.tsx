@@ -216,7 +216,7 @@ export default function SettingsDashboard() {
     }
   };
 
-  const isFounder = role === "founder";
+  const isFounder = role === "founder" || role === "system_admin";
   const isCSuiteOrAbove = canAccess(role, "SYSTEM_SETTINGS"); // founder, c_suite
 
   // Load preferences from Firestore / localStorage on mount

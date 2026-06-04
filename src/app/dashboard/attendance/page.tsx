@@ -76,6 +76,11 @@ export default function AttendancePage() {
   const [corrSuccess, setCorrSuccess] = useState(false);
   const [myCorrections, setMyCorrections] = useState<any[]>([]);
 
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   // Fetch chart workload metrics for the past 7 days
   useEffect(() => {
     if (!user) return;
@@ -376,7 +381,7 @@ export default function AttendancePage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] text-white">
+    <div className="flex flex-col h-auto lg:h-[calc(100vh-8rem)] text-white">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 shrink-0">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-white">Attendance</h1>
@@ -503,65 +508,69 @@ export default function AttendancePage() {
                       7 Days Activity
                     </Badge>
                   </CardHeader>
-                  <CardContent className="pt-6 px-0 pb-0 h-[220px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                        <XAxis 
-                          dataKey="day" 
-                          stroke="rgba(255,255,255,0.3)" 
-                          fontSize={11} 
-                          tickLine={false} 
-                          axisLine={false} 
-                        />
-                        <YAxis 
-                          stroke="rgba(255,255,255,0.3)" 
-                          fontSize={11} 
-                          tickLine={false} 
-                          axisLine={false}
-                          tickFormatter={(value) => `${value}h`}
-                          domain={[0, 12]}
-                        />
-                        <Tooltip 
-                          content={({ active, payload }) => {
-                            if (active && payload && payload.length) {
-                              const data = payload[0].payload;
-                              return (
-                                <div className="bg-[#0b1329]/95 border border-white/10 rounded-xl p-3 shadow-xl backdrop-blur-md">
-                                  <p className="text-[9px] text-white/40 font-bold uppercase tracking-wider">{new Date(data.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
-                                  <p className="text-xs font-black text-blue-400 mt-1">{data.hours} hours logged</p>
-                                </div>
-                              );
-                            }
-                            return null;
-                          }}
-                        />
-                        <Bar dataKey="hours" radius={[4, 4, 0, 0]} maxBarSize={30}>
-                          {chartData.map((entry, index) => (
-                            <Cell 
-                              key={`cell-${index}`} 
-                              fill={entry.hours >= 8 ? 'url(#barCyanGrad)' : 'url(#barBlueGrad)'} 
-                              className="transition-all duration-300 hover:opacity-80"
-                            />
-                          ))}
-                        </Bar>
-                        <defs>
-                          <linearGradient id="barBlueGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#2563eb" stopOpacity={0.8}/>
-                            <stop offset="100%" stopColor="#2563eb" stopOpacity={0.2}/>
-                          </linearGradient>
-                          <linearGradient id="barCyanGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#06b6d4" stopOpacity={0.8}/>
-                            <stop offset="100%" stopColor="#06b6d4" stopOpacity={0.2}/>
-                          </linearGradient>
-                        </defs>
-                      </BarChart>
-                    </ResponsiveContainer>
+                  <CardContent className="pt-6 px-0 pb-0 h-[220px] w-full relative">
+                    {mounted ? (
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                          <XAxis 
+                            dataKey="day" 
+                            stroke="rgba(255,255,255,0.3)" 
+                            fontSize={11} 
+                            tickLine={false} 
+                            axisLine={false} 
+                          />
+                          <YAxis 
+                            stroke="rgba(255,255,255,0.3)" 
+                            fontSize={11} 
+                            tickLine={false} 
+                            axisLine={false}
+                            tickFormatter={(value) => `${value}h`}
+                            domain={[0, 12]}
+                          />
+                          <Tooltip 
+                            content={({ active, payload }) => {
+                              if (active && payload && payload.length) {
+                                const data = payload[0].payload;
+                                return (
+                                  <div className="bg-[#0b1329]/95 border border-white/10 rounded-xl p-3 shadow-xl backdrop-blur-md">
+                                    <p className="text-[9px] text-white/40 font-bold uppercase tracking-wider">{new Date(data.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                                    <p className="text-xs font-black text-blue-400 mt-1">{data.hours} hours logged</p>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            }}
+                          />
+                          <Bar dataKey="hours" radius={[4, 4, 0, 0]} maxBarSize={30}>
+                            {chartData.map((entry, index) => (
+                              <Cell 
+                                key={`cell-${index}`} 
+                                fill={entry.hours >= 8 ? 'url(#barCyanGrad)' : 'url(#barBlueGrad)'} 
+                                className="transition-all duration-300 hover:opacity-80"
+                              />
+                            ))}
+                          </Bar>
+                          <defs>
+                            <linearGradient id="barBlueGrad" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#2563eb" stopOpacity={0.8}/>
+                              <stop offset="100%" stopColor="#2563eb" stopOpacity={0.2}/>
+                            </linearGradient>
+                            <linearGradient id="barCyanGrad" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="0%" stopColor="#06b6d4" stopOpacity={0.8}/>
+                              <stop offset="100%" stopColor="#06b6d4" stopOpacity={0.2}/>
+                            </linearGradient>
+                          </defs>
+                        </BarChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center text-xs text-white/20">Loading workload metrics...</div>
+                    )}
                   </CardContent>
                 </Card>
               </div>
 
               {/* Right Rail - Logs & Summary */}
-              <div className="space-y-6 flex flex-col h-full justify-between">
+              <div className="space-y-6 flex flex-col h-auto lg:h-full justify-start lg:justify-between">
                 {/* User Profile Summary */}
                 <Card className="border-white/[0.08] bg-white/[0.02] shadow-card rounded-2xl overflow-hidden backdrop-blur-xl shrink-0">
                   <CardContent className="p-6">

@@ -21,6 +21,7 @@ export const PERMISSIONS = {
   APPROVE_EXPENSE:      ["founder", "system_admin", "c_suite", "manager"],
   CREATE_PROJECT:       ["founder", "system_admin", "c_suite", "manager", "senior_employee"],
   APPROVE_LEAVE:        ["founder", "system_admin", "c_suite", "manager"],
+  EDIT_LEAVE:           ["founder", "system_admin", "c_suite", "manager"],
   POST_ANNOUNCEMENT:    ["founder", "system_admin", "c_suite", "manager"],
   VIEW_REPORTS:         ["founder", "system_admin", "c_suite", "manager"],
   SYSTEM_SETTINGS:      ["founder", "system_admin", "c_suite"],

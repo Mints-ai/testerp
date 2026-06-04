@@ -286,7 +286,7 @@ export default function ProjectDetail() {
                 <p className="text-xs font-bold text-white/40 uppercase tracking-wider mt-4">Project Health</p>
               </div>
               
-              {currentRole === "founder" && (
+              {(currentRole === "founder" || currentRole === "system_admin") && (
                 <button 
                   onClick={handleDeleteProject}
                   className="w-full px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-bold uppercase tracking-wider rounded-xl border border-red-500/20 transition-colors"

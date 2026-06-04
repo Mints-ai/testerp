@@ -105,14 +105,14 @@ export function TopNav() {
 
         <div className="flex items-center space-x-4">
           {/* Dynamic Role Switcher for Founders / Admins */}
-          {user?.role === "founder" && (
+          {(user?.role === "founder" || user?.role === "system_admin") && (
             <div className="flex items-center gap-1.5 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] hover:border-white/[0.12] rounded-xl px-2.5 py-1.5 transition-all text-white shadow-sm">
               <span className="text-[9px] uppercase font-bold text-blue-400 tracking-wider">Simulate:</span>
               <select
-                value={simulatedRole || "founder"}
+                value={simulatedRole || user?.role || "founder"}
                 onChange={(e) => {
                   const val = e.target.value;
-                  setSimulatedRole(val === "founder" ? null : val);
+                  setSimulatedRole(val === user?.role ? null : val);
                 }}
                 className="bg-transparent text-xs font-bold text-white border-0 outline-none focus:ring-0 cursor-pointer pr-1 py-0 scrollbar-hide select-none max-w-[130px] overflow-hidden truncate"
                 style={{

@@ -73,6 +73,7 @@ export default function CapacityPlanning() {
         const isSysAdmin = d.email?.toLowerCase().trim() === "systemadministrator@mintsglobal.ae" ||
                            d.email?.toLowerCase().trim() === "binuarjunanand@gmail.com" ||
                            d.role === "system_administrator" ||
+                           d.role === "system_admin" ||
                            d.fullName === "System Administrator";
         if (!isSysAdmin) {
           usersMap.set(docSnap.id, d);

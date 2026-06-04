@@ -90,29 +90,39 @@ export function AttendanceHistory() {
 
   // Fetch attendance history records
   useEffect(() => {
-    if (!user) return;
+    if (!user || role === null || role === undefined) return;
 
-    let q = query(
-      collection(db, "attendance"),
-      where("date", ">=", startDate),
-      where("date", "<=", endDate),
-      orderBy("date", "desc")
-    );
-
-    // Apply client-side employee filter if not "all" (or always restrict if standard employee)
     const targetUid = isAdminOrManager 
       ? (selectedEmployeeId === "all" ? null : selectedEmployeeId)
       : user.uid;
 
+    let q;
+    if (targetUid) {
+      // Query specific employee's attendance to satisfy Firestore security rules
+      q = query(
+        collection(db, "attendance"),
+        where("uid", "==", targetUid)
+      );
+    } else {
+      // Admin querying all employees: query by date range
+      q = query(
+        collection(db, "attendance"),
+        where("date", ">=", startDate),
+        where("date", "<=", endDate),
+        orderBy("date", "desc")
+      );
+    }
+
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      let filtered = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      let fetched = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       
-      // Filter by employee if needed
+      // If we queried a specific employee, filter dates and sort client-side (avoids compound index requirement)
       if (targetUid) {
-        filtered = filtered.filter((r: any) => r.uid === targetUid);
+        fetched = fetched.filter((r: any) => r.date >= startDate && r.date <= endDate);
+        fetched.sort((a: any, b: any) => (b.date || "").localeCompare(a.date || ""));
       }
 
-      setRecords(filtered);
+      setRecords(fetched);
       setLoading(false);
     }, (error) => {
       console.error("Error subscribing to attendance history logs:", error);
@@ -120,7 +130,7 @@ export function AttendanceHistory() {
     });
 
     return () => unsubscribe();
-  }, [user, startDate, endDate, selectedEmployeeId, isAdminOrManager]);
+  }, [user, role, startDate, endDate, selectedEmployeeId, isAdminOrManager]);
 
   // Filter records in-memory if admin is searching table by employee name
   const filteredRecords = records.filter(rec => {

@@ -54,7 +54,7 @@ const NAV_GROUPS = [
     label: "Finance",
     items: [
       { name: "Finance",      href: "/dashboard/finance",            icon: Wallet,           permission: "MANAGE_FINANCE" },
-      { name: "Reports",      href: "/dashboard/reports",            icon: BarChart3,        permission: "MANAGE_FINANCE" },
+      { name: "Reports",      href: "/dashboard/reports",            icon: BarChart3,        permission: null },
     ]
   },
   {
