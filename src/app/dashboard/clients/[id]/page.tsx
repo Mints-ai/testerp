@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { doc, getDoc, updateDoc, collection, query, where, getDocs, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
@@ -13,9 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Building2, Mail, Phone, Globe, Clock, User, FileText, ChevronLeft, Save, Briefcase, Banknote } from "lucide-react";
 
-export default function ClientProfile({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = React.use(params);
-  const id = resolvedParams.id;
+export default function ClientProfile() {
+  const params = useParams();
+  const id = params.id as string;
   const router = useRouter();
   const { user } = useAuth();
 
