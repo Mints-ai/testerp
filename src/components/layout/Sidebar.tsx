@@ -78,7 +78,7 @@ function SidebarContent({ isExpanded, onNavigate }: { isExpanded: boolean; onNav
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Logo */}
-      <div className="h-16 flex items-center px-4 gap-3 shrink-0 border-b border-white/[0.06]">
+      <div className="h-16 flex items-center px-4 gap-3 shrink-0 border-b border-sidebar-border">
         <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white shadow-glow-blue shrink-0">
           <Zap className="h-4.5 w-4.5 text-white fill-white/20 animate-pulse" />
         </div>
@@ -88,7 +88,7 @@ function SidebarContent({ isExpanded, onNavigate }: { isExpanded: boolean; onNav
             animate={{ opacity: 1, x: 0 }}
             className="flex flex-col"
           >
-            <span className="font-bold text-sm tracking-tight text-white leading-tight">Mints Global</span>
+            <span className="font-bold text-sm tracking-tight text-sidebar-foreground leading-tight">Mints Global</span>
             <span className="text-[10px] font-semibold text-blue-400 uppercase tracking-widest leading-none">ERP Platform</span>
           </motion.div>
         )}
@@ -104,7 +104,7 @@ function SidebarContent({ isExpanded, onNavigate }: { isExpanded: boolean; onNav
           return (
             <div key={gi} className="space-y-1.5">
               {isExpanded && (
-                <div className="px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-white/20 mb-2">
+                <div className="px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-sidebar-foreground/30 mb-2">
                   {group.label}
                 </div>
               )}
@@ -120,8 +120,8 @@ function SidebarContent({ isExpanded, onNavigate }: { isExpanded: boolean; onNav
                       className={cn(
                         "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group relative border border-transparent",
                         active
-                          ? "bg-blue-600/20 text-blue-300 border-blue-500/25 shadow-sm"
-                          : "text-white/40 hover:text-white/80 hover:bg-white/[0.04]"
+                          ? "bg-blue-600/20 text-blue-350 dark:text-blue-300 border-blue-500/25 shadow-sm"
+                          : "text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent"
                       )}
                     >
                       {active && (
@@ -133,7 +133,7 @@ function SidebarContent({ isExpanded, onNavigate }: { isExpanded: boolean; onNav
                       <item.icon
                         className={cn(
                           "h-5 w-5 shrink-0 relative z-10",
-                          active ? "text-blue-400" : "text-white/30 group-hover:text-white/60"
+                          active ? "text-blue-550 dark:text-blue-400" : "text-sidebar-foreground/45 group-hover:text-sidebar-foreground"
                         )}
                       />
                       {isExpanded && (
@@ -149,9 +149,9 @@ function SidebarContent({ isExpanded, onNavigate }: { isExpanded: boolean; onNav
       </div>
 
       {/* User Footer */}
-      <div className="p-4 border-t border-white/[0.06] bg-blue-950/40 shrink-0">
+      <div className="p-4 border-t border-sidebar-border bg-sidebar-accent/40 shrink-0">
         <div className="flex items-center gap-3">
-          <Avatar className="h-9 w-9 border border-white/10 ring-2 ring-blue-500/20 ring-offset-2 ring-offset-transparent shrink-0">
+          <Avatar className="h-9 w-9 border border-sidebar-border ring-2 ring-blue-500/20 ring-offset-2 ring-offset-transparent shrink-0">
             <AvatarImage src={user?.photoURL || undefined} alt={user?.fullName || user?.displayName || "User"} />
             <AvatarFallback className="bg-blue-800 text-blue-200 text-[10px] font-bold">
               {getInitials(user?.fullName || user?.displayName || "")}
@@ -164,7 +164,7 @@ function SidebarContent({ isExpanded, onNavigate }: { isExpanded: boolean; onNav
               animate={{ opacity: 1, width: "auto" }}
               className="flex-1 min-w-0"
             >
-              <p className="text-xs font-bold text-white truncate leading-tight">{user?.fullName || user?.displayName || "User"}</p>
+              <p className="text-xs font-bold text-sidebar-foreground truncate leading-tight">{user?.fullName || user?.displayName || "User"}</p>
               <p className="text-[10px] text-blue-400/80 font-medium capitalize truncate leading-none mt-0.5">
                 {user?.jobTitle || roleMeta?.label || role} {user?.role !== role && <span className="text-[9px] text-amber-400 font-bold ml-1 animate-pulse">(Sim)</span>}
               </p>
@@ -176,7 +176,7 @@ function SidebarContent({ isExpanded, onNavigate }: { isExpanded: boolean; onNav
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               onClick={() => logout()}
-              className="p-1.5 ml-auto text-white/20 hover:text-red-400 hover:bg-white/5 rounded-lg transition-colors cursor-pointer"
+              className="p-1.5 ml-auto text-sidebar-foreground/40 hover:text-red-400 hover:bg-sidebar-accent rounded-lg transition-colors cursor-pointer"
               title="Log out"
             >
               <LogOut className="h-4 w-4 shrink-0" />
@@ -216,7 +216,7 @@ export function Sidebar() {
 
       {/* Mobile drawer */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="w-[280px] p-0 border-r border-white/[0.08] bg-[#121813] text-white">
+        <SheetContent side="left" className="w-[280px] p-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
           <SidebarContent isExpanded={true} onNavigate={() => setMobileOpen(false)} />
         </SheetContent>
       </Sheet>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, where, getDocs, orderBy, onSnapshot } from "firebase/firestore";
+import { collection, query, where, getDocs, orderBy, onSnapshot, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { canAccess } from "@/lib/permissions";
@@ -30,9 +30,14 @@ import {
   Coffee,
   Play,
   Square,
-  Download
+  Download,
+  Edit3,
+  Plus,
+  Trash2,
+  Save,
+  ShieldAlert
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, sendDiscordNotification } from "@/lib/utils";
 import { downloadCSV } from "@/lib/exportUtils";
 
 // Formatting Helpers
@@ -73,6 +78,146 @@ export function AttendanceHistory() {
 
   const [records, setRecords] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Timecard Editor States
+  const [editRecord, setEditRecord] = useState<any | null>(null);
+  const [editLogs, setEditLogs] = useState<any[]>([]);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [savingOverride, setSavingOverride] = useState(false);
+
+  // Timecard Helpers
+  const getHHMM = (timestampStr: string) => {
+    try {
+      const d = new Date(timestampStr);
+      return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+    } catch {
+      return "";
+    }
+  };
+
+  const combineDateAndTime = (dateStr: string, hhmm: string) => {
+    const [hours, minutes] = hhmm.split(":").map(Number);
+    const d = new Date(dateStr);
+    d.setHours(hours, minutes, 0, 0);
+    return d.toISOString();
+  };
+
+  const formatHHMMTo12h = (hhmm: string) => {
+    let [hours, minutes] = hhmm.split(":").map(Number);
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12;
+    const minutesStr = minutes.toString().padStart(2, '0');
+    return `${hours.toString().padStart(2, '0')}:${minutesStr} ${ampm}`;
+  };
+
+  const calculateShiftSeconds = (logsList: any[]) => {
+    const sortedLogs = [...logsList].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    let totalWorkingSeconds = 0;
+    let totalBreakSeconds = 0;
+    
+    let currentSessionStart: number | null = null;
+    let currentBreakStart: number | null = null;
+    let currentState: "out" | "in" | "break" = "out";
+
+    for (const log of sortedLogs) {
+      const logTime = new Date(log.timestamp).getTime();
+      
+      if (log.type === "in") {
+        if (currentState === "break" && currentBreakStart !== null) {
+          const breakDuration = Math.floor((logTime - currentBreakStart) / 1000);
+          totalBreakSeconds += breakDuration;
+          currentBreakStart = null;
+        }
+        if (currentState === "out" || currentState === "break") {
+          currentSessionStart = logTime;
+        }
+        currentState = "in";
+      } else if (log.type === "break") {
+        if (currentState === "in" && currentSessionStart !== null) {
+          const workDuration = Math.floor((logTime - currentSessionStart) / 1000);
+          totalWorkingSeconds += workDuration;
+          currentSessionStart = null;
+        }
+        if (currentState === "in" || currentState === "out") {
+          currentBreakStart = logTime;
+        }
+        currentState = "break";
+      } else if (log.type === "out") {
+        if (currentState === "in" && currentSessionStart !== null) {
+          const workDuration = Math.floor((logTime - currentSessionStart) / 1000);
+          totalWorkingSeconds += workDuration;
+          currentSessionStart = null;
+        } else if (currentState === "break" && currentBreakStart !== null) {
+          const breakDuration = Math.floor((logTime - currentBreakStart) / 1000);
+          totalBreakSeconds += breakDuration;
+          currentBreakStart = null;
+        }
+        currentState = "out";
+      }
+    }
+    
+    return {
+      totalWorkingSeconds,
+      totalBreakSeconds,
+      status: currentState
+    };
+  };
+
+  const handleSaveOverride = async () => {
+    if (!user || !editRecord) return;
+    setSavingOverride(true);
+    try {
+      const { totalWorkingSeconds, totalBreakSeconds, status } = calculateShiftSeconds(editLogs);
+      const sortedLogs = [...editLogs].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+      
+      // Update lastActionTimestamp to be the timestamp of the last log
+      const lastActionLog = sortedLogs[sortedLogs.length - 1];
+      const lastActionTimestamp = lastActionLog ? new Date(lastActionLog.timestamp).getTime() : Date.now();
+
+      const attDocRef = doc(db, "attendance", editRecord.id);
+      const { updateDoc } = await import("firebase/firestore");
+      
+      await updateDoc(attDocRef, {
+        logs: sortedLogs,
+        totalWorkingSeconds,
+        totalBreakSeconds,
+        status,
+        lastActionTimestamp,
+        modifiedBy: user.fullName || user.email || "Admin",
+        modifiedAt: new Date().toISOString()
+      });
+
+      // Write an audit log entry
+      const { collection, addDoc } = await import("firebase/firestore");
+      await addDoc(collection(db, "auditLog"), {
+        actorId: user.uid,
+        action: "TIMECARD_OVERRIDE",
+        targetCollection: "attendance",
+        targetId: editRecord.id,
+        details: `Admin modified shift logs for ${editRecord.employeeName} on ${editRecord.date}. Recalculated work: ${formatElapsed(totalWorkingSeconds)}, break: ${formatElapsed(totalBreakSeconds)}.`,
+        createdAt: { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0 }
+      });
+
+      // Send Discord notification
+      await sendDiscordNotification(
+        `✏️ **Shift Override Completed** by Admin **${user.fullName || user.email}** for **${editRecord.employeeName}** on **${editRecord.date}**.\n` +
+        `* Recalculated Work: \`${formatElapsed(totalWorkingSeconds)}\` (was \`${formatElapsed(editRecord.totalWorkingSeconds || 0)}\`)\n` +
+        `* Recalculated Break: \`${formatElapsed(totalBreakSeconds)}\` (was \`${formatElapsed(editRecord.totalBreakSeconds || 0)}\`)\n` +
+        `* Status Set To: \`${status.toUpperCase()}\``,
+        undefined,
+        'hr'
+      );
+
+      setEditorOpen(false);
+      setEditRecord(null);
+      setEditLogs([]);
+    } catch (err) {
+      console.error("Error saving timecard overrides:", err);
+    } finally {
+      setSavingOverride(false);
+    }
+  };
 
   // Fetch employees list if Admin/Manager
   useEffect(() => {
@@ -425,71 +570,88 @@ export function AttendanceHistory() {
                           {breakSec > 0 ? formatElapsed(breakSec) : "00:00:00"}
                         </td>
 
-                        {/* Action Details Dialog */}
+                        {/* Actions */}
                         <td className="px-6 py-4 text-center">
-                          <Dialog>
-                            <DialogTrigger render={
+                          <div className="flex items-center justify-center gap-2">
+                            <Dialog>
+                              <DialogTrigger render={
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 px-3 text-white/60 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs flex items-center justify-center gap-1 cursor-pointer"
+                                >
+                                  <Eye className="w-3.5 h-3.5" /> Details
+                                </Button>
+                              }/>
+                              <DialogContent className="max-w-md bg-[#0a1628] border border-white/[0.08] text-white backdrop-blur-xl rounded-2xl shadow-2xl">
+                                <DialogHeader>
+                                  <DialogTitle className="text-xl font-bold flex items-center gap-2 text-white">
+                                    <Clock className="w-5 h-5 text-blue-400 animate-pulse" />
+                                    Shift Activity Timeline
+                                  </DialogTitle>
+                                  <DialogDescription className="text-white/40 text-xs mt-1">
+                                    Chronological logs for <span className="text-white font-bold">{rec.employeeName || "Employee"}</span> on <span className="text-blue-400 font-bold">{formattedDateLabel(rec.date)}</span>
+                                  </DialogDescription>
+                                </DialogHeader>
+
+                                {/* Stats Overview inside Modal */}
+                                <div className="grid grid-cols-2 gap-4 mt-4 bg-white/[0.02] border border-white/[0.06] rounded-xl p-3 text-center">
+                                  <div>
+                                    <p className="text-[9px] text-white/40 uppercase tracking-widest font-bold">Total Work Time</p>
+                                    <p className="text-lg font-bold text-emerald-400 font-mono mt-1">{formatElapsed(workingSec)}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-[9px] text-white/40 uppercase tracking-widest font-bold">Total Break Time</p>
+                                    <p className="text-lg font-bold text-amber-400 font-mono mt-1">{formatElapsed(breakSec)}</p>
+                                  </div>
+                                </div>
+
+                                <div className="mt-6 space-y-4 max-h-[350px] overflow-y-auto pr-1">
+                                  {rec.logs && rec.logs.length > 0 ? (
+                                    <div className="relative pl-6 border-l border-white/10 space-y-4 ml-3 py-1">
+                                      {rec.logs.map((log: any, idx: number) => (
+                                        <div key={idx} className="relative">
+                                          {/* Dot node */}
+                                          <div className={cn(
+                                            "absolute -left-[30px] top-1.5 w-2 h-2 rounded-full ring-4 ring-[#0a1628]",
+                                            log.type === "in" ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" :
+                                            log.type === "break" ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]" :
+                                            "bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]"
+                                          )} />
+                                          <div className="flex justify-between items-center bg-white/[0.02] border border-white/[0.06] rounded-xl p-3 hover:bg-white/[0.04] transition-colors">
+                                            <div>
+                                              <h4 className="font-bold text-sm text-white">{log.label}</h4>
+                                              <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider mt-0.5">Terminal Action</p>
+                                            </div>
+                                            <span className="font-bold text-sm text-blue-400 font-mono tabular-nums">{log.time}</span>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <div className="text-center py-8 text-white/40 italic">
+                                      No activity logs found for this date.
+                                    </div>
+                                  )}
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+
+                            {isAdminOrManager && (
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-8 px-3 text-white/60 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs flex items-center justify-center gap-1 mx-auto cursor-pointer"
+                                onClick={() => {
+                                  setEditRecord(rec);
+                                  setEditLogs(rec.logs || []);
+                                  setEditorOpen(true);
+                                }}
+                                className="h-8 px-3 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded-lg font-bold text-xs flex items-center justify-center gap-1 cursor-pointer"
                               >
-                                <Eye className="w-3.5 h-3.5" /> Details
+                                <Edit3 className="w-3.5 h-3.5" /> Edit Logs
                               </Button>
-                            }/>
-                            <DialogContent className="max-w-md bg-[#0a1628] border border-white/[0.08] text-white backdrop-blur-xl rounded-2xl shadow-2xl">
-                              <DialogHeader>
-                                <DialogTitle className="text-xl font-bold flex items-center gap-2 text-white">
-                                  <Clock className="w-5 h-5 text-blue-400 animate-pulse" />
-                                  Shift Activity Timeline
-                                </DialogTitle>
-                                <DialogDescription className="text-white/40 text-xs mt-1">
-                                  Chronological logs for <span className="text-white font-bold">{rec.employeeName || "Employee"}</span> on <span className="text-blue-400 font-bold">{formattedDateLabel(rec.date)}</span>
-                                </DialogDescription>
-                              </DialogHeader>
-
-                              {/* Stats Overview inside Modal */}
-                              <div className="grid grid-cols-2 gap-4 mt-4 bg-white/[0.02] border border-white/[0.06] rounded-xl p-3 text-center">
-                                <div>
-                                  <p className="text-[9px] text-white/40 uppercase tracking-widest font-bold">Total Work Time</p>
-                                  <p className="text-lg font-bold text-emerald-400 font-mono mt-1">{formatElapsed(workingSec)}</p>
-                                </div>
-                                <div>
-                                  <p className="text-[9px] text-white/40 uppercase tracking-widest font-bold">Total Break Time</p>
-                                  <p className="text-lg font-bold text-amber-400 font-mono mt-1">{formatElapsed(breakSec)}</p>
-                                </div>
-                              </div>
-
-                              <div className="mt-6 space-y-4 max-h-[350px] overflow-y-auto pr-1">
-                                {rec.logs && rec.logs.length > 0 ? (
-                                  <div className="relative pl-6 border-l border-white/10 space-y-4 ml-3 py-1">
-                                    {rec.logs.map((log: any, idx: number) => (
-                                      <div key={idx} className="relative">
-                                        {/* Dot node */}
-                                        <div className={cn(
-                                          "absolute -left-[30px] top-1.5 w-2 h-2 rounded-full ring-4 ring-[#0a1628]",
-                                          log.type === "in" ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" :
-                                          log.type === "break" ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]" :
-                                          "bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]"
-                                        )} />
-                                        <div className="flex justify-between items-center bg-white/[0.02] border border-white/[0.06] rounded-xl p-3 hover:bg-white/[0.04] transition-colors">
-                                          <div>
-                                            <h4 className="font-bold text-sm text-white">{log.label}</h4>
-                                            <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider mt-0.5">Terminal Action</p>
-                                          </div>
-                                          <span className="font-bold text-sm text-blue-400 font-mono tabular-nums">{log.time}</span>
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <div className="text-center py-8 text-white/40 italic">
-                                    No activity logs found for this date.
-                                  </div>
-                                )}
-                              </div>
-                            </DialogContent>
-                          </Dialog>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -500,6 +662,135 @@ export function AttendanceHistory() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Admin Edit Shift Logs Dialog */}
+      <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
+        <DialogContent className="max-w-2xl bg-[#0a1628] border border-white/[0.08] text-white backdrop-blur-xl rounded-2xl shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2 text-white">
+              <ShieldAlert className="w-5 h-5 text-blue-400 animate-pulse" />
+              Override Shift Logs
+            </DialogTitle>
+            <DialogDescription className="text-white/40 text-xs mt-1">
+              Directly edit, delete, or append chronological logs for <span className="text-white font-bold">{editRecord?.employeeName}</span> on <span className="text-blue-400 font-bold">{formattedDateLabel(editRecord?.date)}</span>.
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Editor Area */}
+          <div className="mt-4 space-y-4">
+            <div className="max-h-[300px] overflow-y-auto pr-1 space-y-3">
+              {editLogs.map((log, idx) => (
+                <div key={idx} className="flex items-center gap-3 bg-white/[0.02] border border-white/[0.06] rounded-xl p-3">
+                  <div className="w-32 shrink-0">
+                    <select
+                      value={log.type}
+                      onChange={(e) => {
+                        const newLogs = [...editLogs];
+                        newLogs[idx] = {
+                          ...newLogs[idx],
+                          type: e.target.value,
+                          label: e.target.value === "in" ? "Clocked In" : e.target.value === "break" ? "On Break" : "Clocked Out"
+                        };
+                        setEditLogs(newLogs);
+                      }}
+                      className="w-full h-9 border border-white/10 rounded-xl px-2 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#0c1322] text-white cursor-pointer"
+                    >
+                      <option value="in">Clock In</option>
+                      <option value="break">On Break</option>
+                      <option value="out">Clock Out</option>
+                    </select>
+                  </div>
+
+                  <div className="flex-1">
+                    <Input
+                      type="time"
+                      value={getHHMM(log.timestamp)}
+                      onChange={(e) => {
+                        const newLogs = [...editLogs];
+                        const newTimestamp = combineDateAndTime(editRecord.date, e.target.value);
+                        newLogs[idx] = {
+                          ...newLogs[idx],
+                          timestamp: newTimestamp,
+                          time: formatHHMMTo12h(e.target.value)
+                        };
+                        setEditLogs(newLogs);
+                      }}
+                      className="glass-input h-9 text-xs border-white/10 text-white focus:border-blue-500/60 focus:ring-0 w-full [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+                    />
+                  </div>
+
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      const newLogs = editLogs.filter((_, i) => i !== idx);
+                      setEditLogs(newLogs);
+                    }}
+                    className="h-9 w-9 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-xl cursor-pointer shrink-0"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+
+              {editLogs.length === 0 && (
+                <div className="text-center py-8 text-white/40 italic">
+                  No logs in this shift. Click "Add Log Entry" to construct one.
+                </div>
+              )}
+            </div>
+
+            {/* Actions for editing list */}
+            <div className="flex justify-between items-center border-t border-white/[0.06] pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  const newLog = {
+                    type: "in",
+                    label: "Clocked In",
+                    time: formatHHMMTo12h("09:00"),
+                    timestamp: combineDateAndTime(editRecord.date, "09:00")
+                  };
+                  setEditLogs([...editLogs, newLog]);
+                }}
+                className="h-9 px-3 text-xs font-semibold bg-white/5 border-white/10 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded-xl cursor-pointer flex items-center gap-1.5"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Log Entry
+              </Button>
+
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setEditorOpen(false);
+                    setEditRecord(null);
+                    setEditLogs([]);
+                  }}
+                  className="h-9 px-4 text-xs font-semibold text-white/60 hover:text-white hover:bg-white/5 rounded-xl cursor-pointer"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  disabled={savingOverride}
+                  onClick={handleSaveOverride}
+                  className="h-9 px-4 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-glow-blue rounded-xl border-0 cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  {savingOverride ? (
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                  ) : (
+                    <>
+                      <Save className="w-3.5 h-3.5" /> Save Override
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

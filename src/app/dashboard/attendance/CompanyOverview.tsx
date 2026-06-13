@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, where, orderBy, onSnapshot } from "firebase/firestore";
+import { collection, query, where, orderBy, onSnapshot, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -28,9 +28,11 @@ import {
   ChevronRight,
   Calendar as CalendarIcon,
   Eye,
+  ShieldAlert,
 } from "lucide-react";
-import { ROLE_META } from "@/lib/permissions";
-import { cn } from "@/lib/utils";
+import { ROLE_META, canAccess } from "@/lib/permissions";
+import { cn, sendDiscordNotification } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
 
 const formatElapsed = (totalSeconds: number) => {
   const h = Math.floor(totalSeconds / 3600);
@@ -45,10 +47,86 @@ const getInitials = (name: string) => {
 };
 
 export function CompanyOverview() {
+  const { user: currentUser, role } = useAuth();
+  const isAdmin = canAccess(role, "MANAGE_USERS");
   const [employees, setEmployees] = useState<any[]>([]);
   const [attendanceRecords, setAttendanceRecords] = useState<Record<string, any>>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
+  
+  // Force Clock Out Modal State
+  const [forceOutEmployee, setForceOutEmployee] = useState<any | null>(null);
+  const [forceOutReason, setForceOutReason] = useState("");
+  const [submittingForceOut, setSubmittingForceOut] = useState(false);
+  const [forceOutOpen, setForceOutOpen] = useState(false);
+
+  const handleForceClockOutSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!currentUser || !forceOutEmployee) return;
+
+    setSubmittingForceOut(true);
+    try {
+      const record = attendanceRecords[forceOutEmployee.id];
+      if (!record) return;
+
+      const attendanceDocId = `${forceOutEmployee.id}_${selectedDate}`;
+      const attDocRef = doc(db, "attendance", attendanceDocId);
+      
+      const now = new Date();
+      const newLog = {
+        type: "out",
+        time: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        timestamp: now.toISOString(),
+        label: `Force Clocked Out by ${currentUser.fullName || currentUser.email}`
+      };
+
+      let updateFields: any = {
+        status: "out",
+        logs: [...(record.logs || []), newLog],
+        lastActionTimestamp: Date.now(),
+        forceClockedOutBy: currentUser.fullName || currentUser.email,
+        forceClockedOutAt: now.toISOString(),
+        forceClockedOutReason: forceOutReason
+      };
+
+      if (record.status === "in" && record.lastActionTimestamp > 0) {
+        const elapsedWorking = Math.floor((Date.now() - record.lastActionTimestamp) / 1000);
+        updateFields.totalWorkingSeconds = (record.totalWorkingSeconds || 0) + elapsedWorking;
+      } else if (record.status === "break" && record.lastActionTimestamp > 0) {
+        const elapsedBreak = Math.floor((Date.now() - record.lastActionTimestamp) / 1000);
+        updateFields.totalBreakSeconds = (record.totalBreakSeconds || 0) + elapsedBreak;
+      }
+
+      const { updateDoc } = await import("firebase/firestore");
+      await updateDoc(attDocRef, updateFields);
+
+      // Write an audit log entry
+      const { collection, addDoc } = await import("firebase/firestore");
+      await addDoc(collection(db, "auditLog"), {
+        actorId: currentUser.uid,
+        action: "FORCE_CLOCKOUT",
+        targetCollection: "attendance",
+        targetId: attendanceDocId,
+        details: `Force clocked out ${forceOutEmployee.fullName} on ${selectedDate}. Reason: ${forceOutReason || "No reason specified"}`,
+        createdAt: { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0 }
+      });
+
+      // Send Discord notification
+      await sendDiscordNotification(
+        `🚨 **${forceOutEmployee.fullName}** was **FORCE CLOCKED OUT** by Admin **${currentUser.fullName || currentUser.email}** on **${selectedDate}**.\n*Reason: ${forceOutReason || "No reason specified"}*`,
+        undefined,
+        'hr'
+      );
+
+      setForceOutOpen(false);
+      setForceOutEmployee(null);
+      setForceOutReason("");
+    } catch (err) {
+      console.error("Error force clocking out employee:", err);
+    } finally {
+      setSubmittingForceOut(false);
+    }
+  };
   
   // Date State - Default to Today
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
@@ -330,63 +408,80 @@ export function CompanyOverview() {
                           )}
                         </td>
 
-                        {/* View Logs Action Modal */}
+                        {/* Actions */}
                         <td className="px-6 py-4 text-center">
-                          <Dialog>
-                            <DialogTrigger render={
+                          <div className="flex items-center justify-center gap-2">
+                            <Dialog>
+                              <DialogTrigger render={
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  disabled={!record}
+                                  className={cn(
+                                    "h-8 px-3 text-white/60 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs flex items-center justify-center gap-1 cursor-pointer",
+                                    !record && "opacity-20 cursor-not-allowed"
+                                  )}
+                                >
+                                  <Eye className="w-3.5 h-3.5" /> View Logs
+                                </Button>
+                              }/>
+                              <DialogContent className="max-w-md bg-[#0a1628] border border-white/[0.08] text-white backdrop-blur-xl rounded-2xl shadow-2xl">
+                                <DialogHeader>
+                                  <DialogTitle className="text-xl font-bold flex items-center gap-2 text-white">
+                                    <Clock className="w-5 h-5 text-blue-400 animate-pulse" />
+                                    Shift Activity Logs
+                                  </DialogTitle>
+                                  <DialogDescription className="text-white/40 text-xs mt-1">
+                                    Detailed chronological timeline for <span className="text-white font-bold">{emp.fullName}</span> on <span className="text-blue-400 font-bold">{formattedDateLabel(selectedDate)}</span>
+                                  </DialogDescription>
+                                </DialogHeader>
+
+                                <div className="mt-6 space-y-4 max-h-[350px] overflow-y-auto pr-1">
+                                  {record?.logs && record.logs.length > 0 ? (
+                                    <div className="relative pl-6 border-l border-white/10 space-y-4 ml-3 py-1">
+                                      {record.logs.map((log: any, idx: number) => (
+                                        <div key={idx} className="relative">
+                                          {/* Dot node */}
+                                          <div className={cn(
+                                            "absolute -left-[30px] top-1.5 w-2 h-2 rounded-full ring-4 ring-[#0a1628]",
+                                            log.type === "in" ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" :
+                                            log.type === "break" ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]" :
+                                            "bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]"
+                                          )} />
+                                          <div className="flex justify-between items-center bg-white/[0.02] border border-white/[0.06] rounded-xl p-3 hover:bg-white/[0.04] transition-colors">
+                                            <div>
+                                              <h4 className="font-bold text-sm text-white">{log.label}</h4>
+                                              <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider mt-0.5">Terminal Action</p>
+                                            </div>
+                                            <span className="font-bold text-sm text-blue-400 font-mono tabular-nums">{log.time}</span>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : (
+                                    <div className="text-center py-8 text-white/40 italic">
+                                      No activity logs found for this date.
+                                    </div>
+                                  )}
+                                </div>
+                              </DialogContent>
+                            </Dialog>
+
+                            {isAdmin && record && (status === "in" || status === "break") && (
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                disabled={!record}
-                                className={cn(
-                                  "h-8 px-3 text-white/60 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs flex items-center justify-center gap-1 mx-auto cursor-pointer",
-                                  !record && "opacity-20 cursor-not-allowed"
-                                )}
+                                onClick={() => {
+                                  setForceOutEmployee(emp);
+                                  setForceOutReason("");
+                                  setForceOutOpen(true);
+                                }}
+                                className="h-8 px-3 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg font-bold text-xs flex items-center justify-center gap-1 cursor-pointer"
                               >
-                                <Eye className="w-3.5 h-3.5" /> View Logs
+                                <ShieldAlert className="w-3.5 h-3.5" /> Force Clock Out
                               </Button>
-                            }/>
-                            <DialogContent className="max-w-md bg-[#0a1628] border border-white/[0.08] text-white backdrop-blur-xl rounded-2xl shadow-2xl">
-                              <DialogHeader>
-                                <DialogTitle className="text-xl font-bold flex items-center gap-2 text-white">
-                                  <Clock className="w-5 h-5 text-blue-400 animate-pulse" />
-                                  Shift Activity Logs
-                                </DialogTitle>
-                                <DialogDescription className="text-white/40 text-xs mt-1">
-                                  Detailed chronological timeline for <span className="text-white font-bold">{emp.fullName}</span> on <span className="text-blue-400 font-bold">{formattedDateLabel(selectedDate)}</span>
-                                </DialogDescription>
-                              </DialogHeader>
-
-                              <div className="mt-6 space-y-4 max-h-[350px] overflow-y-auto pr-1">
-                                {record?.logs && record.logs.length > 0 ? (
-                                  <div className="relative pl-6 border-l border-white/10 space-y-4 ml-3 py-1">
-                                    {record.logs.map((log: any, idx: number) => (
-                                      <div key={idx} className="relative">
-                                        {/* Dot node */}
-                                        <div className={cn(
-                                          "absolute -left-[30px] top-1.5 w-2 h-2 rounded-full ring-4 ring-[#0a1628]",
-                                          log.type === "in" ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" :
-                                          log.type === "break" ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.6)]" :
-                                          "bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.6)]"
-                                        )} />
-                                        <div className="flex justify-between items-center bg-white/[0.02] border border-white/[0.06] rounded-xl p-3 hover:bg-white/[0.04] transition-colors">
-                                          <div>
-                                            <h4 className="font-bold text-sm text-white">{log.label}</h4>
-                                            <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider mt-0.5">Terminal Action</p>
-                                          </div>
-                                          <span className="font-bold text-sm text-blue-400 font-mono tabular-nums">{log.time}</span>
-                                        </div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <div className="text-center py-8 text-white/40 italic">
-                                    No activity logs found for this date.
-                                  </div>
-                                )}
-                              </div>
-                            </DialogContent>
-                          </Dialog>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     );
@@ -397,6 +492,61 @@ export function CompanyOverview() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Admin Force Clock Out Dialog */}
+      <Dialog open={forceOutOpen} onOpenChange={setForceOutOpen}>
+        <DialogContent className="max-w-md bg-[#0a1628] border border-white/[0.08] text-white backdrop-blur-xl rounded-2xl shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold flex items-center gap-2 text-rose-400">
+              <ShieldAlert className="w-5 h-5 text-rose-400 animate-pulse" />
+              Force Clock Out
+            </DialogTitle>
+            <DialogDescription className="text-white/40 text-xs mt-1">
+              You are about to force clock out <span className="text-white font-bold">{forceOutEmployee?.fullName}</span>. This will immediately end their active working session for <span className="text-blue-400 font-bold">{formattedDateLabel(selectedDate)}</span>.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleForceClockOutSubmit} className="space-y-4 mt-4">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest pl-1">Reason for Force Clock Out</label>
+              <textarea
+                required
+                rows={3}
+                placeholder="State clearly why you are force clocking out this employee (e.g. Forgot to clock out, Left premises)..."
+                value={forceOutReason}
+                onChange={(e) => setForceOutReason(e.target.value)}
+                className="w-full bg-[#0c1322] border border-white/10 rounded-xl p-3 text-xs focus:border-blue-500/60 focus:ring-0 text-white placeholder:text-white/20 resize-none"
+              />
+            </div>
+
+            <div className="flex gap-3 justify-end mt-4">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setForceOutOpen(false);
+                  setForceOutEmployee(null);
+                  setForceOutReason("");
+                }}
+                className="h-10 px-4 text-xs font-semibold text-white/60 hover:text-white hover:bg-white/5 rounded-xl cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={submittingForceOut || !forceOutReason.trim()}
+                className="h-10 px-4 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white shadow-glow-rose rounded-xl border-0 cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                {submittingForceOut ? (
+                  <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                ) : (
+                  "Confirm Force Clock Out"
+                )}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

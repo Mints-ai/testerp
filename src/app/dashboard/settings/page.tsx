@@ -6,6 +6,7 @@ import { db, auth } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { canAccess, ROLE_META, PERMISSIONS } from "@/lib/permissions";
 import { useToast } from "@/context/ToastContext";
+import { useTheme } from "@/context/ThemeContext";
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,7 @@ const PRESET_AVATARS = [
 export default function SettingsDashboard() {
   const { user, role } = useAuth();
   const { showToast } = useToast();
+  const { theme, setThemeMode } = useTheme();
   const [employees, setEmployees] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<"preferences" | "users" | "roles" | "company" | "holidays" | "audit" | "integrations" | "security">("preferences");
@@ -244,6 +246,9 @@ export default function SettingsDashboard() {
         if (data.profilePhotoURL) setPrefPhoto(data.profilePhotoURL);
         if (data.preferences) {
           const prefs = data.preferences;
+          if (prefs.theme !== undefined) {
+            setThemeMode(prefs.theme as "light" | "dark");
+          }
           if (prefs.hideGrid !== undefined) {
             setPrefGrid(!prefs.hideGrid);
             // Apply grid class globally
@@ -408,7 +413,8 @@ export default function SettingsDashboard() {
         preferences: {
           hideGrid: !prefGrid,
           emailNotifications: prefNotifs.email,
-          inAppAlerts: prefNotifs.app
+          inAppAlerts: prefNotifs.app,
+          theme: theme
         }
       });
 
@@ -417,6 +423,7 @@ export default function SettingsDashboard() {
         localStorage.setItem("hideGrid", String(!prefGrid));
         localStorage.setItem("notifEmail", String(prefNotifs.email));
         localStorage.setItem("notifApp", String(prefNotifs.app));
+        localStorage.setItem("theme", theme);
         
         if (!prefGrid) {
           document.documentElement.classList.add("no-grid");
@@ -540,13 +547,13 @@ export default function SettingsDashboard() {
   };
 
   return (
-    <div className="space-y-6 pb-12 h-full flex flex-col">
+    <div className="space-y-6 pb-12 h-full flex flex-col text-foreground">
       <div className="shrink-0 mb-6">
-        <h1 className="text-3xl font-bold tracking-tight text-white flex items-center gap-2">
-          <Settings className="h-8 w-8 text-blue-400" />
+        <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
+          <Settings className="h-8 w-8 text-blue-550 dark:text-blue-400" />
           {isCSuiteOrAbove ? "System Settings" : "My Settings"}
         </h1>
-        <p className="text-white/40 mt-1">
+        <p className="text-muted-foreground mt-1">
           {isCSuiteOrAbove 
             ? "Manage users, roles, company profile, and audit logs." 
             : "Manage your personal preferences, theme layouts, and credentials."}
@@ -561,8 +568,8 @@ export default function SettingsDashboard() {
             onClick={() => setActiveTab("preferences")}
             className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-left border", 
               activeTab === "preferences" 
-                ? "bg-blue-600/20 text-blue-300 border-blue-500/25 shadow-sm" 
-                : "text-white/40 border-transparent hover:text-white/80 hover:bg-white/[0.04]"
+                ? "bg-blue-600/20 text-blue-350 dark:text-blue-300 border-blue-500/25 shadow-sm" 
+                : "text-muted-foreground border-transparent hover:text-foreground hover:bg-secondary/40"
             )}
           >
             <User className="w-5 h-5" />
@@ -573,8 +580,8 @@ export default function SettingsDashboard() {
             onClick={() => setActiveTab("security")}
             className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-left border", 
               activeTab === "security" 
-                ? "bg-blue-600/20 text-blue-300 border-blue-500/25 shadow-sm" 
-                : "text-white/40 border-transparent hover:text-white/80 hover:bg-white/[0.04]"
+                ? "bg-blue-600/20 text-blue-350 dark:text-blue-300 border-blue-500/25 shadow-sm" 
+                : "text-muted-foreground border-transparent hover:text-foreground hover:bg-secondary/40"
             )}
           >
             <ShieldCheck className="w-5 h-5" />
@@ -587,8 +594,8 @@ export default function SettingsDashboard() {
                 onClick={() => setActiveTab("users")}
                 className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-left border", 
                   activeTab === "users" 
-                    ? "bg-blue-600/20 text-blue-300 border-blue-500/25 shadow-sm" 
-                    : "text-white/40 border-transparent hover:text-white/80 hover:bg-white/[0.04]"
+                    ? "bg-blue-600/20 text-blue-350 dark:text-blue-300 border-blue-500/25 shadow-sm" 
+                    : "text-muted-foreground border-transparent hover:text-foreground hover:bg-secondary/40"
                 )}
               >
                 <Users className="w-5 h-5" />
@@ -598,8 +605,8 @@ export default function SettingsDashboard() {
                 onClick={() => setActiveTab("roles")}
                 className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-left border", 
                   activeTab === "roles" 
-                    ? "bg-blue-600/20 text-blue-300 border-blue-500/25 shadow-sm" 
-                    : "text-white/40 border-transparent hover:text-white/80 hover:bg-white/[0.04]"
+                    ? "bg-blue-600/20 text-blue-350 dark:text-blue-300 border-blue-500/25 shadow-sm" 
+                    : "text-muted-foreground border-transparent hover:text-foreground hover:bg-secondary/40"
                 )}
               >
                 <Shield className="w-5 h-5" />
@@ -609,8 +616,8 @@ export default function SettingsDashboard() {
                 onClick={() => setActiveTab("company")}
                 className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-left border", 
                   activeTab === "company" 
-                    ? "bg-blue-600/20 text-blue-300 border-blue-500/25 shadow-sm" 
-                    : "text-white/40 border-transparent hover:text-white/80 hover:bg-white/[0.04]"
+                    ? "bg-blue-600/20 text-blue-350 dark:text-blue-300 border-blue-500/25 shadow-sm" 
+                    : "text-muted-foreground border-transparent hover:text-foreground hover:bg-secondary/40"
                 )}
               >
                 <Building2 className="w-5 h-5" />
@@ -620,8 +627,8 @@ export default function SettingsDashboard() {
                 onClick={() => setActiveTab("holidays")}
                 className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-left border", 
                   activeTab === "holidays" 
-                    ? "bg-blue-600/20 text-blue-300 border-blue-500/25 shadow-sm" 
-                    : "text-white/40 border-transparent hover:text-white/80 hover:bg-white/[0.04]"
+                    ? "bg-blue-600/20 text-blue-350 dark:text-blue-300 border-blue-500/25 shadow-sm" 
+                    : "text-muted-foreground border-transparent hover:text-foreground hover:bg-secondary/40"
                 )}
               >
                 <Calendar className="w-5 h-5" />
@@ -636,8 +643,8 @@ export default function SettingsDashboard() {
                 onClick={() => setActiveTab("audit")}
                 className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-left border", 
                   activeTab === "audit" 
-                    ? "bg-blue-600/20 text-blue-300 border-blue-500/25 shadow-sm" 
-                    : "text-white/40 border-transparent hover:text-white/80 hover:bg-white/[0.04]"
+                    ? "bg-blue-600/20 text-blue-350 dark:text-blue-300 border-blue-500/25 shadow-sm" 
+                    : "text-muted-foreground border-transparent hover:text-foreground hover:bg-secondary/40"
                 )}
               >
                 <ShieldAlert className="w-5 h-5" />
@@ -647,8 +654,8 @@ export default function SettingsDashboard() {
                 onClick={() => setActiveTab("integrations")}
                 className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-left border", 
                   activeTab === "integrations" 
-                    ? "bg-blue-600/20 text-blue-300 border-blue-500/25 shadow-sm" 
-                    : "text-white/40 border-transparent hover:text-white/80 hover:bg-white/[0.04]"
+                    ? "bg-blue-600/20 text-blue-350 dark:text-blue-300 border-blue-500/25 shadow-sm" 
+                    : "text-muted-foreground border-transparent hover:text-foreground hover:bg-secondary/40"
                 )}
               >
                 <Wifi className="w-5 h-5" />
@@ -659,53 +666,53 @@ export default function SettingsDashboard() {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 w-full bg-white rounded-2xl border border-white/[0.08] shadow-card overflow-hidden">
+        <div className="flex-1 w-full bg-card rounded-2xl border border-border shadow-card overflow-hidden text-foreground">
 
           {/* SECURITY & CREDENTIALS */}
           {activeTab === "security" && (
-            <div className="flex flex-col h-full bg-[#090d16] text-white">
-              <div className="p-6 border-b border-white/[0.08] bg-white/[0.02]">
-                <h3 className="font-bold text-lg text-white">Account Security & Credentials</h3>
-                <p className="text-xs text-white/40 mt-1">Strengthen your security posture by maintaining strong passwords.</p>
+            <div className="flex flex-col h-full bg-card text-foreground">
+              <div className="p-6 border-b border-border bg-muted/20">
+                <h3 className="font-bold text-lg text-foreground">Account Security & Credentials</h3>
+                <p className="text-xs text-muted-foreground mt-1">Strengthen your security posture by maintaining strong passwords.</p>
               </div>
 
               <form onSubmit={handleUpdatePassword} className="p-8 space-y-6 max-w-xl">
                 
                 {/* Current Password */}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-white/60 uppercase tracking-wider block">Current Password</label>
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Current Password</label>
                   <Input 
                     type="password"
                     required
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="glass-input h-10 border-white/10 text-white placeholder:text-white/20 focus:border-blue-500 focus:ring-0 bg-[#0c1322]"
+                    className="glass-input h-10 border-border text-foreground placeholder:text-muted-foreground/40 focus:border-blue-500 focus:ring-0 bg-background/50"
                   />
                 </div>
 
                 {/* New Password */}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-white/60 uppercase tracking-wider block">New Password</label>
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">New Password</label>
                   <Input 
                     type="password"
                     required
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="glass-input h-10 border-white/10 text-white placeholder:text-white/20 focus:border-blue-500 focus:ring-0 bg-[#0c1322]"
+                    className="glass-input h-10 border-border text-foreground placeholder:text-muted-foreground/40 focus:border-blue-500 focus:ring-0 bg-background/50"
                   />
                   
                   {/* Real-time Password Strength Meter */}
                   {newPassword.length > 0 && (
                     <div className="space-y-1.5 pt-1">
                       <div className="flex justify-between items-center text-[10px]">
-                        <span className="text-white/40 font-bold uppercase tracking-wider">Password Strength:</span>
-                        <span className="font-bold text-white">{getPasswordStrength(newPassword).label}</span>
+                        <span className="text-muted-foreground font-bold uppercase tracking-wider">Password Strength:</span>
+                        <span className="font-bold text-foreground">{getPasswordStrength(newPassword).label}</span>
                       </div>
                       
                       {/* Bar indicator */}
-                      <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden flex gap-1">
+                      <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden flex gap-1">
                         <div className={cn("h-full transition-all duration-500 rounded-full", 
                           getPasswordStrength(newPassword).score >= 1 ? getPasswordStrength(newPassword).color : "w-0",
                           getPasswordStrength(newPassword).score === 1 ? "w-1/4" : 
@@ -716,21 +723,21 @@ export default function SettingsDashboard() {
                       </div>
 
                       {/* Criteria feedback list */}
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 pt-1.5 text-[9px] font-semibold text-white/40">
-                        <div className={cn("flex items-center gap-1", newPassword.length >= 8 ? "text-emerald-400" : "text-white/20")}>
-                          <div className={cn("w-1.5 h-1.5 rounded-full", newPassword.length >= 8 ? "bg-emerald-400" : "bg-white/10")} />
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 pt-1.5 text-[9px] font-semibold text-muted-foreground">
+                        <div className={cn("flex items-center gap-1", newPassword.length >= 8 ? "text-emerald-400" : "opacity-40")}>
+                          <div className={cn("w-1.5 h-1.5 rounded-full", newPassword.length >= 8 ? "bg-emerald-400" : "bg-muted-foreground/20")} />
                           At least 8 characters
                         </div>
-                        <div className={cn("flex items-center gap-1", /[a-z]/.test(newPassword) && /[A-Z]/.test(newPassword) ? "text-emerald-400" : "text-white/20")}>
-                          <div className={cn("w-1.5 h-1.5 rounded-full", /[a-z]/.test(newPassword) && /[A-Z]/.test(newPassword) ? "bg-emerald-400" : "bg-white/10")} />
+                        <div className={cn("flex items-center gap-1", /[a-z]/.test(newPassword) && /[A-Z]/.test(newPassword) ? "text-emerald-400" : "opacity-40")}>
+                          <div className={cn("w-1.5 h-1.5 rounded-full", /[a-z]/.test(newPassword) && /[A-Z]/.test(newPassword) ? "bg-emerald-400" : "bg-muted-foreground/20")} />
                           Case mix (aA)
                         </div>
-                        <div className={cn("flex items-center gap-1", /\d/.test(newPassword) ? "text-emerald-400" : "text-white/20")}>
-                          <div className={cn("w-1.5 h-1.5 rounded-full", /\d/.test(newPassword) ? "bg-emerald-400" : "bg-white/10")} />
+                        <div className={cn("flex items-center gap-1", /\d/.test(newPassword) ? "text-emerald-400" : "opacity-40")}>
+                          <div className={cn("w-1.5 h-1.5 rounded-full", /\d/.test(newPassword) ? "bg-emerald-400" : "bg-muted-foreground/20")} />
                           Contains number (0-9)
                         </div>
-                        <div className={cn("flex items-center gap-1", /[^A-Za-z0-9]/.test(newPassword) ? "text-emerald-400" : "text-white/20")}>
-                          <div className={cn("w-1.5 h-1.5 rounded-full", /[^A-Za-z0-9]/.test(newPassword) ? "bg-emerald-400" : "bg-white/10")} />
+                        <div className={cn("flex items-center gap-1", /[^A-Za-z0-9]/.test(newPassword) ? "text-emerald-400" : "opacity-40")}>
+                          <div className={cn("w-1.5 h-1.5 rounded-full", /[^A-Za-z0-9]/.test(newPassword) ? "bg-emerald-400" : "bg-muted-foreground/20")} />
                           Special symbol (!@#)
                         </div>
                       </div>
@@ -740,14 +747,14 @@ export default function SettingsDashboard() {
 
                 {/* Confirm Password */}
                 <div className="space-y-2">
-                  <label className="text-xs font-bold text-white/60 uppercase tracking-wider block">Confirm New Password</label>
+                  <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">Confirm New Password</label>
                   <Input 
                     type="password"
                     required
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="glass-input h-10 border-white/10 text-white placeholder:text-white/20 focus:border-blue-500 focus:ring-0 bg-[#0c1322]"
+                    className="glass-input h-10 border-border text-foreground placeholder:text-muted-foreground/40 focus:border-blue-500 focus:ring-0 bg-background/50"
                   />
                   {confirmPassword.length > 0 && (
                     <div className="flex items-center gap-1 text-[9px] font-bold">
@@ -783,7 +790,7 @@ export default function SettingsDashboard() {
                       setNewPassword("");
                       setConfirmPassword("");
                     }}
-                    className="px-4 py-2 rounded-xl text-xs font-bold bg-white/5 border border-white/10 text-white/60 hover:bg-white/10 hover:text-white cursor-pointer"
+                    className="px-4 py-2 rounded-xl text-xs font-bold bg-secondary border border-border text-muted-foreground hover:bg-secondary/80 hover:text-foreground cursor-pointer"
                   >
                     Reset Form
                   </button>
@@ -905,6 +912,18 @@ export default function SettingsDashboard() {
                     <Switch 
                       checked={prefGrid} 
                       onCheckedChange={setPrefGrid}
+                      className="data-[state=checked]:bg-blue-600"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between py-2 border-b border-olive-50">
+                    <div>
+                      <p className="text-sm font-semibold text-olive-800">Light Theme Mode</p>
+                      <p className="text-xs text-olive-500">Enable light theme mode across all dashboard screens.</p>
+                    </div>
+                    <Switch 
+                      checked={theme === "light"} 
+                      onCheckedChange={(val) => setThemeMode(val ? "light" : "dark")}
                       className="data-[state=checked]:bg-blue-600"
                     />
                   </div>
