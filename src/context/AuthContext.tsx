@@ -128,6 +128,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             sessionStorage.removeItem("mints_session_id");
           }
         }
+      }, (err) => {
+        console.warn("Session snapshot listener error:", err);
       });
     };
 

@@ -33,6 +33,14 @@ service cloud.firestore {
       allow write: if isAuth() && (request.auth.uid == employeeId || isManagerOrAbove());
     }
 
+    // Sessions Collection Rules
+    match /sessions/{sessionId} {
+      allow read: if isAuth() && (resource.data.uid == request.auth.uid || isManagerOrAbove());
+      allow create: if isAuth() && request.resource.data.uid == request.auth.uid;
+      allow update: if isAuth() && (resource.data.uid == request.auth.uid || isManagerOrAbove());
+      allow delete: if isAuth() && isManagerOrAbove();
+    }
+
     // Leaves Collection Rules
     match /leaves/{leaveId} {
       allow read: if isAuth() && (resource.data.employeeId == request.auth.uid || isManagerOrAbove());
