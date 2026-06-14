@@ -98,11 +98,11 @@ export default function NotificationsPage() {
     if (t.includes("approved") || t.includes("success")) return <CheckCircle2 className="h-4.5 w-4.5 text-emerald-400" />;
     if (t.includes("warning") || t.includes("denied") || t.includes("failed")) return <AlertTriangle className="h-4.5 w-4.5 text-rose-400" />;
     if (t.includes("project") || t.includes("budget") || t.includes("lead")) return <TrendingUp className="h-4.5 w-4.5 text-amber-400" />;
-    return <Inbox className="h-4.5 w-4.5 text-white/50" />;
+    return <Inbox className="h-4.5 w-4.5 text-foreground/50" />;
   };
 
   return (
-    <div className="space-y-6 text-white pb-24">
+    <div className="space-y-6 text-foreground pb-24">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -110,7 +110,7 @@ export default function NotificationsPage() {
             <BellRing className="h-5 w-5 text-indigo-500 fill-indigo-500/10" />
             Centralized Notifications Hub
           </h1>
-          <p className="text-xs text-white/40 mt-1">Manage system-wide alerts, milestone verification changes, and task updates.</p>
+          <p className="text-xs text-foreground/40 mt-1">Manage system-wide alerts, milestone verification changes, and task updates.</p>
         </div>
 
         {/* Global Action Controls */}
@@ -118,7 +118,7 @@ export default function NotificationsPage() {
           <button
             onClick={handleMarkAllAsRead}
             disabled={notifications.filter(n => !n.read).length === 0}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed border border-white/10 text-xs font-bold transition-all"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-muted/40 hover:bg-muted/80 disabled:opacity-40 disabled:cursor-not-allowed border border-border text-xs font-bold transition-all"
           >
             <Check className="h-3.5 w-3.5" />
             Mark All Read
@@ -137,17 +137,17 @@ export default function NotificationsPage() {
       <div className="grid md:grid-cols-4 gap-6 items-start">
         {/* Navigation Sidebar inside tab */}
         <Card className="glass-card bg-white/[0.02] border-white/[0.08] p-4 space-y-2">
-          <h3 className="text-[10px] font-bold text-white/35 uppercase tracking-wider px-2.5 mb-3">Filter Options</h3>
+          <h3 className="text-[10px] font-bold text-foreground/35 uppercase tracking-wider px-2.5 mb-3">Filter Options</h3>
           
           <button
             onClick={() => setFilter("all")}
             className={cn(
               "w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition-all flex justify-between items-center",
-              filter === "all" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20" : "text-white/50 hover:text-white hover:bg-white/5"
+              filter === "all" ? "bg-indigo-600 text-foreground shadow-md shadow-indigo-600/20" : "text-foreground/50 hover:text-foreground hover:bg-muted/40"
             )}
           >
             <span>All Notifications</span>
-            <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-white/15 bg-white/5 text-white/60 font-mono">
+            <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-white/15 bg-muted/40 text-foreground/60 font-mono">
               {notifications.length}
             </Badge>
           </button>
@@ -156,7 +156,7 @@ export default function NotificationsPage() {
             onClick={() => setFilter("unread")}
             className={cn(
               "w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition-all flex justify-between items-center",
-              filter === "unread" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20" : "text-white/50 hover:text-white hover:bg-white/5"
+              filter === "unread" ? "bg-indigo-600 text-foreground shadow-md shadow-indigo-600/20" : "text-foreground/50 hover:text-foreground hover:bg-muted/40"
             )}
           >
             <span>Unread Feed</span>
@@ -169,11 +169,11 @@ export default function NotificationsPage() {
             onClick={() => setFilter("read")}
             className={cn(
               "w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition-all flex justify-between items-center",
-              filter === "read" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20" : "text-white/50 hover:text-white hover:bg-white/5"
+              filter === "read" ? "bg-indigo-600 text-foreground shadow-md shadow-indigo-600/20" : "text-foreground/50 hover:text-foreground hover:bg-muted/40"
             )}
           >
             <span>Read Logs</span>
-            <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-white/10 bg-transparent text-white/40 font-mono">
+            <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-border bg-transparent text-foreground/40 font-mono">
               {notifications.filter(n => n.read).length}
             </Badge>
           </button>
@@ -182,23 +182,23 @@ export default function NotificationsPage() {
         {/* Notifications list feed */}
         <Card className="glass-card bg-white/[0.02] border-white/[0.08] md:col-span-3 overflow-hidden">
           <CardHeader className="p-5 border-b border-white/[0.06] bg-white/[0.01]">
-            <CardTitle className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <CardTitle className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
               <Inbox className="h-4 w-4 text-indigo-400" /> Notifications Feed Ledger
             </CardTitle>
-            <CardDescription className="text-[10px] text-white/40">Real-time dynamic system events and actions logged specifically to your user session.</CardDescription>
+            <CardDescription className="text-[10px] text-foreground/40">Real-time dynamic system events and actions logged specifically to your user session.</CardDescription>
           </CardHeader>
 
           <CardContent className="p-0 divide-y divide-white/[0.04]">
             {loading ? (
               <div className="py-20 flex flex-col items-center justify-center gap-3">
                 <div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-                <p className="text-[10px] text-white/40 uppercase tracking-widest font-bold">Synchronizing feed...</p>
+                <p className="text-[10px] text-foreground/40 uppercase tracking-widest font-bold">Synchronizing feed...</p>
               </div>
             ) : filteredNotifications.length === 0 ? (
               <div className="py-24 text-center space-y-2">
-                <Inbox className="h-10 w-10 text-white/10 mx-auto" />
-                <h4 className="text-xs font-bold text-white/40 uppercase tracking-widest">Inbox is Completely Clear</h4>
-                <p className="text-[10px] text-white/30 leading-normal max-w-xs mx-auto">All logged events have been processed or cleared. No pending attention needed.</p>
+                <Inbox className="h-10 w-10 text-foreground/10 mx-auto" />
+                <h4 className="text-xs font-bold text-foreground/40 uppercase tracking-widest">Inbox is Completely Clear</h4>
+                <p className="text-[10px] text-foreground/30 leading-normal max-w-xs mx-auto">All logged events have been processed or cleared. No pending attention needed.</p>
               </div>
             ) : (
               <div className="divide-y divide-white/[0.04]">
@@ -221,22 +221,22 @@ export default function NotificationsPage() {
                       )}
 
                       {/* Icon */}
-                      <div className="bg-white/5 p-2.5 rounded-xl border border-white/10 shrink-0 mt-0.5">
+                      <div className="bg-muted/40 p-2.5 rounded-xl border border-border shrink-0 mt-0.5">
                         {getIcon(notif.title)}
                       </div>
 
                       {/* Text details */}
                       <div className="flex-1 space-y-1 pr-12">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-bold text-xs text-white leading-tight">{notif.title}</span>
+                          <span className="font-bold text-xs text-foreground leading-tight">{notif.title}</span>
                           {!notif.read && (
                             <Badge variant="outline" className="text-[8px] font-bold px-1.5 py-0 border-indigo-500/30 bg-indigo-500/10 text-indigo-400 uppercase tracking-widest shrink-0 animate-pulse">
                               New
                             </Badge>
                           )}
                         </div>
-                        <p className="text-xs text-white/60 leading-relaxed font-medium">{notif.message}</p>
-                        <span className="text-[9px] font-mono text-white/30 uppercase tracking-wider block pt-1">
+                        <p className="text-xs text-foreground/60 leading-relaxed font-medium">{notif.message}</p>
+                        <span className="text-[9px] font-mono text-foreground/30 uppercase tracking-wider block pt-1">
                           {notif.createdAt ? new Date(notif.createdAt.seconds * 1000).toLocaleString() : "Just now"}
                         </span>
                       </div>
@@ -247,7 +247,7 @@ export default function NotificationsPage() {
                           <button
                             onClick={() => handleMarkAsRead(notif.id)}
                             title="Mark as read"
-                            className="p-1.5 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-white/60 hover:text-white transition-all cursor-pointer"
+                            className="p-1.5 rounded-lg bg-muted/40 border border-border hover:bg-muted/80 text-foreground/60 hover:text-foreground transition-all cursor-pointer"
                           >
                             <Check className="h-3.5 w-3.5" />
                           </button>

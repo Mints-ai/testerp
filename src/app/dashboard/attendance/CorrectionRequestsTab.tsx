@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { collection, query, where, onSnapshot, doc, updateDoc, setDoc, getDoc } from "firebase/firestore";
+import { collection, query, where, onSnapshot, doc, updateDoc, setDoc, getDoc, addDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Check, X, Clock, CalendarDays, FileText, User } from "lucide-react";
 import { cn, sendDiscordNotification } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
 
 // Time and Date formatting helpers
 const formatTimeString = (timeStr: string) => {
@@ -42,6 +43,7 @@ const getInitials = (name: string) => {
 };
 
 export function CorrectionRequestsTab() {
+  const { user } = useAuth();
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [actioningId, setActioningId] = useState<string | null>(null);
@@ -223,6 +225,16 @@ export function CorrectionRequestsTab() {
           undefined,
           'hr'
         );
+
+        await addDoc(collection(db, "auditLog"), {
+          actorId: user?.uid || "system",
+          actorName: user?.fullName || "Admin",
+          action: "ATTENDANCE_CORRECTION_APPROVE",
+          targetCollection: "attendanceCorrections",
+          targetId: request.id,
+          details: `Approved attendance correction request for ${request.employeeName} on ${request.date} (Adjusted In: ${formatTimeString(finalIn) || "N/A"} | Out: ${formatTimeString(finalOut) || "N/A"})`,
+          createdAt: { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0 }
+        });
       } else {
         // Notify Discord (Rejection)
         await sendDiscordNotification(
@@ -230,6 +242,16 @@ export function CorrectionRequestsTab() {
           undefined,
           'hr'
         );
+
+        await addDoc(collection(db, "auditLog"), {
+          actorId: user?.uid || "system",
+          actorName: user?.fullName || "Admin",
+          action: "ATTENDANCE_CORRECTION_REJECT",
+          targetCollection: "attendanceCorrections",
+          targetId: request.id,
+          details: `Rejected attendance correction request for ${request.employeeName} on ${request.date}`,
+          createdAt: { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0 }
+        });
       }
     } catch (err) {
       console.error("Error executing correction decision:", err);
@@ -239,12 +261,12 @@ export function CorrectionRequestsTab() {
   };
 
   return (
-    <div className="space-y-6 text-white pb-6">
+    <div className="space-y-6 text-foreground pb-6">
       <Card className="border-white/[0.08] bg-white/[0.02] shadow-card rounded-2xl overflow-hidden backdrop-blur-xl">
         <CardHeader className="pb-4 border-b border-white/[0.06] flex flex-row items-center justify-between">
           <div className="flex items-center gap-2">
             <CalendarDays className="w-5 h-5 text-blue-400" />
-            <h3 className="font-bold text-white text-lg">Pending Attendance Corrections</h3>
+            <h3 className="font-bold text-foreground text-lg">Pending Attendance Corrections</h3>
           </div>
           <Badge variant="outline" className="text-xs text-blue-300 font-bold bg-blue-500/10 border-blue-500/20 px-3 py-1 rounded-full shadow-none">
             {requests.length} Requests pending
@@ -253,15 +275,15 @@ export function CorrectionRequestsTab() {
 
         <CardContent className="p-6">
           {loading ? (
-            <div className="py-12 text-center text-white/40 italic flex items-center justify-center gap-2">
+            <div className="py-12 text-center text-foreground/40 italic flex items-center justify-center gap-2">
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
               <span>Querying pending correction logs...</span>
             </div>
           ) : requests.length === 0 ? (
-            <div className="py-16 text-center text-white/30 flex flex-col items-center justify-center">
-              <Clock className="w-12 h-12 text-white/10 mb-3" />
-              <p className="font-bold text-base text-white/60">No Pending Requests</p>
-              <p className="text-xs text-white/40 mt-1 max-w-sm">All employee attendance adjustment requests are currently resolved.</p>
+            <div className="py-16 text-center text-foreground/30 flex flex-col items-center justify-center">
+              <Clock className="w-12 h-12 text-foreground/10 mb-3" />
+              <p className="font-bold text-base text-foreground/60">No Pending Requests</p>
+              <p className="text-xs text-foreground/40 mt-1 max-w-sm">All employee attendance adjustment requests are currently resolved.</p>
             </div>
           ) : (
             <div className="grid md:grid-cols-2 gap-4">
@@ -277,14 +299,14 @@ export function CorrectionRequestsTab() {
                     {/* Employee Profile Header */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <Avatar className="h-9 w-9 border border-white/10 bg-blue-950">
+                        <Avatar className="h-9 w-9 border border-border bg-blue-950">
                           <AvatarFallback className="bg-blue-800 text-blue-200 font-bold text-xs">
                             {getInitials(req.employeeName)}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-bold text-sm text-white">{req.employeeName}</p>
-                          <p className="text-[10px] text-white/40 font-semibold flex items-center gap-1">
+                          <p className="font-bold text-sm text-foreground">{req.employeeName}</p>
+                          <p className="text-[10px] text-foreground/40 font-semibold flex items-center gap-1">
                             <User className="w-3 h-3 text-blue-400" /> Employee ID: {req.uid.substring(0, 8)}
                           </p>
                         </div>
@@ -295,13 +317,13 @@ export function CorrectionRequestsTab() {
                     </div>
 
                     {/* Correction Proposed Values */}
-                    <div className="grid grid-cols-2 gap-4 bg-white/5 border border-white/[0.04] p-3 rounded-xl text-center">
+                    <div className="grid grid-cols-2 gap-4 bg-muted/40 border border-white/[0.04] p-3 rounded-xl text-center">
                       <div>
-                        <p className="text-[9px] text-white/40 uppercase tracking-widest font-bold">Target Date</p>
-                        <p className="text-xs font-bold text-white mt-1 font-mono">{formattedDateLabel(req.date)}</p>
+                        <p className="text-[9px] text-foreground/40 uppercase tracking-widest font-bold">Target Date</p>
+                        <p className="text-xs font-bold text-foreground mt-1 font-mono">{formattedDateLabel(req.date)}</p>
                       </div>
                       <div>
-                        <p className="text-[9px] text-white/40 uppercase tracking-widest font-bold">Adjustment Type</p>
+                        <p className="text-[9px] text-foreground/40 uppercase tracking-widest font-bold">Adjustment Type</p>
                         <p className="text-xs font-bold text-cyan-300 mt-1 uppercase">
                           {req.requestType === "in" ? "Clock In" : req.requestType === "out" ? "Clock Out" : "Full Shift (Both)"}
                         </p>
@@ -310,11 +332,11 @@ export function CorrectionRequestsTab() {
 
                     {/* Target Adjusted Times */}
                     <div className="flex flex-col gap-2 bg-white/[0.01] border border-white/[0.06] p-3 rounded-xl">
-                      <p className="text-[9px] text-white/30 uppercase tracking-wider font-bold">Proposed Correction:</p>
+                      <p className="text-[9px] text-foreground/30 uppercase tracking-wider font-bold">Proposed Correction:</p>
                       <div className="flex justify-between items-center text-xs">
                         {req.proposedClockIn && (
                           <div className="flex items-center gap-1.5">
-                            <span className="text-white/45">Clock In:</span>
+                            <span className="text-foreground/45">Clock In:</span>
                             <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 font-bold font-mono text-[10px]">
                               {formatTimeString(req.proposedClockIn)}
                             </Badge>
@@ -322,7 +344,7 @@ export function CorrectionRequestsTab() {
                         )}
                         {req.proposedClockOut && (
                           <div className="flex items-center gap-1.5">
-                            <span className="text-white/45">Clock Out:</span>
+                            <span className="text-foreground/45">Clock Out:</span>
                             <Badge className="bg-rose-500/10 text-rose-400 border-rose-500/20 font-bold font-mono text-[10px]">
                               {formatTimeString(req.proposedClockOut)}
                             </Badge>
@@ -333,10 +355,10 @@ export function CorrectionRequestsTab() {
 
                     {/* Reason */}
                     <div className="space-y-1 bg-white/[0.02] border border-white/[0.04] p-3 rounded-xl">
-                      <p className="text-[9px] text-white/40 uppercase tracking-widest font-bold flex items-center gap-1">
+                      <p className="text-[9px] text-foreground/40 uppercase tracking-widest font-bold flex items-center gap-1">
                         <FileText className="w-3 h-3 text-blue-400" /> Explanation Reason
                       </p>
-                      <p className="text-xs text-white/70 italic leading-relaxed">
+                      <p className="text-xs text-foreground/70 italic leading-relaxed">
                         "{req.reason || "No explanation provided."}"
                       </p>
                     </div>
@@ -348,7 +370,7 @@ export function CorrectionRequestsTab() {
                       size="sm"
                       onClick={() => handleAction(req, "approved")}
                       disabled={actioningId !== null}
-                      className="flex-1 h-9 text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg border-0 cursor-pointer flex items-center justify-center gap-1"
+                      className="flex-1 h-9 text-xs bg-emerald-600 hover:bg-emerald-700 text-foreground font-bold rounded-lg border-0 cursor-pointer flex items-center justify-center gap-1"
                     >
                       {actioningId === req.id ? (
                         <div className="animate-spin rounded-full h-3 w-3 border-b border-white"></div>
@@ -362,7 +384,7 @@ export function CorrectionRequestsTab() {
                       variant="outline"
                       onClick={() => handleAction(req, "rejected")}
                       disabled={actioningId !== null}
-                      className="flex-1 h-9 text-xs bg-white/5 hover:bg-red-950/20 border-white/10 hover:border-red-500/30 text-white/80 hover:text-red-400 font-semibold rounded-lg cursor-pointer flex items-center justify-center gap-1"
+                      className="flex-1 h-9 text-xs bg-muted/40 hover:bg-red-950/20 border-border hover:border-red-500/30 text-foreground/80 hover:text-red-400 font-semibold rounded-lg cursor-pointer flex items-center justify-center gap-1"
                     >
                       <X className="w-4 h-4" /> Deny
                     </Button>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { doc, onSnapshot, collection, query, where } from "firebase/firestore";
+import { doc, onSnapshot, collection, query, where, addDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { canAccess } from "@/lib/permissions";
@@ -150,7 +150,7 @@ export default function AttendancePage() {
     setSubmittingCorr(true);
     try {
       const { addDoc, collection } = await import("firebase/firestore");
-      await addDoc(collection(db, "attendanceCorrections"), {
+      const corrRef = await addDoc(collection(db, "attendanceCorrections"), {
         uid: user.uid,
         employeeName: user.fullName || user.displayName || user.email || "Employee",
         date: corrDate,
@@ -160,6 +160,16 @@ export default function AttendancePage() {
         reason: corrReason,
         status: "pending",
         createdAt: new Date().toISOString()
+      });
+
+      await addDoc(collection(db, "auditLog"), {
+        actorId: user.uid,
+        actorName: user.fullName || user.displayName || user.email || "Employee",
+        action: "ATTENDANCE_CORRECTION_REQUEST",
+        targetCollection: "attendanceCorrections",
+        targetId: corrRef.id,
+        details: `Submitted attendance correction request for ${corrDate} (${corrType === "both" ? "both In/Out" : corrType === "in" ? "Clock In only" : "Clock Out only"}). Reason: ${corrReason}`,
+        createdAt: { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0 }
       });
 
       await sendDiscordNotification(`🔧 **${user.fullName || user.displayName || user.email}** submitted a manual **Attendance Correction** request for **${corrDate}**.`, undefined, 'hr');
@@ -284,6 +294,16 @@ export default function AttendancePage() {
         lastActionTimestamp: Date.now()
       }, { merge: true });
       
+      await addDoc(collection(db, "auditLog"), {
+        actorId: user.uid,
+        actorName: user.fullName || user.email || "Employee",
+        action: "ATTENDANCE_CLOCK_IN",
+        targetCollection: "attendance",
+        targetId: `${user.uid}_${dateString}`,
+        details: `Clocked in for the day at ${newLog.time}`,
+        createdAt: { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0 }
+      });
+
       await sendDiscordNotification(`⏱️ **${user.fullName || user.email}** clocked **IN** for the day.`, undefined, 'hr');
     } catch (err) {
       console.error("Error creating attendance clock-in:", err);
@@ -314,6 +334,16 @@ export default function AttendancePage() {
         lastActionTimestamp: Date.now()
       });
       
+      await addDoc(collection(db, "auditLog"), {
+        actorId: user.uid,
+        actorName: user.fullName || user.email || "Employee",
+        action: "ATTENDANCE_BREAK_START",
+        targetCollection: "attendance",
+        targetId: `${user.uid}_${dateString}`,
+        details: `Started a lunch break at ${newLog.time}`,
+        createdAt: { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0 }
+      });
+
       await sendDiscordNotification(`☕ **${user.fullName || user.email}** started a **Lunch Break**.`, undefined, 'hr');
     } catch (err) {
       console.error("Error starting break:", err);
@@ -344,6 +374,16 @@ export default function AttendancePage() {
         lastActionTimestamp: Date.now()
       });
       
+      await addDoc(collection(db, "auditLog"), {
+        actorId: user.uid,
+        actorName: user.fullName || user.email || "Employee",
+        action: "ATTENDANCE_BREAK_END",
+        targetCollection: "attendance",
+        targetId: `${user.uid}_${dateString}`,
+        details: `Ended break and resumed work at ${newLog.time}`,
+        createdAt: { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0 }
+      });
+
       await sendDiscordNotification(`💼 **${user.fullName || user.email}** ended break and **Resumed Work**.`, undefined, 'hr');
     } catch (err) {
       console.error("Error resuming work:", err);
@@ -374,6 +414,16 @@ export default function AttendancePage() {
         lastActionTimestamp: Date.now()
       });
       
+      await addDoc(collection(db, "auditLog"), {
+        actorId: user.uid,
+        actorName: user.fullName || user.email || "Employee",
+        action: "ATTENDANCE_CLOCK_OUT",
+        targetCollection: "attendance",
+        targetId: `${user.uid}_${dateString}`,
+        details: `Clocked out for the day at ${newLog.time}`,
+        createdAt: { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0 }
+      });
+
       await sendDiscordNotification(`🏁 **${user.fullName || user.email}** clocked **OUT** for the day.`, undefined, 'hr');
     } catch (err) {
       console.error("Error clocking out:", err);
@@ -381,21 +431,21 @@ export default function AttendancePage() {
   };
 
   return (
-    <div className="flex flex-col h-auto lg:h-[calc(100vh-8rem)] text-white">
+    <div className="flex flex-col h-auto lg:h-[calc(100vh-8rem)] text-foreground">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 shrink-0">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">Attendance</h1>
-          <p className="text-white/40 mt-1">Track your daily working hours, break schedules, and overtime metrics live.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Attendance</h1>
+          <p className="text-foreground/40 mt-1">Track your daily working hours, break schedules, and overtime metrics live.</p>
         </div>
         
         <div className="flex items-center gap-4 bg-white/[0.02] border border-white/[0.06] backdrop-blur-[24px] px-4 py-2 rounded-xl">
           <CalendarIcon className="w-5 h-5 text-blue-400" />
-          <span className="font-semibold text-white/80">{formatDate(currentTime)}</span>
+          <span className="font-semibold text-foreground/80">{formatDate(currentTime)}</span>
         </div>
       </div>
 
       <Tabs defaultValue="personal" className="w-full flex flex-col min-h-0">
-        <TabsList className="mb-6 bg-white/[0.03] border border-white/[0.08] p-1 rounded-xl w-full sm:w-fit shrink-0 gap-1 text-white flex overflow-x-auto scrollbar-hide flex-nowrap max-w-full justify-start">
+        <TabsList className="mb-6 bg-white/[0.03] border border-white/[0.08] p-1 rounded-xl w-full sm:w-fit shrink-0 gap-1 text-foreground flex overflow-x-auto scrollbar-hide flex-nowrap max-w-full justify-start">
           <TabsTrigger value="personal" className="px-4 py-2 rounded-lg text-sm font-semibold transition-all shrink-0">
             My Tracker
           </TabsTrigger>
@@ -416,7 +466,7 @@ export default function AttendancePage() {
 
         <TabsContent value="personal" className="flex-1 min-h-0 focus-visible:outline-none overflow-y-auto">
           {loadingDoc ? (
-            <div className="h-full flex flex-col justify-center items-center text-white/60 font-medium gap-3">
+            <div className="h-full flex flex-col justify-center items-center text-foreground/60 font-medium gap-3">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
               <span>Syncing with secure attendance terminal...</span>
             </div>
@@ -442,21 +492,21 @@ export default function AttendancePage() {
                       <Badge variant="outline" className={cn("text-xs font-bold uppercase tracking-widest border px-4 py-1.5 rounded-xl shadow-glow-blue", 
                         status === "in" ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/20" : 
                         status === "break" ? "bg-amber-500/10 text-amber-300 border-amber-500/20" : 
-                        "bg-white/5 text-white/70 border-white/10"
+                        "bg-muted/40 text-foreground/70 border-border"
                       )}>
                         {status === "in" ? "Currently Clocked In" : status === "break" ? "On Lunch Break" : "Offline / Clocked Out"}
                       </Badge>
                     </div>
 
                     {/* Huge Clock */}
-                    <div className="text-7xl md:text-8xl font-black text-white tracking-tighter mb-2 tabular-nums">
+                    <div className="text-7xl md:text-8xl font-black text-foreground tracking-tighter mb-2 tabular-nums">
                       {formatTime(currentTime)}
                     </div>
 
                     {/* Elapsed Time */}
-                    <div className="flex items-center gap-2 text-white/50 font-bold text-xl mb-12">
+                    <div className="flex items-center gap-2 text-foreground/50 font-bold text-xl mb-12">
                       <Clock className="w-5 h-5 shrink-0 text-blue-400" />
-                      <span className="tabular-nums text-white/80">Worked Today: <strong className="text-blue-400 font-mono">{formatElapsed(tickingSeconds)}</strong></span>
+                      <span className="tabular-nums text-foreground/80">Worked Today: <strong className="text-blue-400 font-mono">{formatElapsed(tickingSeconds)}</strong></span>
                     </div>
 
                     {/* Action Buttons */}
@@ -464,7 +514,7 @@ export default function AttendancePage() {
                       {status === "out" ? (
                         <Button 
                           size="lg" 
-                          className="w-full h-16 text-lg bg-blue-600 hover:bg-blue-700 text-white shadow-glow-blue transition-all rounded-xl font-bold border-0 cursor-pointer"
+                          className="w-full h-16 text-lg bg-blue-600 hover:bg-blue-700 text-foreground shadow-glow-blue transition-all rounded-xl font-bold border-0 cursor-pointer"
                           onClick={handleClockIn}
                         >
                           <Play className="w-6 h-6 mr-3 fill-white/20 animate-pulse" /> Clock In
@@ -475,8 +525,8 @@ export default function AttendancePage() {
                             size="lg" 
                             className={cn("flex-1 h-16 text-lg transition-all rounded-xl font-bold border cursor-pointer", 
                               status === "break" 
-                                ? "bg-amber-500 hover:bg-amber-600 text-white shadow-glow-amber border-transparent" 
-                                : "bg-white/5 text-amber-300 hover:bg-white/10 border-white/10"
+                                ? "bg-amber-500 hover:bg-amber-600 text-foreground shadow-glow-amber border-transparent" 
+                                : "bg-muted/40 text-amber-300 hover:bg-muted/80 border-border"
                             )}
                             onClick={status === "break" ? handleResume : handleTakeBreak}
                           >
@@ -486,7 +536,7 @@ export default function AttendancePage() {
                           <Button 
                             size="lg" 
                             variant="destructive"
-                            className="flex-1 h-16 text-lg bg-rose-600 hover:bg-rose-700 text-white shadow-glow-rose transition-all rounded-xl font-bold border-0 cursor-pointer"
+                            className="flex-1 h-16 text-lg bg-rose-600 hover:bg-rose-700 text-foreground shadow-glow-rose transition-all rounded-xl font-bold border-0 cursor-pointer"
                             onClick={handleClockOut}
                           >
                             <Square className="w-5 h-5 mr-2 fill-white/20" /> Clock Out
@@ -501,8 +551,8 @@ export default function AttendancePage() {
                 <Card className="border-white/[0.08] bg-white/[0.02] shadow-card rounded-2xl p-6 backdrop-blur-xl shrink-0 flex flex-col justify-between">
                   <CardHeader className="p-0 pb-4 border-b border-white/[0.06] flex flex-row items-center justify-between">
                     <div>
-                      <h3 className="font-bold text-white text-base">Weekly Workload</h3>
-                      <p className="text-[10px] text-white/40 mt-0.5">Hours logged per day over the past week</p>
+                      <h3 className="font-bold text-foreground text-base">Weekly Workload</h3>
+                      <p className="text-[10px] text-foreground/40 mt-0.5">Hours logged per day over the past week</p>
                     </div>
                     <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-300 border-blue-500/20 font-bold px-3 py-1 rounded-full shadow-none">
                       7 Days Activity
@@ -532,8 +582,8 @@ export default function AttendancePage() {
                               if (active && payload && payload.length) {
                                 const data = payload[0].payload;
                                 return (
-                                  <div className="bg-[#0b1329]/95 border border-white/10 rounded-xl p-3 shadow-xl backdrop-blur-md">
-                                    <p className="text-[9px] text-white/40 font-bold uppercase tracking-wider">{new Date(data.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                                  <div className="bg-[#0b1329]/95 border border-border rounded-xl p-3 shadow-xl backdrop-blur-md">
+                                    <p className="text-[9px] text-foreground/40 font-bold uppercase tracking-wider">{new Date(data.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
                                     <p className="text-xs font-black text-blue-400 mt-1">{data.hours} hours logged</p>
                                   </div>
                                 );
@@ -563,7 +613,7 @@ export default function AttendancePage() {
                         </BarChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="h-full w-full flex items-center justify-center text-xs text-white/20">Loading workload metrics...</div>
+                      <div className="h-full w-full flex items-center justify-center text-xs text-foreground/20">Loading workload metrics...</div>
                     )}
                   </CardContent>
                 </Card>
@@ -575,14 +625,14 @@ export default function AttendancePage() {
                 <Card className="border-white/[0.08] bg-white/[0.02] shadow-card rounded-2xl overflow-hidden backdrop-blur-xl shrink-0">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-4 mb-6">
-                      <Avatar className="h-16 w-16 border border-white/10 ring-2 ring-blue-500/20 bg-blue-950">
+                      <Avatar className="h-16 w-16 border border-border ring-2 ring-blue-500/20 bg-blue-950">
                         <AvatarImage src={user?.photoURL || undefined} />
                         <AvatarFallback className="bg-blue-800 text-blue-200 text-xl font-bold">
                           {user?.displayName?.substring(0, 2).toUpperCase() || "JD"}
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
-                        <h3 className="font-bold text-xl text-white truncate">{user?.displayName || "Mints Team Member"}</h3>
+                        <h3 className="font-bold text-xl text-foreground truncate">{user?.displayName || "Mints Team Member"}</h3>
                         <p className="text-blue-400 font-bold uppercase tracking-wider text-xs mt-0.5 truncate">
                           {role?.replace("_", " ") || "EMPLOYEE"} {user?.role !== role && <span className="text-[10px] text-amber-400 font-bold ml-1 animate-pulse">(Simulated)</span>}
                         </p>
@@ -590,12 +640,12 @@ export default function AttendancePage() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 text-center">
-                      <div className="bg-white/5 rounded-xl p-3 border border-white/[0.06]">
-                        <p className="text-[10px] text-white/40 uppercase tracking-wider font-bold mb-1">Shift Target</p>
-                        <p className="text-lg font-black text-white/90 tabular-nums">8h 00m</p>
+                      <div className="bg-muted/40 rounded-xl p-3 border border-white/[0.06]">
+                        <p className="text-[10px] text-foreground/40 uppercase tracking-wider font-bold mb-1">Shift Target</p>
+                        <p className="text-lg font-black text-foreground/90 tabular-nums">8h 00m</p>
                       </div>
-                      <div className="bg-white/5 rounded-xl p-3 border border-white/[0.06]">
-                        <p className="text-[10px] text-white/40 uppercase tracking-wider font-bold mb-1">Shift Total</p>
+                      <div className="bg-muted/40 rounded-xl p-3 border border-white/[0.06]">
+                        <p className="text-[10px] text-foreground/40 uppercase tracking-wider font-bold mb-1">Shift Total</p>
                         <p className="text-lg font-black text-emerald-400 tabular-nums">
                           {formatTickingHours(tickingSeconds)}
                         </p>
@@ -614,7 +664,7 @@ export default function AttendancePage() {
                 <Card className="border-white/[0.08] bg-white/[0.02] shadow-card rounded-2xl overflow-hidden backdrop-blur-xl min-h-[300px]">
                   <div>
                     <CardHeader className="pb-4 border-b border-white/[0.06] flex flex-row items-center justify-between">
-                      <h3 className="font-bold text-white text-lg">Today's Log</h3>
+                      <h3 className="font-bold text-foreground text-lg">Today's Log</h3>
                       
                       {/* Request Correction Dialog Form */}
                       <Dialog>
@@ -622,18 +672,18 @@ export default function AttendancePage() {
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            className="h-8 px-2.5 bg-white/5 border border-white/10 hover:bg-white/10 text-white/70 hover:text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1 cursor-pointer"
+                            className="h-8 px-2.5 bg-muted/40 border border-border hover:bg-muted/80 text-foreground/70 hover:text-foreground rounded-lg text-xs font-bold flex items-center justify-center gap-1 cursor-pointer"
                           >
                             Request Correction
                           </Button>
                         }/>
-                        <DialogContent className="max-w-md bg-[#0a1628] border border-white/[0.08] text-white backdrop-blur-xl rounded-2xl shadow-2xl">
+                        <DialogContent className="max-w-md bg-[#0a1628] border border-white/[0.08] text-foreground backdrop-blur-xl rounded-2xl shadow-2xl">
                           <DialogHeader>
-                            <DialogTitle className="text-xl font-bold flex items-center gap-2 text-white">
+                            <DialogTitle className="text-xl font-bold flex items-center gap-2 text-foreground">
                               <Send className="w-5 h-5 text-blue-400" />
                               Time Correction Request
                             </DialogTitle>
-                            <DialogDescription className="text-white/40 text-xs mt-1">
+                            <DialogDescription className="text-foreground/40 text-xs mt-1">
                               Submit adjustment requests if you missed a terminal clock action or logged incorrect shift times.
                             </DialogDescription>
                           </DialogHeader>
@@ -646,23 +696,23 @@ export default function AttendancePage() {
 
                           <form onSubmit={handleSubCorrection} className="space-y-4 mt-4">
                             <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest pl-1">Target Date</label>
+                              <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest pl-1">Target Date</label>
                               <Input
                                 type="date"
                                 required
                                 value={corrDate}
                                 onChange={(e) => setCorrDate(e.target.value)}
                                 max={new Date().toISOString().split('T')[0]}
-                                className="glass-input h-10 text-xs border-white/10 text-white focus:border-blue-500/60 focus:ring-0 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+                                className="glass-input h-10 text-xs border-border text-foreground focus:border-blue-500/60 focus:ring-0 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
                               />
                             </div>
 
                             <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest pl-1">Adjustment Scope</label>
+                              <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest pl-1">Adjustment Scope</label>
                               <select
                                 value={corrType}
                                 onChange={(e) => setCorrType(e.target.value as any)}
-                                className="w-full h-10 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#0c1322] text-white cursor-pointer"
+                                className="w-full h-10 border border-border rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#0c1322] text-foreground cursor-pointer"
                               >
                                 <option value="both">Correct Entire Shift (In & Out)</option>
                                 <option value="in">Correct Clock-In Only</option>
@@ -673,39 +723,39 @@ export default function AttendancePage() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               {corrType !== "out" && (
                                 <div className="space-y-1.5">
-                                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest pl-1">Proposed Clock-In</label>
+                                  <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest pl-1">Proposed Clock-In</label>
                                   <Input
                                     type="time"
                                     required
                                     value={corrIn}
                                     onChange={(e) => setCorrIn(e.target.value)}
-                                    className="glass-input h-10 text-xs border-white/10 text-white focus:border-blue-500/60 focus:ring-0 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+                                    className="glass-input h-10 text-xs border-border text-foreground focus:border-blue-500/60 focus:ring-0 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
                                   />
                                 </div>
                               )}
                               {corrType !== "in" && (
                                 <div className="space-y-1.5">
-                                  <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest pl-1">Proposed Clock-Out</label>
+                                  <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest pl-1">Proposed Clock-Out</label>
                                   <Input
                                     type="time"
                                     required
                                     value={corrOut}
                                     onChange={(e) => setCorrOut(e.target.value)}
-                                    className="glass-input h-10 text-xs border-white/10 text-white focus:border-blue-500/60 focus:ring-0 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+                                    className="glass-input h-10 text-xs border-border text-foreground focus:border-blue-500/60 focus:ring-0 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
                                   />
                                 </div>
                               )}
                             </div>
 
                             <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest pl-1">Explanation Reason</label>
+                              <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest pl-1">Explanation Reason</label>
                               <textarea
                                 required
                                 rows={3}
                                 placeholder="State clearly why you need this manual adjustment (e.g. Forgot to clock out at the end of the shift)..."
                                 value={corrReason}
                                 onChange={(e) => setCorrReason(e.target.value)}
-                                className="w-full bg-[#0c1322] border border-white/10 rounded-xl p-3 text-xs focus:border-blue-500/60 focus:ring-0 text-white placeholder:text-white/20 resize-none"
+                                className="w-full bg-[#0c1322] border border-border rounded-xl p-3 text-xs focus:border-blue-500/60 focus:ring-0 text-foreground placeholder:text-foreground/20 resize-none"
                               />
                             </div>
 
@@ -723,9 +773,9 @@ export default function AttendancePage() {
                     <CardContent className="p-0">
                       {logs.length === 0 ? (
                         <div className="text-center py-12 p-6 flex flex-col items-center">
-                          <Clock className="h-10 w-10 text-white/20 mb-3" />
-                          <p className="text-sm font-semibold text-white/60">Terminal Idle</p>
-                          <p className="text-xs text-white/40 mt-1 text-center">Log in using the terminal clock to begin tracking your work shift.</p>
+                          <Clock className="h-10 w-10 text-foreground/20 mb-3" />
+                          <p className="text-sm font-semibold text-foreground/60">Terminal Idle</p>
+                          <p className="text-xs text-foreground/40 mt-1 text-center">Log in using the terminal clock to begin tracking your work shift.</p>
                         </div>
                       ) : (
                         <div className="divide-y divide-white/[0.04] max-h-[320px] overflow-y-auto">
@@ -748,8 +798,8 @@ export default function AttendancePage() {
                               </div>
                               <div className="flex-1 flex justify-between items-center">
                                 <div>
-                                  <p className="font-bold text-white/90">{log.label}</p>
-                                  <p className="text-[10px] text-white/30 font-bold uppercase tracking-wider">Verified session</p>
+                                  <p className="font-bold text-foreground/90">{log.label}</p>
+                                  <p className="text-[10px] text-foreground/30 font-bold uppercase tracking-wider">Verified session</p>
                                 </div>
                                 <span className="font-bold text-blue-400 text-sm tabular-nums">{log.time}</span>
                               </div>
@@ -765,7 +815,7 @@ export default function AttendancePage() {
                               </div>
                               <div className="flex-1 flex justify-between items-center opacity-70">
                                 <div>
-                                  <p className="font-bold text-white italic">Working shift active...</p>
+                                  <p className="font-bold text-foreground italic">Working shift active...</p>
                                 </div>
                                 <span className="font-bold text-blue-400 text-sm tabular-nums">{currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
                               </div>
@@ -782,19 +832,19 @@ export default function AttendancePage() {
                   <Card className="border-white/[0.08] bg-white/[0.02] shadow-card rounded-2xl overflow-hidden backdrop-blur-xl shrink-0">
                     <CardHeader className="pb-3 border-b border-white/[0.06] flex flex-row items-center gap-1.5">
                       <History className="w-4 h-4 text-blue-400" />
-                      <h3 className="font-bold text-white text-sm">My Correction Requests</h3>
+                      <h3 className="font-bold text-foreground text-sm">My Correction Requests</h3>
                     </CardHeader>
                     <CardContent className="p-3 max-h-[220px] overflow-y-auto space-y-2">
                       {myCorrections.map(req => (
                         <div key={req.id} className="bg-white/[0.01] border border-white/[0.04] p-3 rounded-xl flex items-center justify-between hover:bg-white/[0.02] transition-colors">
                           <div className="space-y-1">
-                            <p className="text-xs font-bold text-white">{formattedDateLabel(req.date)}</p>
-                            <p className="text-[10px] text-white/50 leading-relaxed">
+                            <p className="text-xs font-bold text-foreground">{formattedDateLabel(req.date)}</p>
+                            <p className="text-[10px] text-foreground/50 leading-relaxed">
                               {req.requestType === "in" ? `In: ${formatTimeString(req.proposedClockIn)}` :
                                req.requestType === "out" ? `Out: ${formatTimeString(req.proposedClockOut)}` :
                                `In: ${formatTimeString(req.proposedClockIn)} | Out: ${formatTimeString(req.proposedClockOut)}`}
                             </p>
-                            <p className="text-[9px] text-white/30 italic truncate max-w-[150px]">"{req.reason}"</p>
+                            <p className="text-[9px] text-foreground/30 italic truncate max-w-[150px]">"{req.reason}"</p>
                           </div>
                           <Badge variant="outline" className={cn("text-[9px] uppercase tracking-wider font-bold shadow-none",
                             req.status === "approved" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :

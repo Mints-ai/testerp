@@ -213,5 +213,17 @@ service cloud.firestore {
       allow read: if isAuth();
       allow write: if isAuth();
     }
+
+    // Login Activity Collection Rules
+    match /loginActivity/{activityId} {
+      allow read: if isAuth() && isFounderOrAdmin();
+      allow create: if request.resource.data.status == "failed" || isAuth();
+      allow update, delete: if false;
+    }
+
+    // Employee Documents Collection Rules (HR Document Expiry Tracker)
+    match /employeeDocuments/{docId} {
+      allow read, write: if isAuth() && isManagerOrAbove();
+    }
   }
 }

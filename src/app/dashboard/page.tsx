@@ -160,15 +160,15 @@ export default function DashboardHome() {
   };
 
   return (
-    <div className="flex gap-6 h-full min-h-screen pb-24 text-white">
+    <div className="flex gap-6 h-full min-h-screen pb-24 text-foreground">
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 space-y-6">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+          <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <Zap className="h-5 w-5 text-blue-500 fill-blue-500/10 animate-pulse" />
             {isExecutive ? "Command Center" : "My Workspace"}
           </h1>
-          <p className="text-xs text-white/40 mt-1">
+          <p className="text-xs text-foreground/40 mt-1">
             {isExecutive 
               ? "Here is the top-level activity and operational health for Mints Global."
               : `Welcome back, ${user?.displayName?.split(" ")[0] || "User"}. Here's what's on your desk today.`}
@@ -179,12 +179,12 @@ export default function DashboardHome() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card className="glass-card overflow-hidden group border-white/[0.08] bg-white/[0.02]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 z-10 relative">
-              <CardTitle className="text-[11px] font-bold text-white/50 uppercase tracking-wider">Open Tasks</CardTitle>
+              <CardTitle className="text-[11px] font-bold text-foreground/50 uppercase tracking-wider">Open Tasks</CardTitle>
               <CheckCircle2 className="h-4 w-4 text-blue-400" />
             </CardHeader>
             <CardContent className="z-10 relative pb-14">
               <div className="stat-number">{stats.openTasks}</div>
-              <p className="text-[10px] text-white/40 mt-1">Live operational tasks</p>
+              <p className="text-[10px] text-foreground/40 mt-1">Live operational tasks</p>
             </CardContent>
             <div className="absolute bottom-0 left-0 right-0 h-14 opacity-20 group-hover:opacity-40 transition-opacity">
               {mounted ? (
@@ -207,12 +207,12 @@ export default function DashboardHome() {
             <>
               <Card className="glass-card overflow-hidden group border-white/[0.08] bg-white/[0.02]">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 z-10 relative">
-                  <CardTitle className="text-[11px] font-bold text-white/50 uppercase tracking-wider">Active Projects</CardTitle>
+                  <CardTitle className="text-[11px] font-bold text-foreground/50 uppercase tracking-wider">Active Projects</CardTitle>
                   <Briefcase className="h-4 w-4 text-cyan-400" />
                 </CardHeader>
                 <CardContent className="z-10 relative pb-14">
                   <div className="stat-number">{stats.activeProjects}</div>
-                  <p className="text-[10px] text-white/40 mt-1">Actively loaded projects</p>
+                  <p className="text-[10px] text-foreground/40 mt-1">Actively loaded projects</p>
                 </CardContent>
                 <div className="absolute bottom-0 left-0 right-0 h-14 opacity-20 group-hover:opacity-40 transition-opacity">
                   {mounted ? (
@@ -227,7 +227,7 @@ export default function DashboardHome() {
 
               <Card className="glass-card overflow-hidden group border-white/[0.08] bg-white/[0.02]">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 z-10 relative">
-                  <CardTitle className="text-[11px] font-bold text-white/50 uppercase tracking-wider">Team Size</CardTitle>
+                  <CardTitle className="text-[11px] font-bold text-foreground/50 uppercase tracking-wider">Team Size</CardTitle>
                   <Users className="h-4 w-4 text-violet-400" />
                 </CardHeader>
                 <CardContent className="z-10 relative pb-14">
@@ -240,7 +240,7 @@ export default function DashboardHome() {
                       </span>
                     )}
                   </div>
-                  <p className="text-[10px] text-white/40 mt-1">Onboarded employees</p>
+                  <p className="text-[10px] text-foreground/40 mt-1">Onboarded employees</p>
                 </CardContent>
                 <div className="absolute bottom-0 left-0 right-0 h-14 opacity-20 group-hover:opacity-40 transition-opacity">
                   {mounted ? (
@@ -263,12 +263,12 @@ export default function DashboardHome() {
 
           <Card className="glass-card overflow-hidden group border-white/[0.08] bg-white/[0.02]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 z-10 relative">
-              <CardTitle className="text-[11px] font-bold text-white/50 uppercase tracking-wider">Hours Logged</CardTitle>
+              <CardTitle className="text-[11px] font-bold text-foreground/50 uppercase tracking-wider">Hours Logged</CardTitle>
               <Clock className="h-4 w-4 text-emerald-400" />
             </CardHeader>
             <CardContent className="z-10 relative pb-14">
-              <div className="stat-number">0<span className="text-xs text-white/30 font-sans ml-0.5">h</span></div>
-              <p className="text-[10px] text-white/40 mt-1">Current operational week</p>
+              <div className="stat-number">0<span className="text-xs text-foreground/30 font-sans ml-0.5">h</span></div>
+              <p className="text-[10px] text-foreground/40 mt-1">Current operational week</p>
             </CardContent>
             <div className="absolute bottom-0 left-0 right-0 h-14 opacity-20 group-hover:opacity-40 transition-opacity">
               {mounted ? (
@@ -289,16 +289,16 @@ export default function DashboardHome() {
             <Card className="glass bg-white/[0.02] border-white/[0.08]">
               <CardHeader className="pb-3 border-b border-white/[0.06] flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
+                  <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
                     <span className="relative flex h-2 w-2">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                     </span>
                     Live Presence Map
                   </CardTitle>
-                  <CardDescription className="text-[10px] text-white/40 mt-1">Real-time status updates of onboarded colleagues based on activity beat.</CardDescription>
+                  <CardDescription className="text-[10px] text-foreground/40 mt-1">Real-time status updates of onboarded colleagues based on activity beat.</CardDescription>
                 </div>
-                <div className="flex gap-3 text-[9px] font-bold text-white/50">
+                <div className="flex gap-3 text-[9px] font-bold text-foreground/50">
                   <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Online</span>
                   <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Idle</span>
                   <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white/20" /> Offline</span>
@@ -307,7 +307,7 @@ export default function DashboardHome() {
               <CardContent className="p-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                   {employees.length === 0 ? (
-                    <div className="col-span-full py-8 text-center text-xs text-white/40 italic">
+                    <div className="col-span-full py-8 text-center text-xs text-foreground/40 italic">
                       No registered colleagues found.
                     </div>
                   ) : (
@@ -335,9 +335,9 @@ export default function DashboardHome() {
                       return (
                         <div key={emp.id} className="relative bg-white/[0.01] border border-white/[0.04] p-3 rounded-xl flex items-center gap-3 hover:bg-white/[0.03] hover:border-white/[0.08] transition-all group">
                           <div className="relative">
-                            <Avatar className="h-9 w-9 border border-white/5 shadow-sm">
+                            <Avatar className="h-9 w-9 border border-border/30 shadow-sm">
                               <AvatarImage src={emp.profilePhotoURL} />
-                              <AvatarFallback className="bg-blue-600/30 text-white font-bold text-xs">{initials}</AvatarFallback>
+                              <AvatarFallback className="bg-blue-600/30 text-foreground font-bold text-xs">{initials}</AvatarFallback>
                             </Avatar>
                             <span className={cn(
                               "absolute bottom-0 right-0 block h-2 w-2 rounded-full ring-1 ring-black/50",
@@ -348,9 +348,9 @@ export default function DashboardHome() {
                           </div>
 
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs font-bold text-white truncate leading-snug">{emp.fullName || emp.name}</p>
-                            <p className="text-[9px] text-white/40 truncate mt-0.5 leading-snug">{emp.jobTitle || "Team Colleague"}</p>
-                            <p className="text-[8px] text-white/30 font-semibold truncate mt-1 leading-snug">{lastSeenStr}</p>
+                            <p className="text-xs font-bold text-foreground truncate leading-snug">{emp.fullName || emp.name}</p>
+                            <p className="text-[9px] text-foreground/40 truncate mt-0.5 leading-snug">{emp.jobTitle || "Team Colleague"}</p>
+                            <p className="text-[8px] text-foreground/30 font-semibold truncate mt-1 leading-snug">{lastSeenStr}</p>
                           </div>
                         </div>
                       );
@@ -364,10 +364,10 @@ export default function DashboardHome() {
             <Card className="glass bg-white/[0.02] border-white/[0.08] flex-1 flex flex-col">
               <CardHeader className="pb-3 border-b border-white/[0.06] flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
+                  <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
                     <Heart className="h-4 w-4 text-red-400 fill-red-400/20" /> Team Shoutouts
                   </CardTitle>
-                  <CardDescription className="text-[10px] text-white/40 mt-1">Recognize your peers for great work</CardDescription>
+                  <CardDescription className="text-[10px] text-foreground/40 mt-1">Recognize your peers for great work</CardDescription>
                 </div>
               </CardHeader>
               <CardContent className="p-4 flex-1 flex flex-col gap-4">
@@ -376,7 +376,7 @@ export default function DashboardHome() {
                     placeholder="Give a shoutout to someone..." 
                     value={newShoutout}
                     onChange={(e) => setNewShoutout(e.target.value)}
-                    className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 flex-1"
+                    className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 flex-1"
                   />
                   <button type="submit" disabled={isSubmittingShoutout || !newShoutout.trim()} className="btn-primary h-9 text-xs py-0 px-4 shrink-0 flex items-center justify-center font-bold">
                     Post
@@ -385,13 +385,13 @@ export default function DashboardHome() {
                 
                 <div className="space-y-2.5 overflow-y-auto max-h-[260px] pr-1">
                   {shoutouts.length === 0 ? (
-                    <div className="text-center py-6 text-white/20 text-xs font-semibold">No shoutouts yet. Be the first!</div>
+                    <div className="text-center py-6 text-foreground/20 text-xs font-semibold">No shoutouts yet. Be the first!</div>
                   ) : (
                     shoutouts.map((shout: any) => (
                       <div key={shout.id} className="bg-white/[0.02] p-3 rounded-xl border border-white/[0.06] shadow-sm relative overflow-hidden group">
                         <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-blue-500 to-cyan-500"></div>
-                        <p className="text-xs text-white/80 font-medium leading-relaxed pl-2">"{shout.text}"</p>
-                        <p className="text-[9px] text-white/40 mt-2 pl-2 flex justify-between">
+                        <p className="text-xs text-foreground/80 font-medium leading-relaxed pl-2">"{shout.text}"</p>
+                        <p className="text-[9px] text-foreground/40 mt-2 pl-2 flex justify-between">
                           <span className="font-bold text-blue-400/80">— {shout.authorName}</span>
                           <span className="font-mono">{shout.createdAt ? new Date(shout.createdAt.seconds * 1000).toLocaleDateString() : 'Just now'}</span>
                         </p>
@@ -406,7 +406,7 @@ export default function DashboardHome() {
           <div className="md:col-span-2 lg:col-span-3 space-y-6 flex flex-col">
             {/* Announcements */}
             <Card className="glass bg-white/[0.02] border-white/[0.08] overflow-hidden">
-              <CardHeader className="bg-blue-950/60 border-b border-white/[0.06] pb-4">
+              <CardHeader className="bg-muted/50 border-b border-white/[0.06] pb-4">
                 <CardTitle className="text-sm font-bold flex items-center gap-2">
                   <AlertCircle className="h-4 w-4 text-blue-400" />
                   Notice Board
@@ -414,12 +414,12 @@ export default function DashboardHome() {
               </CardHeader>
               <CardContent className="p-4 space-y-2.5 h-[180px] overflow-y-auto">
                 <div className="p-3 bg-white/[0.02] rounded-xl border border-white/[0.06] shadow-sm border-l-4 border-l-blue-500 hover:bg-white/[0.04] transition-all">
-                  <p className="font-bold text-xs text-white">Q3 Planning Meeting</p>
-                  <p className="text-[10px] text-white/45 mt-1 leading-relaxed">Tomorrow at 10:00 AM AST. All department heads must attend.</p>
+                  <p className="font-bold text-xs text-foreground">Q3 Planning Meeting</p>
+                  <p className="text-[10px] text-foreground/45 mt-1 leading-relaxed">Tomorrow at 10:00 AM AST. All department heads must attend.</p>
                 </div>
                 <div className="p-3 bg-white/[0.02] rounded-xl border border-white/[0.06] shadow-sm border-l-4 border-l-cyan-500 hover:bg-white/[0.04] transition-all">
-                  <p className="font-bold text-xs text-white">New Client Onboarding</p>
-                  <p className="text-[10px] text-white/45 mt-1 leading-relaxed">Please welcome Al Safa Group to the SEO portfolio.</p>
+                  <p className="font-bold text-xs text-foreground">New Client Onboarding</p>
+                  <p className="text-[10px] text-foreground/45 mt-1 leading-relaxed">Please welcome Al Safa Group to the SEO portfolio.</p>
                 </div>
               </CardContent>
             </Card>
@@ -427,8 +427,8 @@ export default function DashboardHome() {
             {/* Attendance Heatmap */}
             <Card className="glass bg-white/[0.02] border-white/[0.08] flex-1">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-bold text-white">Attendance Heatmap</CardTitle>
-                <CardDescription className="text-[10px] text-white/40">Your activity over the last 12 weeks</CardDescription>
+                <CardTitle className="text-sm font-bold text-foreground">Attendance Heatmap</CardTitle>
+                <CardDescription className="text-[10px] text-foreground/40">Your activity over the last 12 weeks</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex gap-1 overflow-x-auto pb-2">
@@ -451,7 +451,7 @@ export default function DashboardHome() {
                     </div>
                   ))}
                 </div>
-                <div className="flex items-center gap-2 mt-4 text-[9px] text-white/30 font-bold uppercase tracking-wider">
+                <div className="flex items-center gap-2 mt-4 text-[9px] text-foreground/30 font-bold uppercase tracking-wider">
                   <span>Less</span>
                   <div className="w-2.5 h-2.5 rounded-[2px] bg-white/[0.04]" />
                   <div className="w-2.5 h-2.5 rounded-[2px] bg-blue-600/35" />
@@ -470,13 +470,13 @@ export default function DashboardHome() {
         <div className="hidden xl:block w-72 shrink-0">
           <div className="sticky top-24 space-y-4">
             <div className="flex items-center justify-between pb-2 border-b border-white/[0.06]">
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">Approvals</h3>
+              <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">Approvals</h3>
               <Badge className="bg-blue-600/20 text-blue-400 border border-blue-500/20 font-mono text-[10px]">{stats.pendingLeaves} tasks</Badge>
             </div>
 
             <div className="space-y-3">
               {stats.pendingApprovals.length === 0 ? (
-                <div className="text-center py-8 text-white/30 bg-white/[0.01] border border-white/[0.05] rounded-2xl text-[10px] font-semibold tracking-wide uppercase">
+                <div className="text-center py-8 text-foreground/30 bg-white/[0.01] border border-white/[0.05] rounded-2xl text-[10px] font-semibold tracking-wide uppercase">
                   🎉 All Caught Up!
                 </div>
               ) : (
@@ -487,12 +487,12 @@ export default function DashboardHome() {
                       <span className="badge status-pending font-bold text-[9px] py-0.5 uppercase">
                         {approval.leaveType || "Leave Request"}
                       </span>
-                      <span className="text-[9px] font-mono text-white/30">
+                      <span className="text-[9px] font-mono text-foreground/30">
                         {approval.createdAt ? new Date(approval.createdAt).toLocaleDateString() : "Pending"}
                       </span>
                     </div>
-                    <p className="text-xs font-bold text-white leading-tight">{approval.employeeName || "Mints Team Member"}</p>
-                    <p className="text-[10px] text-white/40 mt-1.5 leading-relaxed">
+                    <p className="text-xs font-bold text-foreground leading-tight">{approval.employeeName || "Mints Team Member"}</p>
+                    <p className="text-[10px] text-foreground/40 mt-1.5 leading-relaxed">
                       {approval.startDate} to {approval.endDate}
                     </p>
                     <p className="text-[9px] italic text-blue-400/70 mt-1 leading-snug">
@@ -507,7 +507,7 @@ export default function DashboardHome() {
                       </button>
                       <button 
                         onClick={() => handleAction(approval.id, "rejected")}
-                        className="flex-grow btn-ghost py-1 px-3 text-[10px] h-7 font-semibold flex items-center justify-center gap-1 border-white/5 hover:border-red-500/20 hover:text-red-400 hover:bg-red-500/5 cursor-pointer"
+                        className="flex-grow btn-ghost py-1 px-3 text-[10px] h-7 font-semibold flex items-center justify-center gap-1 border-border/30 hover:border-red-500/20 hover:text-red-400 hover:bg-red-500/5 cursor-pointer"
                       >
                         <X className="h-3 w-3" /> Reject
                       </button>

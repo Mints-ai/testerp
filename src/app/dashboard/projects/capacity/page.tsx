@@ -68,10 +68,14 @@ export default function CapacityPlanning() {
       const usersMap = new Map();
       const empsList: any[] = [];
       
+      const adminEmailsEnv = process.env.NEXT_PUBLIC_ADMIN_EMAILS || "";
+      const adminEmails = adminEmailsEnv.split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
+      
       usersSnap.forEach(docSnap => {
         const d = { ...docSnap.data(), id: docSnap.id } as any;
-        const isSysAdmin = d.email?.toLowerCase().trim() === "systemadministrator@mintsglobal.ae" ||
-                           d.email?.toLowerCase().trim() === "binuarjunanand@gmail.com" ||
+        const emailLower = d.email?.toLowerCase().trim() || "";
+        const isSysAdmin = emailLower === "systemadministrator@mintsglobal.ae" ||
+                           adminEmails.includes(emailLower) ||
                            d.role === "system_administrator" ||
                            d.role === "system_admin" ||
                            d.fullName === "System Administrator";
@@ -274,8 +278,8 @@ export default function CapacityPlanning() {
   };
 
   return (
-    <RoleGuard permission="CREATE_PROJECT" fallback={<div className="p-8 text-center text-white/50">Access Denied. C-Suite credentials required.</div>}>
-      <div className="space-y-6 text-white pb-24">
+    <RoleGuard permission="CREATE_PROJECT" fallback={<div className="p-8 text-center text-foreground/50">Access Denied. C-Suite credentials required.</div>}>
+      <div className="space-y-6 text-foreground pb-24">
         {/* Dashboard Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -283,17 +287,17 @@ export default function CapacityPlanning() {
               <Clock className="h-5 w-5 text-indigo-500 fill-indigo-500/10" />
               Resource Planning & Timesheets
             </h1>
-            <p className="text-xs text-white/40 mt-1">Track actual team task loads and spreadsheet logging matrices.</p>
+            <p className="text-xs text-foreground/40 mt-1">Track actual team task loads and spreadsheet logging matrices.</p>
           </div>
 
           {/* Navigation Tabs */}
-          <div className="flex bg-white/5 p-1 rounded-xl border border-white/[0.08]">
+          <div className="flex bg-muted/40 p-1 rounded-xl border border-white/[0.08]">
             <button
               onClick={() => setActiveTab("capacity")}
               className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
                 activeTab === "capacity"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
-                  : "text-white/50 hover:text-white"
+                  ? "bg-indigo-600 text-foreground shadow-md shadow-indigo-600/20"
+                  : "text-foreground/50 hover:text-foreground"
               }`}
             >
               <Users className="h-3.5 w-3.5" />
@@ -303,8 +307,8 @@ export default function CapacityPlanning() {
               onClick={() => setActiveTab("timesheet")}
               className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
                 activeTab === "timesheet"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
-                  : "text-white/50 hover:text-white"
+                  ? "bg-indigo-600 text-foreground shadow-md shadow-indigo-600/20"
+                  : "text-foreground/50 hover:text-foreground"
               }`}
             >
               <FileSpreadsheet className="h-3.5 w-3.5" />
@@ -314,8 +318,8 @@ export default function CapacityPlanning() {
               onClick={() => setActiveTab("gantt")}
               className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
                 activeTab === "gantt"
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
-                  : "text-white/50 hover:text-white"
+                  ? "bg-indigo-600 text-foreground shadow-md shadow-indigo-600/20"
+                  : "text-foreground/50 hover:text-foreground"
               }`}
             >
               <GanttChartSquare className="h-3.5 w-3.5" />
@@ -337,12 +341,12 @@ export default function CapacityPlanning() {
               <div className="grid gap-4 md:grid-cols-3">
                 <Card className="glass-card bg-white/[0.02] border-white/[0.08]">
                   <CardHeader className="flex flex-row items-center justify-between pb-2">
-                    <CardTitle className="text-[11px] font-bold text-white/50 uppercase tracking-wider">Total Team Monitored</CardTitle>
+                    <CardTitle className="text-[11px] font-bold text-foreground/50 uppercase tracking-wider">Total Team Monitored</CardTitle>
                     <Users className="h-4 w-4 text-indigo-400" />
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">{teamCapacity.length}</div>
-                    <p className="text-[10px] text-white/40 mt-1">Actively tracking allocations</p>
+                    <p className="text-[10px] text-foreground/40 mt-1">Actively tracking allocations</p>
                   </CardContent>
                 </Card>
 
@@ -353,7 +357,7 @@ export default function CapacityPlanning() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-rose-400">{overbookedCount}</div>
-                    <p className="text-[10px] text-white/40 mt-1">Exceeding 85% capacity threshold</p>
+                    <p className="text-[10px] text-foreground/40 mt-1">Exceeding 85% capacity threshold</p>
                   </CardContent>
                 </Card>
 
@@ -364,7 +368,7 @@ export default function CapacityPlanning() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold text-emerald-400">{availableCount}</div>
-                    <p className="text-[10px] text-white/40 mt-1">Ready for assignment</p>
+                    <p className="text-[10px] text-foreground/40 mt-1">Ready for assignment</p>
                   </CardContent>
                 </Card>
               </div>
@@ -372,16 +376,16 @@ export default function CapacityPlanning() {
               {/* Heatmap Team Utilization List */}
               <Card className="glass bg-white/[0.02] border-white/[0.08]">
                 <CardHeader>
-                  <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
+                  <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
                     <TrendingUp className="h-4 w-4 text-indigo-400" /> Team Utilization Heatmap
                   </CardTitle>
-                  <CardDescription className="text-[10px] text-white/40">Calculated allocations against standard 40-hour work week capacities.</CardDescription>
+                  <CardDescription className="text-[10px] text-foreground/40">Calculated allocations against standard 40-hour work week capacities.</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {loading ? (
-                    <div className="h-40 flex items-center justify-center text-xs text-white/30 italic">Loading real-time capacity logs...</div>
+                    <div className="h-40 flex items-center justify-center text-xs text-foreground/30 italic">Loading real-time capacity logs...</div>
                   ) : teamCapacity.length === 0 ? (
-                    <div className="h-40 flex items-center justify-center text-xs text-white/30 italic">No employees found.</div>
+                    <div className="h-40 flex items-center justify-center text-xs text-foreground/30 italic">No employees found.</div>
                   ) : (
                     <div className="space-y-4">
                       {teamCapacity.map((member, i) => (
@@ -390,24 +394,24 @@ export default function CapacityPlanning() {
                           className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 rounded-xl border border-white/[0.04] bg-white/[0.01] hover:bg-white/[0.02] transition-colors"
                         >
                           <div className="flex items-center gap-4 w-full sm:w-1/3">
-                            <Avatar className="h-10 w-10 border border-white/5 shadow-sm">
+                            <Avatar className="h-10 w-10 border border-border/30 shadow-sm">
                               <AvatarImage src={member.avatar} />
-                              <AvatarFallback className="bg-indigo-600/30 text-white font-bold text-xs">
+                              <AvatarFallback className="bg-indigo-600/30 text-foreground font-bold text-xs">
                                 {getInitials(member.name)}
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <h4 className="font-bold text-xs text-white">{member.name}</h4>
-                              <p className="text-[10px] text-white/40 mt-0.5">{member.role}</p>
+                              <h4 className="font-bold text-xs text-foreground">{member.name}</h4>
+                              <p className="text-[10px] text-foreground/40 mt-0.5">{member.role}</p>
                             </div>
                           </div>
 
                           <div className="flex-1 space-y-1.5 w-full">
-                            <div className="flex justify-between text-[10px] font-semibold text-white/60">
+                            <div className="flex justify-between text-[10px] font-semibold text-foreground/60">
                               <span>Workload Capacity</span>
                               <span>{member.utilization}%</span>
                             </div>
-                            <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                            <div className="h-2 w-full bg-muted/40 rounded-full overflow-hidden">
                               <div 
                                 className={`h-full rounded-full ${getProgressColor(member.utilization)} transition-all duration-1000 ease-out`}
                                 style={{ width: `${member.utilization}%` }}
@@ -417,11 +421,11 @@ export default function CapacityPlanning() {
 
                           <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-1/3 mt-2 sm:mt-0">
                             <div className="text-right">
-                              <div className="flex items-center gap-1 justify-end text-xs font-bold text-white">
+                              <div className="flex items-center gap-1 justify-end text-xs font-bold text-foreground">
                                 <Clock className="h-3.5 w-3.5 text-indigo-400" />
                                 {member.totalEstimatedHours} hrs
                               </div>
-                              <p className="text-[9px] text-white/40 mt-0.5">{member.activeTasks} active tasks</p>
+                              <p className="text-[9px] text-foreground/40 mt-0.5">{member.activeTasks} active tasks</p>
                             </div>
                             <Badge variant="outline" className={`${getStatusColor(member.status)} text-[9px] w-24 justify-center py-0.5 font-bold uppercase`}>
                               {member.status}
@@ -447,14 +451,14 @@ export default function CapacityPlanning() {
               <Card className="glass bg-white/[0.02] border-white/[0.08]">
                 <CardContent className="p-5 flex flex-col md:flex-row gap-4 items-end">
                   <div className="flex-1 space-y-1.5">
-                    <label className="text-[10px] font-bold text-white/50 uppercase tracking-wider">Employee Reference</label>
+                    <label className="text-[10px] font-bold text-foreground/50 uppercase tracking-wider">Employee Reference</label>
                     <select
                       value={selectedEmployee}
                       onChange={(e) => setSelectedEmployee(e.target.value)}
-                      className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-3 py-2 text-xs font-semibold focus:border-indigo-500 focus:outline-none"
+                      className="w-full bg-white/[0.04] border border-border rounded-xl px-3 py-2 text-xs font-semibold focus:border-indigo-500 focus:outline-none"
                     >
                       {employees.map(e => (
-                        <option key={e.id} value={e.id} className="bg-slate-900 text-white">
+                        <option key={e.id} value={e.id} className="bg-slate-900 text-foreground">
                           {e.fullName || e.name} — {e.jobTitle || e.role || "Team Member"}
                         </option>
                       ))}
@@ -462,20 +466,20 @@ export default function CapacityPlanning() {
                   </div>
 
                   <div className="flex-1 space-y-1.5">
-                    <label className="text-[10px] font-bold text-white/50 uppercase tracking-wider">Target Week</label>
+                    <label className="text-[10px] font-bold text-foreground/50 uppercase tracking-wider">Target Week</label>
                     <select
                       value={selectedWeek}
                       onChange={(e) => setSelectedWeek(e.target.value)}
-                      className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-3 py-2 text-xs font-semibold focus:border-indigo-500 focus:outline-none"
+                      className="w-full bg-white/[0.04] border border-border rounded-xl px-3 py-2 text-xs font-semibold focus:border-indigo-500 focus:outline-none"
                     >
-                      <option value="May 24 - May 30, 2026" className="bg-slate-900 text-white">May 24 - May 30, 2026 (Active Week)</option>
-                      <option value="May 31 - June 06, 2026" className="bg-slate-900 text-white">May 31 - June 06, 2026</option>
-                      <option value="June 07 - June 13, 2026" className="bg-slate-900 text-white">June 07 - June 13, 2026</option>
+                      <option value="May 24 - May 30, 2026" className="bg-slate-900 text-foreground">May 24 - May 30, 2026 (Active Week)</option>
+                      <option value="May 31 - June 06, 2026" className="bg-slate-900 text-foreground">May 31 - June 06, 2026</option>
+                      <option value="June 07 - June 13, 2026" className="bg-slate-900 text-foreground">June 07 - June 13, 2026</option>
                     </select>
                   </div>
 
                   <div className="text-right">
-                    <div className="text-[10px] font-bold text-white/50 uppercase tracking-wider">Total Matrix Hours</div>
+                    <div className="text-[10px] font-bold text-foreground/50 uppercase tracking-wider">Total Matrix Hours</div>
                     <div className="text-xl font-black text-indigo-400 mt-1">{getGrandTotal().toFixed(1)} hrs</div>
                   </div>
                 </CardContent>
@@ -485,10 +489,10 @@ export default function CapacityPlanning() {
               <Card className="glass bg-white/[0.02] border-white/[0.08] overflow-hidden">
                 <CardHeader className="pb-3 border-b border-white/[0.06] flex flex-row items-center justify-between">
                   <div>
-                    <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
+                    <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
                       <FileSpreadsheet className="h-4 w-4 text-indigo-400" /> Unified Weekly Matrix Grid
                     </CardTitle>
-                    <CardDescription className="text-[10px] text-white/40">Log and calculate project hours dynamically across columns.</CardDescription>
+                    <CardDescription className="text-[10px] text-foreground/40">Log and calculate project hours dynamically across columns.</CardDescription>
                   </div>
                   <button
                     onClick={addTimesheetRow}
@@ -502,16 +506,16 @@ export default function CapacityPlanning() {
                   <table className="w-full border-collapse text-left min-w-[800px]">
                     <thead>
                       <tr className="border-b border-white/[0.06] bg-white/[0.01]">
-                        <th className="p-3 text-[10px] font-bold text-white/50 uppercase tracking-wider w-64">Client & Project</th>
-                        <th className="p-3 text-[10px] font-bold text-white/50 uppercase tracking-wider text-center w-20">Mon</th>
-                        <th className="p-3 text-[10px] font-bold text-white/50 uppercase tracking-wider text-center w-20">Tue</th>
-                        <th className="p-3 text-[10px] font-bold text-white/50 uppercase tracking-wider text-center w-20">Wed</th>
-                        <th className="p-3 text-[10px] font-bold text-white/50 uppercase tracking-wider text-center w-20">Thu</th>
-                        <th className="p-3 text-[10px] font-bold text-white/50 uppercase tracking-wider text-center w-20">Fri</th>
-                        <th className="p-3 text-[10px] font-bold text-white/50 uppercase tracking-wider text-center w-20">Sat</th>
-                        <th className="p-3 text-[10px] font-bold text-white/50 uppercase tracking-wider text-center w-20">Sun</th>
-                        <th className="p-3 text-[10px] font-bold text-white/50 uppercase tracking-wider text-center w-24">Row Total</th>
-                        <th className="p-3 text-[10px] font-bold text-white/50 uppercase tracking-wider text-center w-16">Action</th>
+                        <th className="p-3 text-[10px] font-bold text-foreground/50 uppercase tracking-wider w-64">Client & Project</th>
+                        <th className="p-3 text-[10px] font-bold text-foreground/50 uppercase tracking-wider text-center w-20">Mon</th>
+                        <th className="p-3 text-[10px] font-bold text-foreground/50 uppercase tracking-wider text-center w-20">Tue</th>
+                        <th className="p-3 text-[10px] font-bold text-foreground/50 uppercase tracking-wider text-center w-20">Wed</th>
+                        <th className="p-3 text-[10px] font-bold text-foreground/50 uppercase tracking-wider text-center w-20">Thu</th>
+                        <th className="p-3 text-[10px] font-bold text-foreground/50 uppercase tracking-wider text-center w-20">Fri</th>
+                        <th className="p-3 text-[10px] font-bold text-foreground/50 uppercase tracking-wider text-center w-20">Sat</th>
+                        <th className="p-3 text-[10px] font-bold text-foreground/50 uppercase tracking-wider text-center w-20">Sun</th>
+                        <th className="p-3 text-[10px] font-bold text-foreground/50 uppercase tracking-wider text-center w-24">Row Total</th>
+                        <th className="p-3 text-[10px] font-bold text-foreground/50 uppercase tracking-wider text-center w-16">Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/[0.04]">
@@ -522,17 +526,17 @@ export default function CapacityPlanning() {
                               <select
                                 value={row.projectId}
                                 onChange={(e) => handleRowProjectChange(row.id, e.target.value)}
-                                className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-2.5 py-1.5 text-xs font-semibold focus:border-indigo-500 focus:outline-none"
+                                className="w-full bg-white/[0.04] border border-border rounded-xl px-2.5 py-1.5 text-xs font-semibold focus:border-indigo-500 focus:outline-none"
                               >
-                                <option value="" className="bg-slate-900 text-white/35">Select Project...</option>
+                                <option value="" className="bg-slate-900 text-foreground/35">Select Project...</option>
                                 {projects.map(p => (
-                                  <option key={p.id} value={p.id} className="bg-slate-900 text-white">
+                                  <option key={p.id} value={p.id} className="bg-slate-900 text-foreground">
                                     {p.name || p.title}
                                   </option>
                                 ))}
                               </select>
                               {row.clientId && (
-                                <p className="text-[9px] text-white/40 font-bold px-1">{row.clientId}</p>
+                                <p className="text-[9px] text-foreground/40 font-bold px-1">{row.clientId}</p>
                               )}
                             </div>
                           </td>
@@ -546,19 +550,19 @@ export default function CapacityPlanning() {
                                 value={row.hours[day] === 0 ? "" : row.hours[day]}
                                 placeholder="0"
                                 onChange={(e) => handleCellChange(row.id, day, e.target.value)}
-                                className="w-14 bg-white/[0.03] border border-white/5 focus:border-indigo-500 focus:bg-white/[0.06] rounded-xl py-1.5 text-center text-xs font-bold focus:outline-none focus:ring-0 placeholder:text-white/10"
+                                className="w-14 bg-white/[0.03] border border-border/30 focus:border-indigo-500 focus:bg-white/[0.06] rounded-xl py-1.5 text-center text-xs font-bold focus:outline-none focus:ring-0 placeholder:text-foreground/10"
                               />
                             </td>
                           ))}
                           <td className="p-3 text-center">
-                            <span className="text-xs font-black text-white/80 tabular-nums">
+                            <span className="text-xs font-black text-foreground/80 tabular-nums">
                               {getRowTotal(row).toFixed(1)}h
                             </span>
                           </td>
                           <td className="p-3 text-center">
                             <button
                               onClick={() => removeTimesheetRow(row.id)}
-                              className="text-white/30 hover:text-rose-400 p-1.5 rounded-lg hover:bg-rose-500/10 transition-colors"
+                              className="text-foreground/30 hover:text-rose-400 p-1.5 rounded-lg hover:bg-rose-500/10 transition-colors"
                             >
                               <Trash2 className="h-4 w-4" />
                             </button>
@@ -568,7 +572,7 @@ export default function CapacityPlanning() {
 
                       {/* Summary calculations grid footer row */}
                       <tr className="border-t-2 border-white/[0.08] bg-white/[0.02] font-black text-xs">
-                        <td className="p-3 text-[10px] font-bold text-white/50 uppercase tracking-widest pl-4">Daily Totals</td>
+                        <td className="p-3 text-[10px] font-bold text-foreground/50 uppercase tracking-widest pl-4">Daily Totals</td>
                         {(["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const).map((day) => {
                           const colTot = getColumnTotal(day);
                           return (
@@ -588,11 +592,11 @@ export default function CapacityPlanning() {
 
                 {/* Grid controls submission footer bar */}
                 <div className="p-4 border-t border-white/[0.06] flex justify-between items-center bg-white/[0.01]">
-                  <p className="text-[10px] text-white/35 font-bold uppercase tracking-wider">All project logged hours automatically sync to Global Ledger.</p>
+                  <p className="text-[10px] text-foreground/35 font-bold uppercase tracking-wider">All project logged hours automatically sync to Global Ledger.</p>
                   <button
                     onClick={handleSubmitTimesheet}
                     disabled={isSubmitting || getGrandTotal() === 0}
-                    className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white px-5 py-2 rounded-xl text-xs font-bold transition-all shadow-md shadow-indigo-600/10 hover:shadow-indigo-600/20"
+                    className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-foreground px-5 py-2 rounded-xl text-xs font-bold transition-all shadow-md shadow-indigo-600/10 hover:shadow-indigo-600/20"
                   >
                     {isSubmitting ? (
                       <span className="flex items-center gap-1.5">
@@ -622,12 +626,12 @@ export default function CapacityPlanning() {
               <Card className="glass-card bg-white/[0.02] border-white/[0.08] overflow-hidden">
                 <div className="p-6 border-b border-white/[0.06] flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/[0.01]">
                   <div>
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
                       <GanttChartSquare className="h-4 w-4 text-indigo-400" /> Active Schedule Gantt & Milestones
                     </h3>
-                    <p className="text-[10px] text-white/40 mt-1">Cross-project timelines, delivery milestones, and executive accountability indicators.</p>
+                    <p className="text-[10px] text-foreground/40 mt-1">Cross-project timelines, delivery milestones, and executive accountability indicators.</p>
                   </div>
-                  <div className="flex items-center gap-4 text-[10px] font-bold text-white/40 tracking-wider">
+                  <div className="flex items-center gap-4 text-[10px] font-bold text-foreground/40 tracking-wider">
                     <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500/20 border border-emerald-500/50" /> Active</span>
                     <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-blue-500/20 border border-blue-500/50" /> Pitch</span>
                     <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-indigo-500/20 border border-indigo-500/50" /> Completed</span>
@@ -638,7 +642,7 @@ export default function CapacityPlanning() {
                 <div className="p-6 overflow-x-auto">
                   <div className="min-w-[800px] space-y-4">
                     {/* Gantt Timeline Header Columns */}
-                    <div className="flex border-b border-white/[0.06] pb-2 text-[10px] font-bold uppercase tracking-wider text-white/30">
+                    <div className="flex border-b border-white/[0.06] pb-2 text-[10px] font-bold uppercase tracking-wider text-foreground/30">
                       <div className="w-1/4">Project Deliverable</div>
                       <div className="w-3/4 flex relative">
                         <div className="w-1/4 text-center border-l border-white/[0.04]">May 2026</div>
@@ -650,7 +654,7 @@ export default function CapacityPlanning() {
 
                     {/* Gantt Project Rows */}
                     {projects.length === 0 ? (
-                      <div className="py-16 text-center text-white/30 text-xs font-bold uppercase tracking-widest">
+                      <div className="py-16 text-center text-foreground/30 text-xs font-bold uppercase tracking-widest">
                         No active projects registered in global registry.
                       </div>
                     ) : (
@@ -696,8 +700,8 @@ export default function CapacityPlanning() {
                           <div key={proj.id} className="flex items-center py-3 border-b border-white/[0.04] group/row hover:bg-white/[0.01] transition-colors rounded-xl px-2">
                             {/* Project Name and Category Info */}
                             <div className="w-1/4 pr-4">
-                              <span className="font-bold text-xs text-white group-hover/row:text-indigo-400 transition-colors block truncate">{proj.name}</span>
-                              <span className="text-[9px] font-bold text-white/40 uppercase tracking-wider block mt-0.5">{proj.serviceType || "Deliverable"}</span>
+                              <span className="font-bold text-xs text-foreground group-hover/row:text-indigo-400 transition-colors block truncate">{proj.name}</span>
+                              <span className="text-[9px] font-bold text-foreground/40 uppercase tracking-wider block mt-0.5">{proj.serviceType || "Deliverable"}</span>
                             </div>
 
                             {/* Gantt SVG Track & Indicator Bar */}
@@ -715,41 +719,41 @@ export default function CapacityPlanning() {
                                 style={{ left, width }}
                                 className={`absolute h-8 bg-gradient-to-r ${barGradient} border rounded-full px-3 flex items-center justify-between shadow-lg shadow-black/20 hover:scale-[1.02] active:scale-95 transition-all duration-300 cursor-pointer relative group/bar`}
                               >
-                                <span className="text-[9px] font-bold text-white uppercase tracking-wider truncate">{proj.status || "active"}</span>
-                                <span className="text-[9px] font-mono font-bold text-white/80">{progressVal}%</span>
+                                <span className="text-[9px] font-bold text-foreground uppercase tracking-wider truncate">{proj.status || "active"}</span>
+                                <span className="text-[9px] font-mono font-bold text-foreground/80">{progressVal}%</span>
 
                                 {/* Quick Hover Inspector Floating Card (Glass Tooltip) */}
-                                <div className="absolute left-1/2 -translate-x-1/2 bottom-10 w-64 bg-[#121813]/95 border border-white/10 rounded-2xl p-4 shadow-xl pointer-events-none opacity-0 group-hover/bar:opacity-100 transition-all duration-300 translate-y-2 group-hover/bar:translate-y-0 z-50 text-white backdrop-blur-md">
+                                <div className="absolute left-1/2 -translate-x-1/2 bottom-10 w-64 bg-[#121813]/95 border border-border rounded-2xl p-4 shadow-xl pointer-events-none opacity-0 group-hover/bar:opacity-100 transition-all duration-300 translate-y-2 group-hover/bar:translate-y-0 z-50 text-foreground backdrop-blur-md">
                                   <div className="space-y-3">
                                     <div className="flex justify-between items-start">
                                       <div className="truncate pr-2">
-                                        <p className="text-[10px] font-bold text-white uppercase tracking-wider truncate">{proj.name}</p>
+                                        <p className="text-[10px] font-bold text-foreground uppercase tracking-wider truncate">{proj.name}</p>
                                         <p className="text-[8px] font-semibold text-indigo-400 uppercase tracking-widest mt-0.5 truncate">{proj.serviceType}</p>
                                       </div>
-                                      <span className="text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/10 shrink-0">{proj.status}</span>
+                                      <span className="text-[8px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-muted/80 shrink-0">{proj.status}</span>
                                     </div>
 
                                     {proj.description && (
-                                      <p className="text-[9px] text-white/60 leading-normal line-clamp-2">{proj.description}</p>
+                                      <p className="text-[9px] text-foreground/60 leading-normal line-clamp-2">{proj.description}</p>
                                     )}
 
                                     <div className="border-t border-white/[0.06] pt-2.5 grid grid-cols-2 gap-2">
                                       <div>
-                                        <p className="text-[8px] font-bold text-white/35 uppercase tracking-wider">Lead Director</p>
+                                        <p className="text-[8px] font-bold text-foreground/35 uppercase tracking-wider">Lead Director</p>
                                         <div className="flex items-center gap-1 mt-1">
                                           <div className="w-4 h-4 rounded-full bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center text-[7px] font-bold text-indigo-300 shrink-0">
                                             {getInitials(mgrName)}
                                           </div>
-                                          <span className="text-[9px] font-semibold text-white/80 truncate max-w-[80px]">{mgrName}</span>
+                                          <span className="text-[9px] font-semibold text-foreground/80 truncate max-w-[80px]">{mgrName}</span>
                                         </div>
                                       </div>
                                       <div>
-                                        <p className="text-[8px] font-bold text-white/35 uppercase tracking-wider">Remaining</p>
+                                        <p className="text-[8px] font-bold text-foreground/35 uppercase tracking-wider">Remaining</p>
                                         <span className="text-[9px] font-semibold text-emerald-400 block mt-1 font-mono">{remainingText}</span>
                                       </div>
                                     </div>
 
-                                    <div className="border-t border-white/[0.06] pt-2.5 flex justify-between items-center text-[8px] font-bold text-white/40 uppercase tracking-wider">
+                                    <div className="border-t border-white/[0.06] pt-2.5 flex justify-between items-center text-[8px] font-bold text-foreground/40 uppercase tracking-wider">
                                       <span>Budget: {proj.budget ? `${Number(proj.budget).toLocaleString()} AED` : "TBD"}</span>
                                       <span>Mints Global</span>
                                     </div>

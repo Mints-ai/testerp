@@ -40,7 +40,7 @@ const mockExpenseData: any[] = [
 ];
 
 const STATUS_COLORS: Record<string, string> = {
-  draft: "bg-white/5 text-white/50 border-white/10",
+  draft: "bg-muted/40 text-foreground/50 border-border",
   sent: "bg-blue-600/15 text-blue-300 border-blue-500/20",
   paid: "bg-emerald-600/15 text-emerald-300 border-emerald-500/20",
   overdue: "bg-rose-600/15 text-rose-300 border-rose-500/20",
@@ -455,19 +455,19 @@ export default function FinanceDashboard() {
   };
 
   return (
-    <RoleGuard permission="VIEW_DEPT_FINANCE" fallback={<div className="p-8 text-center text-white/40 font-bold uppercase tracking-wider text-xs">Access Denied.</div>}>
-      <div className="space-y-6 pb-12 text-white">
+    <RoleGuard permission="VIEW_DEPT_FINANCE" fallback={<div className="p-8 text-center text-foreground/40 font-bold uppercase tracking-wider text-xs">Access Denied.</div>}>
+      <div className="space-y-6 pb-12 text-foreground">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
               <Wallet className="h-5 w-5 text-blue-500" /> Finance Hub
             </h1>
-            <p className="text-xs text-white/40 mt-1">Manage agency revenue, cash flow, invoices, and expenses.</p>
+            <p className="text-xs text-foreground/40 mt-1">Manage agency revenue, cash flow, invoices, and expenses.</p>
           </div>
           <div className="flex items-center gap-3">
             <button 
               onClick={handleExportCSV}
-              className="btn-ghost py-0 px-4 h-9 text-xs font-bold border-white/10 text-white/70 hover:text-white flex items-center justify-center cursor-pointer gap-1.5"
+              className="btn-ghost py-0 px-4 h-9 text-xs font-bold border-border text-foreground/70 hover:text-foreground flex items-center justify-center cursor-pointer gap-1.5"
             >
               <FileDown className="w-4 h-4 text-emerald-400" /> Export CSV
             </button>
@@ -476,10 +476,10 @@ export default function FinanceDashboard() {
 
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="mb-6 bg-white/[0.02] border border-white/[0.08] shadow-inner p-1 rounded-xl">
-            <TabsTrigger value="overview" className="text-xs py-1.5 px-4 font-bold rounded-lg text-white/40 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-glow-blue transition-all cursor-pointer">Executive Summary</TabsTrigger>
-            <TabsTrigger value="invoices" className="text-xs py-1.5 px-4 font-bold rounded-lg text-white/40 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-glow-blue transition-all cursor-pointer">Invoices</TabsTrigger>
-            <TabsTrigger value="expenses" className="text-xs py-1.5 px-4 font-bold rounded-lg text-white/40 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-glow-blue transition-all cursor-pointer">Expenses</TabsTrigger>
-            <TabsTrigger value="payroll" className="text-xs py-1.5 px-4 font-bold rounded-lg text-white/40 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-glow-blue transition-all cursor-pointer">Payroll & Payslips</TabsTrigger>
+            <TabsTrigger value="overview" className="text-xs py-1.5 px-4 font-bold rounded-lg text-foreground/40 data-[state=active]:bg-blue-600 data-[state=active]:text-foreground data-[state=active]:shadow-glow-blue transition-all cursor-pointer">Executive Summary</TabsTrigger>
+            <TabsTrigger value="invoices" className="text-xs py-1.5 px-4 font-bold rounded-lg text-foreground/40 data-[state=active]:bg-blue-600 data-[state=active]:text-foreground data-[state=active]:shadow-glow-blue transition-all cursor-pointer">Invoices</TabsTrigger>
+            <TabsTrigger value="expenses" className="text-xs py-1.5 px-4 font-bold rounded-lg text-foreground/40 data-[state=active]:bg-blue-600 data-[state=active]:text-foreground data-[state=active]:shadow-glow-blue transition-all cursor-pointer">Expenses</TabsTrigger>
+            <TabsTrigger value="payroll" className="text-xs py-1.5 px-4 font-bold rounded-lg text-foreground/40 data-[state=active]:bg-blue-600 data-[state=active]:text-foreground data-[state=active]:shadow-glow-blue transition-all cursor-pointer">Payroll & Payslips</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -487,10 +487,10 @@ export default function FinanceDashboard() {
               <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
                 <CardContent className="p-5">
                   <div className="flex justify-between items-start mb-2">
-                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Gross Revenue</p>
+                    <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Gross Revenue</p>
                     <div className="p-1.5 bg-blue-500/10 text-blue-400 rounded-lg border border-blue-500/20"><DollarSign className="w-4 h-4" /></div>
                   </div>
-                  <h3 className="text-xl font-bold text-white tracking-tight font-mono">{formatCompact(dynamicGrossRevenue)} <span className="text-[10px] text-white/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
+                  <h3 className="text-xl font-bold text-foreground tracking-tight font-mono">{formatCompact(dynamicGrossRevenue)} <span className="text-[10px] text-foreground/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
                   <div className="flex items-center gap-1 mt-2 text-[10px] font-bold text-emerald-400">
                     <ArrowUpRight className="w-3.5 h-3.5" /> Billed Receivables
                   </div>
@@ -500,10 +500,10 @@ export default function FinanceDashboard() {
               <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
                 <CardContent className="p-5">
                   <div className="flex justify-between items-start mb-2">
-                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Net Profit</p>
+                    <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Net Profit</p>
                     <div className="p-1.5 bg-emerald-500/10 text-emerald-400 rounded-lg border border-emerald-500/20"><TrendingUp className="w-4 h-4" /></div>
                   </div>
-                  <h3 className="text-xl font-bold text-white tracking-tight font-mono">{formatCompact(dynamicNetProfit)} <span className="text-[10px] text-white/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
+                  <h3 className="text-xl font-bold text-foreground tracking-tight font-mono">{formatCompact(dynamicNetProfit)} <span className="text-[10px] text-foreground/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
                   <div className="flex items-center gap-1 mt-2 text-[10px] font-bold text-emerald-400">
                     <ArrowUpRight className="w-3.5 h-3.5" /> Net surplus
                   </div>
@@ -513,10 +513,10 @@ export default function FinanceDashboard() {
               <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
                 <CardContent className="p-5">
                   <div className="flex justify-between items-start mb-2">
-                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">AR (Outstanding)</p>
+                    <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">AR (Outstanding)</p>
                     <div className="p-1.5 bg-amber-500/10 text-amber-400 rounded-lg border border-amber-500/20"><Banknote className="w-4 h-4" /></div>
                   </div>
-                  <h3 className="text-xl font-bold text-white tracking-tight font-mono">{formatCompact(dynamicAR)} <span className="text-[10px] text-white/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
+                  <h3 className="text-xl font-bold text-foreground tracking-tight font-mono">{formatCompact(dynamicAR)} <span className="text-[10px] text-foreground/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
                   <div className={cn("flex items-center gap-1 mt-2 text-[10px] font-bold", outstandingCount > 0 ? "text-amber-400" : "text-emerald-400")}>
                     <AlertCircle className="w-3.5 h-3.5" /> {outstandingCount} Unpaid
                   </div>
@@ -526,11 +526,11 @@ export default function FinanceDashboard() {
               <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
                 <CardContent className="p-5">
                   <div className="flex justify-between items-start mb-2">
-                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Run Rate</p>
+                    <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Run Rate</p>
                     <div className="p-1.5 bg-violet-500/10 text-violet-400 rounded-lg border border-violet-500/20"><ArrowUpRight className="w-4 h-4" /></div>
                   </div>
-                  <h3 className="text-xl font-bold text-white tracking-tight font-mono">{formatCompact(dynamicRunRate)} <span className="text-[10px] text-white/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
-                  <div className="text-[10px] font-semibold text-white/30 mt-2">
+                  <h3 className="text-xl font-bold text-foreground tracking-tight font-mono">{formatCompact(dynamicRunRate)} <span className="text-[10px] text-foreground/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
+                  <div className="text-[10px] font-semibold text-foreground/30 mt-2">
                     Projected annual revenue
                   </div>
                 </CardContent>
@@ -541,8 +541,8 @@ export default function FinanceDashboard() {
               {/* Stacked Area Chart */}
               <Card className="lg:col-span-2 glass-card overflow-hidden border-white/[0.08] bg-white/[0.02] p-5">
                 <CardHeader className="p-0 mb-6">
-                  <CardTitle className="text-sm font-bold text-white">Cash Flow (H1 2026)</CardTitle>
-                  <CardDescription className="text-[11px] text-white/40 mt-1">Revenue vs Expenses vs Net Profit over the last 6 months.</CardDescription>
+                  <CardTitle className="text-sm font-bold text-foreground">Cash Flow (H1 2026)</CardTitle>
+                  <CardDescription className="text-[11px] text-foreground/40 mt-1">Revenue vs Expenses vs Net Profit over the last 6 months.</CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="h-[300px] w-full min-w-0">
@@ -574,14 +574,14 @@ export default function FinanceDashboard() {
                           </AreaChart>
                         </ResponsiveContainer>
                       ) : (
-                        <div className="h-full w-full flex flex-col items-center justify-center text-xs text-white/30 gap-2 border border-white/[0.04] bg-white/[0.01] rounded-2xl p-6">
-                          <TrendingUp className="h-8 w-8 text-white/20 animate-pulse" />
+                        <div className="h-full w-full flex flex-col items-center justify-center text-xs text-foreground/30 gap-2 border border-white/[0.04] bg-white/[0.01] rounded-2xl p-6">
+                          <TrendingUp className="h-8 w-8 text-foreground/20 animate-pulse" />
                           <span className="font-bold uppercase tracking-wider text-[10px]">No Transaction Data Found</span>
-                          <span className="text-[9px] text-white/20 text-center px-6">Generate client invoices or log business expenses to compile live cash flow graphs.</span>
+                          <span className="text-[9px] text-foreground/20 text-center px-6">Generate client invoices or log business expenses to compile live cash flow graphs.</span>
                         </div>
                       )
                     ) : (
-                      <div className="h-full w-full flex items-center justify-center text-xs text-white/20">Loading chart...</div>
+                      <div className="h-full w-full flex items-center justify-center text-xs text-foreground/20">Loading chart...</div>
                     )}
                   </div>
                 </CardContent>
@@ -590,8 +590,8 @@ export default function FinanceDashboard() {
               {/* Expenses Donut */}
               <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02] p-5 flex flex-col">
                 <CardHeader className="p-0 mb-4">
-                  <CardTitle className="text-sm font-bold text-white">Expense Distribution</CardTitle>
-                  <CardDescription className="text-[11px] text-white/40 mt-1">Breakdown by category (Current Month)</CardDescription>
+                  <CardTitle className="text-sm font-bold text-foreground">Expense Distribution</CardTitle>
+                  <CardDescription className="text-[11px] text-foreground/40 mt-1">Breakdown by category (Current Month)</CardDescription>
                 </CardHeader>
                 <CardContent className="p-0 flex-1 flex flex-col justify-between min-w-0">
                   <div className="h-[180px] w-full flex flex-col justify-center relative my-2 min-w-0">
@@ -622,29 +622,29 @@ export default function FinanceDashboard() {
                           </ResponsiveContainer>
                           {/* Inner Text for Donut */}
                           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-1">
-                            <span className="text-lg font-black text-white font-mono leading-none">{totalExpSum.toLocaleString()}</span>
-                            <span className="text-[8px] uppercase font-bold text-white/30 tracking-widest mt-1">Total Exp</span>
+                            <span className="text-lg font-black text-foreground font-mono leading-none">{totalExpSum.toLocaleString()}</span>
+                            <span className="text-[8px] uppercase font-bold text-foreground/30 tracking-widest mt-1">Total Exp</span>
                           </div>
                         </>
                       ) : (
-                        <div className="h-full w-full flex flex-col items-center justify-center text-xs text-white/30 gap-1.5 border border-white/[0.04] bg-white/[0.01] rounded-2xl py-6 p-4">
-                          <Sparkles className="h-6 w-6 text-white/20 animate-pulse" />
+                        <div className="h-full w-full flex flex-col items-center justify-center text-xs text-foreground/30 gap-1.5 border border-white/[0.04] bg-white/[0.01] rounded-2xl py-6 p-4">
+                          <Sparkles className="h-6 w-6 text-foreground/20 animate-pulse" />
                           <span className="font-bold uppercase tracking-wider text-[10px]">No Expenses Logged</span>
-                          <span className="text-[8px] text-white/20 text-center px-4">AI Scan or Manual entries generate category breakdown.</span>
+                          <span className="text-[8px] text-foreground/20 text-center px-4">AI Scan or Manual entries generate category breakdown.</span>
                         </div>
                       )
                     ) : (
-                      <div className="h-full w-full flex items-center justify-center text-xs text-white/20">Loading chart...</div>
+                      <div className="h-full w-full flex items-center justify-center text-xs text-foreground/20">Loading chart...</div>
                     )}
                   </div>
                   <div className="flex flex-col gap-2 mt-2">
                     {dynamicExpenseData.map((entry, index) => (
                       <div key={entry.name} className="flex items-center justify-between text-xs font-semibold">
-                        <div className="flex items-center text-white/60">
+                        <div className="flex items-center text-foreground/60">
                           <div className="w-2.5 h-2.5 rounded-sm mr-2" style={{backgroundColor: CHART_COLORS[index % CHART_COLORS.length]}}></div>
                           {entry.name}
                         </div>
-                        <span className="text-white font-mono text-[11px]">{entry.value.toLocaleString()} {compCurrency}</span>
+                        <span className="text-foreground font-mono text-[11px]">{entry.value.toLocaleString()} {compCurrency}</span>
                       </div>
                     ))}
                   </div>
@@ -656,7 +656,7 @@ export default function FinanceDashboard() {
           {/* Invoices List */}
           <TabsContent value="invoices" className="space-y-4">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider">Accounts Receivable</h2>
+              <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Accounts Receivable</h2>
               <RoleGuard permission="CREATE_INVOICE">
                 <Dialog open={isInvoiceModalOpen} onOpenChange={setIsInvoiceModalOpen}>
                   <DialogTrigger 
@@ -666,40 +666,40 @@ export default function FinanceDashboard() {
                       </button>
                     }
                   />
-                  <DialogContent className="sm:max-w-[500px] bg-[#121813] border border-white/[0.08] text-white p-6 rounded-2xl shadow-xl max-h-[85vh] overflow-y-auto">
+                  <DialogContent className="sm:max-w-[500px] bg-[#121813] border border-white/[0.08] text-foreground p-6 rounded-2xl shadow-xl max-h-[85vh] overflow-y-auto">
                     <DialogHeader>
-                      <DialogTitle className="text-base font-bold text-white">Create Client Invoice</DialogTitle>
+                      <DialogTitle className="text-base font-bold text-foreground">Create Client Invoice</DialogTitle>
                     </DialogHeader>
                     <form onSubmit={handleSaveInvoice} className="space-y-4 py-2">
                       <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
-                          <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Invoice #</Label>
+                          <Label className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Invoice #</Label>
                           <Input 
                             required 
                             value={invoiceNumber} 
                             onChange={(e) => setInvoiceNumber(e.target.value)} 
-                            className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full bg-[#121813]"
+                            className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full bg-[#121813]"
                           />
                         </div>
                         <div className="grid gap-2">
-                          <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Due Date</Label>
+                          <Label className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Due Date</Label>
                           <Input 
                             required 
                             type="date" 
                             value={invoiceDueDate} 
                             onChange={(e) => setInvoiceDueDate(e.target.value)} 
-                            className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full bg-[#121813]"
+                            className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full bg-[#121813]"
                           />
                         </div>
                       </div>
 
                       <div className="grid gap-2">
-                        <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Client Company</Label>
+                        <Label className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Client Company</Label>
                         <select 
                           required
                           value={invoiceClientName} 
                           onChange={(e) => setInvoiceClientName(e.target.value)} 
-                          className="w-full h-9 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-white font-semibold"
+                          className="w-full h-9 border border-border rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-foreground font-semibold"
                         >
                           <option value="">-- Select Client --</option>
                           {clientsList.map(c => (
@@ -711,7 +711,7 @@ export default function FinanceDashboard() {
 
                       <div className="space-y-2 border-t border-white/[0.06] pt-3">
                         <div className="flex justify-between items-center">
-                          <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Invoice Items</Label>
+                          <Label className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Invoice Items</Label>
                           <button type="button" onClick={addInvoiceItem} className="text-[10px] text-blue-400 font-bold hover:underline">+ Add Item</button>
                         </div>
                         
@@ -723,7 +723,7 @@ export default function FinanceDashboard() {
                                 placeholder="Item description" 
                                 value={item.description}
                                 onChange={(e) => updateInvoiceItem(idx, 'description', e.target.value)}
-                                className="glass-input h-8 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 flex-1 bg-[#121813]"
+                                className="glass-input h-8 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 flex-1 bg-[#121813]"
                               />
                               <Input 
                                 required 
@@ -731,7 +731,7 @@ export default function FinanceDashboard() {
                                 placeholder="Amount" 
                                 value={item.amount || ""}
                                 onChange={(e) => updateInvoiceItem(idx, 'amount', Number(e.target.value))}
-                                className="glass-input h-8 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-24 font-mono text-right bg-[#121813]"
+                                className="glass-input h-8 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-24 font-mono text-right bg-[#121813]"
                               />
                               {invoiceItems.length > 1 && (
                                 <button type="button" onClick={() => removeInvoiceItem(idx)} className="text-rose-400 hover:text-rose-300 font-bold text-xs p-1">✕</button>
@@ -743,40 +743,40 @@ export default function FinanceDashboard() {
 
                       <div className="grid grid-cols-2 gap-4 border-t border-white/[0.06] pt-3">
                         <div className="grid gap-2">
-                          <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Tax Rate (%)</Label>
+                          <Label className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Tax Rate (%)</Label>
                           <Input 
                             type="number" 
                             value={invoiceTax} 
                             onChange={(e) => setInvoiceTax(e.target.value)} 
-                            className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono bg-[#121813]"
+                            className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono bg-[#121813]"
                           />
                         </div>
                         <div className="grid gap-2">
-                          <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Discount (%)</Label>
+                          <Label className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Discount (%)</Label>
                           <Input 
                             type="number" 
                             value={invoiceDiscount} 
                             onChange={(e) => setInvoiceDiscount(e.target.value)} 
-                            className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono bg-[#121813]"
+                            className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono bg-[#121813]"
                           />
                         </div>
                       </div>
 
                       {/* Total Calculations Preview */}
-                      <div className="bg-white/[0.02] border border-white/[0.08] p-3 rounded-xl space-y-1.5 text-xs text-white/60">
+                      <div className="bg-white/[0.02] border border-white/[0.08] p-3 rounded-xl space-y-1.5 text-xs text-foreground/60">
                         <div className="flex justify-between">
                           <span>Subtotal:</span>
-                          <span className="font-mono text-white">{invoiceItems.reduce((acc, item) => acc + Number(item.amount), 0).toLocaleString()} {compCurrency}</span>
+                          <span className="font-mono text-foreground">{invoiceItems.reduce((acc, item) => acc + Number(item.amount), 0).toLocaleString()} {compCurrency}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Tax ({invoiceTax}%):</span>
-                          <span className="font-mono text-white">{(invoiceItems.reduce((acc, item) => acc + Number(item.amount), 0) * (Number(invoiceTax) / 100)).toLocaleString()} {compCurrency}</span>
+                          <span className="font-mono text-foreground">{(invoiceItems.reduce((acc, item) => acc + Number(item.amount), 0) * (Number(invoiceTax) / 100)).toLocaleString()} {compCurrency}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Discount ({invoiceDiscount}%):</span>
-                          <span className="font-mono text-white">{(invoiceItems.reduce((acc, item) => acc + Number(item.amount), 0) * (Number(invoiceDiscount) / 100)).toLocaleString()} {compCurrency}</span>
+                          <span className="font-mono text-foreground">{(invoiceItems.reduce((acc, item) => acc + Number(item.amount), 0) * (Number(invoiceDiscount) / 100)).toLocaleString()} {compCurrency}</span>
                         </div>
-                        <div className="flex justify-between border-t border-white/[0.06] pt-1.5 font-bold text-white">
+                        <div className="flex justify-between border-t border-white/[0.06] pt-1.5 font-bold text-foreground">
                           <span>Grand Total:</span>
                           <span className="font-mono text-blue-400">
                             {(
@@ -787,7 +787,7 @@ export default function FinanceDashboard() {
                       </div>
 
                       <DialogFooter className="pt-4 border-t border-white/[0.06] gap-2 sm:gap-0 mt-4">
-                        <button type="button" onClick={() => setIsInvoiceModalOpen(false)} className="btn-ghost h-9 py-0 px-4 text-xs font-semibold border-white/10 text-white/70 hover:text-white cursor-pointer">Cancel</button>
+                        <button type="button" onClick={() => setIsInvoiceModalOpen(false)} className="btn-ghost h-9 py-0 px-4 text-xs font-semibold border-border text-foreground/70 hover:text-foreground cursor-pointer">Cancel</button>
                         <button type="submit" disabled={savingInvoice} className="btn-primary h-9 py-0 px-4 text-xs font-bold flex items-center justify-center cursor-pointer">
                           {savingInvoice ? "Saving..." : "Create & Issue"}
                         </button>
@@ -800,9 +800,9 @@ export default function FinanceDashboard() {
             <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
               <CardContent className="p-0">
                 {invoices.length === 0 ? (
-                  <div className="text-center py-16 text-white/30 bg-white/[0.01]">
+                  <div className="text-center py-16 text-foreground/30 bg-white/[0.01]">
                     <Banknote className="h-10 w-10 mx-auto mb-3 opacity-20" />
-                    <p className="text-xs font-bold uppercase tracking-wider text-white/40">No invoices generated yet.</p>
+                    <p className="text-xs font-bold uppercase tracking-wider text-foreground/40">No invoices generated yet.</p>
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
@@ -820,10 +820,10 @@ export default function FinanceDashboard() {
                       <tbody>
                         {invoices.map((inv) => (
                           <tr key={inv.id} className="hover:bg-white/[0.02] transition-colors">
-                            <td className="font-bold text-white">{inv.invoiceNumber}</td>
-                            <td className="text-white/60 font-semibold">{inv.clientId}</td>
-                            <td className="font-bold text-white font-mono text-xs">{inv.total?.toLocaleString()} {inv.currency || compCurrency}</td>
-                            <td className="text-white/40 font-semibold">{inv.dueDate}</td>
+                            <td className="font-bold text-foreground">{inv.invoiceNumber}</td>
+                            <td className="text-foreground/60 font-semibold">{inv.clientId}</td>
+                            <td className="font-bold text-foreground font-mono text-xs">{inv.total?.toLocaleString()} {inv.currency || compCurrency}</td>
+                            <td className="text-foreground/40 font-semibold">{inv.dueDate}</td>
                             <td>
                               <Badge variant="outline" className={cn("font-bold text-[9px] py-0.5 tracking-wider uppercase shadow-none", STATUS_COLORS[inv.status] || STATUS_COLORS.draft)}>
                                 {inv.status.toUpperCase()}
@@ -832,7 +832,7 @@ export default function FinanceDashboard() {
                             <td className="text-right">
                               <div className="flex justify-end gap-1.5">
                                 <button 
-                                  className="btn-ghost p-1.5 hover:text-white text-white/50 cursor-pointer rounded-lg border-white/5 border hover:border-white/10"
+                                  className="btn-ghost p-1.5 hover:text-foreground text-foreground/50 cursor-pointer rounded-lg border-border/30 border hover:border-border"
                                   onClick={() => generateInvoice({
                                     invoiceNumber: inv.invoiceNumber,
                                     date: inv.date || new Date().toISOString().split('T')[0],
@@ -856,7 +856,7 @@ export default function FinanceDashboard() {
                                         }
                                       }
                                     }}
-                                    className="p-1.5 text-white/40 hover:text-red-500 rounded-lg hover:bg-white/5 transition-colors border border-white/5 hover:border-white/10"
+                                    className="p-1.5 text-foreground/40 hover:text-red-500 rounded-lg hover:bg-muted/40 transition-colors border border-border/30 hover:border-border"
                                     title="Delete Invoice"
                                   >
                                     <Trash2 className="h-4 w-4" />
@@ -877,7 +877,7 @@ export default function FinanceDashboard() {
           {/* Expenses List */}
           <TabsContent value="expenses" className="space-y-4">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider">Accounts Payable</h2>
+              <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Accounts Payable</h2>
               <RoleGuard permission="SUBMIT_EXPENSE">
                 <div className="flex gap-2">
                   <Dialog open={isOcrModalOpen} onOpenChange={setIsOcrModalOpen}>
@@ -888,15 +888,15 @@ export default function FinanceDashboard() {
                         </button>
                       }
                     />
-                    <DialogContent className="sm:max-w-[425px] bg-[#121813] border border-white/[0.08] text-white p-6 rounded-2xl shadow-xl">
+                    <DialogContent className="sm:max-w-[425px] bg-[#121813] border border-white/[0.08] text-foreground p-6 rounded-2xl shadow-xl">
                       <DialogHeader>
-                        <DialogTitle className="text-base font-bold text-white flex items-center gap-2">
+                        <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
                           <Sparkles className="h-5 w-5 text-blue-400" /> AI Receipt Scanner
                         </DialogTitle>
                       </DialogHeader>
                       <div className="grid gap-4 py-4">
                         {!ocrResult ? (
-                          <div className="flex flex-col items-center justify-center p-8 border border-white/10 border-dashed rounded-xl bg-white/[0.01]">
+                          <div className="flex flex-col items-center justify-center p-8 border border-border border-dashed rounded-xl bg-white/[0.01]">
                             {isScanning ? (
                               <div className="flex flex-col items-center gap-3 text-blue-400">
                                 <Loader2 className="h-7 w-7 animate-spin" />
@@ -904,9 +904,9 @@ export default function FinanceDashboard() {
                               </div>
                             ) : (
                               <>
-                                <Upload className="h-8 w-8 text-white/30 mb-3" />
-                                <p className="text-xs font-bold text-white mb-1 uppercase tracking-wider">Upload Receipt Image</p>
-                                <p className="text-[10px] text-white/20 mb-4 text-center">JPG, PNG up to 5MB</p>
+                                <Upload className="h-8 w-8 text-foreground/30 mb-3" />
+                                <p className="text-xs font-bold text-foreground mb-1 uppercase tracking-wider">Upload Receipt Image</p>
+                                <p className="text-[10px] text-foreground/20 mb-4 text-center">JPG, PNG up to 5MB</p>
                                 <Label htmlFor="receipt-upload" className="cursor-pointer btn-primary h-8 py-0 px-4 text-xs font-bold flex items-center justify-center">
                                   Select File
                                 </Label>
@@ -921,36 +921,36 @@ export default function FinanceDashboard() {
                               <p className="font-semibold leading-normal">Data extracted successfully! Review and save.</p>
                             </div>
                             <div className="grid gap-2">
-                              <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Vendor Name</Label>
+                              <Label className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Vendor Name</Label>
                               <Input 
                                 value={ocrVendor} 
                                 onChange={(e) => setOcrVendor(e.target.value)} 
-                                className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full" 
+                                className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full" 
                               />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                               <div className="grid gap-2">
-                                <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Amount ({compCurrency})</Label>
+                                <Label className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Amount ({compCurrency})</Label>
                                 <Input 
                                   value={ocrAmount} 
                                   onChange={(e) => setOcrAmount(e.target.value)} 
                                   type="number" 
                                   step="0.01" 
-                                  className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono" 
+                                  className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono" 
                                 />
                               </div>
                               <div className="grid gap-2">
-                                <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Date</Label>
+                                <Label className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Date</Label>
                                 <Input 
                                   value={ocrDate} 
                                   onChange={(e) => setOcrDate(e.target.value)} 
                                   type="date" 
-                                  className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full" 
+                                  className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full" 
                                 />
                               </div>
                             </div>
                             <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-white/[0.06]">
-                              <button onClick={() => {setOcrResult(null); setReceiptImage(null);}} className="btn-ghost h-9 py-0 px-4 text-xs font-semibold border-white/10 text-white/70 hover:text-white cursor-pointer">Scan Another</button>
+                              <button onClick={() => {setOcrResult(null); setReceiptImage(null);}} className="btn-ghost h-9 py-0 px-4 text-xs font-semibold border-border text-foreground/70 hover:text-foreground cursor-pointer">Scan Another</button>
                               <button onClick={handleSaveOcrExpense} className="btn-primary h-9 py-0 px-4 text-xs font-bold flex items-center justify-center cursor-pointer">Save Expense</button>
                             </div>
                           </div>
@@ -967,27 +967,27 @@ export default function FinanceDashboard() {
                         </button>
                       }
                     />
-                    <DialogContent className="sm:max-w-[425px] bg-[#121813] border border-white/[0.08] text-white p-6 rounded-2xl shadow-xl">
+                    <DialogContent className="sm:max-w-[425px] bg-[#121813] border border-white/[0.08] text-foreground p-6 rounded-2xl shadow-xl">
                       <DialogHeader>
-                        <DialogTitle className="text-base font-bold text-white">Log Corporate Expense</DialogTitle>
+                        <DialogTitle className="text-base font-bold text-foreground">Log Corporate Expense</DialogTitle>
                       </DialogHeader>
                       <form onSubmit={handleSaveManualExpense} className="space-y-4 py-4">
                         <div className="grid gap-2">
-                          <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Vendor Name</Label>
+                          <Label className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Vendor Name</Label>
                           <Input 
                             required 
                             placeholder="e.g., Amazon Web Services" 
                             value={manualVendor} 
                             onChange={(e) => setManualVendor(e.target.value)} 
-                            className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full" 
+                            className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full" 
                           />
                         </div>
                         <div className="grid gap-2">
-                          <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Expense Category</Label>
+                          <Label className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Expense Category</Label>
                           <select 
                             value={manualCategory} 
                             onChange={(e) => setManualCategory(e.target.value)} 
-                            className="w-full h-9 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-white"
+                            className="w-full h-9 border border-border rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-foreground"
                           >
                             <option value="Software">Software & Subscriptions</option>
                             <option value="Marketing">Marketing & Advertising</option>
@@ -1000,7 +1000,7 @@ export default function FinanceDashboard() {
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                           <div className="grid gap-2">
-                            <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Amount ({compCurrency})</Label>
+                            <Label className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Amount ({compCurrency})</Label>
                             <Input 
                               required 
                               type="number" 
@@ -1008,22 +1008,22 @@ export default function FinanceDashboard() {
                               placeholder="0.00" 
                               value={manualAmount} 
                               onChange={(e) => setManualAmount(e.target.value)} 
-                              className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono" 
+                              className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono" 
                             />
                           </div>
                           <div className="grid gap-2">
-                            <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Date</Label>
+                            <Label className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Date</Label>
                             <Input 
                               required 
                               type="date" 
                               value={manualDate} 
                               onChange={(e) => setManualDate(e.target.value)} 
-                              className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full" 
+                              className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full" 
                             />
                           </div>
                         </div>
                         <DialogFooter className="pt-4 border-t border-white/[0.06] gap-2 sm:gap-0 mt-4">
-                          <button type="button" onClick={() => setIsManualOpen(false)} className="btn-ghost h-9 py-0 px-4 text-xs font-semibold border-white/10 text-white/70 hover:text-white cursor-pointer">Cancel</button>
+                          <button type="button" onClick={() => setIsManualOpen(false)} className="btn-ghost h-9 py-0 px-4 text-xs font-semibold border-border text-foreground/70 hover:text-foreground cursor-pointer">Cancel</button>
                           <button type="submit" disabled={savingManual} className="btn-primary h-9 py-0 px-4 text-xs font-bold flex items-center justify-center cursor-pointer">
                             {savingManual ? "Saving..." : "Log Expense"}
                           </button>
@@ -1037,9 +1037,9 @@ export default function FinanceDashboard() {
             <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
               <CardContent className="p-0">
                 {expenses.length === 0 ? (
-                  <div className="text-center py-16 text-white/30 bg-white/[0.01]">
+                  <div className="text-center py-16 text-foreground/30 bg-white/[0.01]">
                     <Receipt className="h-10 w-10 mx-auto mb-3 opacity-20" />
-                    <p className="text-xs font-bold uppercase tracking-wider text-white/40">No expenses logged yet.</p>
+                    <p className="text-xs font-bold uppercase tracking-wider text-foreground/40">No expenses logged yet.</p>
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
@@ -1058,11 +1058,11 @@ export default function FinanceDashboard() {
                       <tbody>
                         {expenses.map((exp) => (
                           <tr key={exp.id} className="hover:bg-white/[0.02] transition-colors">
-                            <td className="font-bold text-white">{exp.submittedBy}</td>
-                            <td className="text-white/60 font-semibold">{exp.vendor || 'General Vendor'}</td>
-                            <td className="text-white/60 font-semibold">{exp.category}</td>
-                            <td className="font-bold text-white font-mono text-xs">{exp.amount?.toLocaleString()} {exp.currency || compCurrency}</td>
-                            <td className="text-white/40 font-mono text-xs">
+                            <td className="font-bold text-foreground">{exp.submittedBy}</td>
+                            <td className="text-foreground/60 font-semibold">{exp.vendor || 'General Vendor'}</td>
+                            <td className="text-foreground/60 font-semibold">{exp.category}</td>
+                            <td className="font-bold text-foreground font-mono text-xs">{exp.amount?.toLocaleString()} {exp.currency || compCurrency}</td>
+                            <td className="text-foreground/40 font-mono text-xs">
                               {exp.date || (exp.createdAt?.seconds ? new Date(exp.createdAt.seconds * 1000).toLocaleDateString() : 'N/A')}
                             </td>
                             <td>
@@ -1080,7 +1080,7 @@ export default function FinanceDashboard() {
                                   <div className="flex gap-1.5">
                                     <button 
                                       onClick={() => handleUpdateExpenseStatus(exp.id, "approved")}
-                                      className="h-7 px-3 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold rounded-lg transition-colors cursor-pointer shadow-glow-emerald"
+                                      className="h-7 px-3 bg-emerald-600 hover:bg-emerald-700 text-foreground text-[10px] font-bold rounded-lg transition-colors cursor-pointer shadow-glow-emerald"
                                     >
                                       Approve
                                     </button>
@@ -1092,7 +1092,7 @@ export default function FinanceDashboard() {
                                     </button>
                                   </div>
                                 ) : (
-                                  <span className="text-[10px] text-white/30 font-bold uppercase tracking-wider italic">Reviewed</span>
+                                  <span className="text-[10px] text-foreground/30 font-bold uppercase tracking-wider italic">Reviewed</span>
                                 )}
                                 {canAccess(role, "DELETE_DATA") && (
                                   <button 
@@ -1106,7 +1106,7 @@ export default function FinanceDashboard() {
                                         }
                                       }
                                     }}
-                                    className="p-1.5 text-white/40 hover:text-red-500 rounded-lg hover:bg-white/5 transition-colors border border-white/5 hover:border-white/10"
+                                    className="p-1.5 text-foreground/40 hover:text-red-500 rounded-lg hover:bg-muted/40 transition-colors border border-border/30 hover:border-border"
                                     title="Delete Expense"
                                   >
                                     <Trash2 className="h-4 w-4" />
@@ -1128,15 +1128,15 @@ export default function FinanceDashboard() {
           <TabsContent value="payroll" className="space-y-6">
             <div className="flex justify-between items-center">
               <div>
-                <h2 className="text-sm font-bold text-white uppercase tracking-wider">Agency Payroll & Compensation</h2>
-                <p className="text-[11px] text-white/40 mt-1">Manage employee base pay, process bonuses, and generate official payslips.</p>
+                <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Agency Payroll & Compensation</h2>
+                <p className="text-[11px] text-foreground/40 mt-1">Manage employee base pay, process bonuses, and generate official payslips.</p>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-white/40 uppercase">Period:</span>
+                <span className="text-xs font-bold text-foreground/40 uppercase">Period:</span>
                 <select 
                   value={payrollPeriod}
                   onChange={(e) => setPayrollPeriod(e.target.value)}
-                  className="h-8 border border-white/10 rounded-lg px-2 text-xs focus:ring-0 bg-[#121813] text-white font-semibold"
+                  className="h-8 border border-border rounded-lg px-2 text-xs focus:ring-0 bg-[#121813] text-foreground font-semibold"
                 >
                   <option value="May 2026">May 2026</option>
                   <option value="June 2026">June 2026</option>
@@ -1149,7 +1149,7 @@ export default function FinanceDashboard() {
               {/* Roster list */}
               <Card className="lg:col-span-2 glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
                 <CardHeader className="border-b border-white/[0.04] p-4 bg-white/[0.01]">
-                  <CardTitle className="text-xs uppercase font-bold text-white tracking-wider">Employee Roster</CardTitle>
+                  <CardTitle className="text-xs uppercase font-bold text-foreground tracking-wider">Employee Roster</CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
@@ -1172,18 +1172,18 @@ export default function FinanceDashboard() {
                               setPayrollBonus("");
                               setPayrollDeduction("");
                             }}>
-                              <td className="font-bold text-white flex items-center gap-2.5 py-3">
-                                <Avatar className="h-7 w-7 border border-white/10">
+                              <td className="font-bold text-foreground flex items-center gap-2.5 py-3">
+                                <Avatar className="h-7 w-7 border border-border">
                                   <AvatarImage src={emp.profilePhotoURL} />
-                                  <AvatarFallback className="bg-indigo-600 text-[10px] font-bold text-white">
+                                  <AvatarFallback className="bg-indigo-600 text-[10px] font-bold text-foreground">
                                     {emp.fullName ? emp.fullName.split(" ").map((n: any) => n[0]).join("") : "EM"}
                                   </AvatarFallback>
                                 </Avatar>
                                 {emp.fullName || "Team Member"}
                               </td>
-                              <td className="text-white/60 font-semibold">{emp.jobTitle || "Employee"}</td>
-                              <td className="font-bold text-white font-mono">{baseSalary.toLocaleString()} AED</td>
-                              <td className="text-white/40 font-mono">0 AED</td>
+                              <td className="text-foreground/60 font-semibold">{emp.jobTitle || "Employee"}</td>
+                              <td className="font-bold text-foreground font-mono">{baseSalary.toLocaleString()} AED</td>
+                              <td className="text-foreground/40 font-mono">0 AED</td>
                               <td className="text-right">
                                 <button className="text-blue-400 font-bold hover:underline hover:text-blue-300">Configure</button>
                               </td>
@@ -1192,7 +1192,7 @@ export default function FinanceDashboard() {
                         })}
                         {employeesList.length === 0 && (
                           <tr>
-                            <td colSpan={5} className="text-center py-8 text-white/30 italic">No employees found.</td>
+                            <td colSpan={5} className="text-center py-8 text-foreground/30 italic">No employees found.</td>
                           </tr>
                         )}
                       </tbody>
@@ -1204,60 +1204,60 @@ export default function FinanceDashboard() {
               {/* Configure Panel */}
               <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02] p-5 flex flex-col justify-between">
                 <div>
-                  <h3 className="text-xs uppercase font-bold text-white/55 tracking-wider mb-4">Pay Period Configuration</h3>
+                  <h3 className="text-xs uppercase font-bold text-foreground/55 tracking-wider mb-4">Pay Period Configuration</h3>
                   
                   {selectedEmpPayroll ? (
                     <div className="space-y-4">
                       <div className="flex items-center gap-3 bg-white/[0.02] border border-white/[0.06] p-3 rounded-xl">
-                        <Avatar className="h-10 w-10 border border-white/10">
+                        <Avatar className="h-10 w-10 border border-border">
                           <AvatarImage src={selectedEmpPayroll.profilePhotoURL} />
-                          <AvatarFallback className="bg-indigo-600 text-xs font-bold text-white">
+                          <AvatarFallback className="bg-indigo-600 text-xs font-bold text-foreground">
                             {selectedEmpPayroll.fullName ? selectedEmpPayroll.fullName.split(" ").map((n: any) => n[0]).join("") : "EM"}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="text-sm font-bold text-white">{selectedEmpPayroll.fullName}</p>
-                          <p className="text-[10px] text-white/40 font-semibold uppercase mt-0.5">{selectedEmpPayroll.jobTitle || "Employee"}</p>
+                          <p className="text-sm font-bold text-foreground">{selectedEmpPayroll.fullName}</p>
+                          <p className="text-[10px] text-foreground/40 font-semibold uppercase mt-0.5">{selectedEmpPayroll.jobTitle || "Employee"}</p>
                         </div>
                       </div>
 
                       <div className="grid gap-2">
-                        <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Base Salary (AED)</Label>
+                        <Label className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Base Salary (AED)</Label>
                         <Input 
                           disabled
                           value={selectedEmpPayroll.baseSalary || 12000} 
-                          className="glass-input h-9 text-xs border-white/10 bg-white/[0.01] text-white/50 font-mono"
+                          className="glass-input h-9 text-xs border-border bg-white/[0.01] text-foreground/50 font-mono"
                         />
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
-                          <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Performance Bonus</Label>
+                          <Label className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Performance Bonus</Label>
                           <Input 
                             type="number"
                             placeholder="e.g. 1500"
                             value={payrollBonus} 
                             onChange={(e) => setPayrollBonus(e.target.value)}
-                            className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 font-mono text-white bg-[#121813]"
+                            className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 font-mono text-foreground bg-[#121813]"
                           />
                         </div>
                         <div className="grid gap-2">
-                          <Label className="text-xs font-bold text-white/50 uppercase tracking-wider">Unpaid Deductions</Label>
+                          <Label className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Unpaid Deductions</Label>
                           <Input 
                             type="number"
                             placeholder="e.g. 300"
                             value={payrollDeduction} 
                             onChange={(e) => setPayrollDeduction(e.target.value)}
-                            className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 font-mono text-white bg-[#121813]"
+                            className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 font-mono text-foreground bg-[#121813]"
                           />
                         </div>
                       </div>
 
                       {/* Pay Details Summary */}
-                      <div className="bg-white/[0.01] border border-white/[0.06] p-3.5 rounded-xl space-y-2 text-xs text-white/60">
+                      <div className="bg-white/[0.01] border border-white/[0.06] p-3.5 rounded-xl space-y-2 text-xs text-foreground/60">
                         <div className="flex justify-between">
                           <span>Base Salary:</span>
-                          <span className="font-mono text-white">{(selectedEmpPayroll.baseSalary || 12000).toLocaleString()} AED</span>
+                          <span className="font-mono text-foreground">{(selectedEmpPayroll.baseSalary || 12000).toLocaleString()} AED</span>
                         </div>
                         <div className="flex justify-between text-emerald-400">
                           <span>Bonus Added:</span>
@@ -1267,7 +1267,7 @@ export default function FinanceDashboard() {
                           <span>Deductions Applied:</span>
                           <span className="font-mono">-{Number(payrollDeduction || 0).toLocaleString()} AED</span>
                         </div>
-                        <div className="flex justify-between border-t border-white/[0.06] pt-2 font-bold text-white text-sm">
+                        <div className="flex justify-between border-t border-white/[0.06] pt-2 font-bold text-foreground text-sm">
                           <span>Net Payday:</span>
                           <span className="font-mono text-indigo-400">
                             {((selectedEmpPayroll.baseSalary || 12000) + Number(payrollBonus || 0) - Number(payrollDeduction || 0)).toLocaleString()} AED
@@ -1304,13 +1304,13 @@ export default function FinanceDashboard() {
                             createdAt: serverTimestamp()
                           });
                         }}
-                        className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold h-10 py-0 flex items-center justify-center gap-1.5 shadow-glow-indigo rounded-xl cursor-pointer"
+                        className="w-full bg-indigo-600 hover:bg-indigo-500 text-foreground font-bold h-10 py-0 flex items-center justify-center gap-1.5 shadow-glow-indigo rounded-xl cursor-pointer"
                       >
                         <FileDown className="h-4 w-4" /> Download Official Payslip
                       </Button>
                     </div>
                   ) : (
-                    <div className="text-center py-16 text-white/30 italic text-xs">
+                    <div className="text-center py-16 text-foreground/30 italic text-xs">
                       Select an employee from the roster list to configure salary slip and pay adjustments.
                     </div>
                   )}

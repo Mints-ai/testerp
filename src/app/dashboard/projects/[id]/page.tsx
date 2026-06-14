@@ -30,7 +30,7 @@ const ProgressRing = ({ progress, size = 120, strokeWidth = 8, colorClass = "tex
       <svg className="transform -rotate-90 w-full h-full">
         {/* Background circle */}
         <circle
-          className="text-white/10"
+          className="text-foreground/10"
           strokeWidth={strokeWidth}
           stroke="currentColor"
           fill="transparent"
@@ -56,7 +56,7 @@ const ProgressRing = ({ progress, size = 120, strokeWidth = 8, colorClass = "tex
         />
       </svg>
       <div className="absolute flex flex-col items-center justify-center">
-        <span className="text-2xl font-bold text-white">{progress}%</span>
+        <span className="text-2xl font-bold text-foreground">{progress}%</span>
       </div>
     </div>
   );
@@ -234,13 +234,13 @@ export default function ProjectDetail() {
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12">
       {/* Header Profile Card */}
-      <Card className="overflow-hidden border-white/10 shadow-lg">
+      <Card className="overflow-hidden border-border shadow-lg">
         <div className="h-3 bg-gradient-to-r from-blue-500 to-blue-700 animate-pulse-glow"></div>
         <div className="p-6 md:p-8">
           <div className="flex flex-col md:flex-row gap-8 items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-3">
-                <Badge variant="outline" className="text-xs uppercase tracking-wider font-bold bg-white/5 text-white/60 border-white/10">
+                <Badge variant="outline" className="text-xs uppercase tracking-wider font-bold bg-muted/40 text-foreground/60 border-border">
                   {project.serviceType || "General"}
                 </Badge>
                 <Select 
@@ -253,7 +253,7 @@ export default function ProjectDetail() {
                   <SelectTrigger className={`h-7 w-32 text-xs uppercase tracking-wider font-bold shadow-none border-transparent rounded-full px-3 ${statusColors[project.status] || statusColors.pitch}`}>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#121813] border-white/10 text-white">
+                  <SelectContent className="bg-[#121813] border-border text-foreground">
                     <SelectItem value="pitch">Pitch</SelectItem>
                     <SelectItem value="active">Active</SelectItem>
                     <SelectItem value="on_hold">On Hold</SelectItem>
@@ -263,10 +263,10 @@ export default function ProjectDetail() {
                 </Select>
               </div>
               
-              <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white mb-2">{project.name}</h1>
-              <p className="text-lg text-white/60 max-w-2xl">{project.description || "No description provided for this project."}</p>
+              <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-2">{project.name}</h1>
+              <p className="text-lg text-foreground/60 max-w-2xl">{project.description || "No description provided for this project."}</p>
               
-              <div className="flex flex-wrap gap-6 text-sm text-white/40 mt-6 pt-6 border-t border-white/5">
+              <div className="flex flex-wrap gap-6 text-sm text-foreground/40 mt-6 pt-6 border-t border-border/30">
                 <div className="flex items-center gap-2">
                   <CalendarIcon className="h-4 w-4" />
                   <span>Started: {project.startDate ? new Date(project.startDate).toLocaleDateString() : 'N/A'}</span>
@@ -283,7 +283,7 @@ export default function ProjectDetail() {
             <div className="shrink-0 flex flex-col items-center justify-center gap-4">
               <div className="bg-white/[0.02] p-6 rounded-2xl border border-white/[0.06] min-w-[200px] flex flex-col items-center">
                 <ProgressRing progress={progress} />
-                <p className="text-xs font-bold text-white/40 uppercase tracking-wider mt-4">Project Health</p>
+                <p className="text-xs font-bold text-foreground/40 uppercase tracking-wider mt-4">Project Health</p>
               </div>
               
               {(currentRole === "founder" || currentRole === "system_admin") && (
@@ -304,7 +304,7 @@ export default function ProjectDetail() {
         <div className="lg:col-span-2 space-y-6">
           {/* Tabs */}
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="bg-white/5 border border-white/10 w-full justify-start h-auto p-1 overflow-x-auto flex-wrap shadow-sm rounded-xl mb-6">
+            <TabsList className="bg-muted/40 border border-border w-full justify-start h-auto p-1 overflow-x-auto flex-wrap shadow-sm rounded-xl mb-6">
               <TabsTrigger value="overview" className="data-[state=active]:bg-blue-600/20 data-[state=active]:text-blue-300 rounded-lg">Overview</TabsTrigger>
               <TabsTrigger value="tasks" className="data-[state=active]:bg-blue-600/20 data-[state=active]:text-blue-300 rounded-lg">Tasks</TabsTrigger>
               <TabsTrigger value="files" className="data-[state=active]:bg-blue-600/20 data-[state=active]:text-blue-300 rounded-lg">Files</TabsTrigger>
@@ -312,15 +312,15 @@ export default function ProjectDetail() {
             </TabsList>
             
             <TabsContent value="overview" className="space-y-6 m-0">
-              <Card className="border-white/10 bg-white/[0.02] shadow-sm">
+              <Card className="border-border bg-white/[0.02] shadow-sm">
                 <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-lg text-white">Milestone Timeline & Stages</CardTitle>
+                  <CardTitle className="text-lg text-foreground">Milestone Timeline & Stages</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {/* Timeline representation */}
-                  <div className="relative border-l border-white/10 ml-4 pl-6 space-y-6">
+                  <div className="relative border-l border-border ml-4 pl-6 space-y-6">
                     {milestones.length === 0 ? (
-                      <p className="text-xs text-white/40 italic">No milestones defined yet. Use the tool below to map project stages.</p>
+                      <p className="text-xs text-foreground/40 italic">No milestones defined yet. Use the tool below to map project stages.</p>
                     ) : (
                       milestones.map((m: any) => (
                         <div key={m.id} className="relative group">
@@ -328,8 +328,8 @@ export default function ProjectDetail() {
                           <div className={cn(
                             "absolute -left-[31px] top-1 w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors",
                             m.completed 
-                              ? "bg-emerald-500 border-emerald-400 text-white" 
-                              : "bg-[#121813] border-white/20 text-transparent"
+                              ? "bg-emerald-500 border-emerald-400 text-foreground" 
+                              : "bg-[#121813] border-border/80 text-transparent"
                           )}>
                             {m.completed && <Check className="h-2.5 w-2.5" />}
                           </div>
@@ -340,13 +340,13 @@ export default function ProjectDetail() {
                                 onClick={() => handleToggleMilestone(m.id, m.completed)}
                                 className={cn(
                                   "text-sm font-bold transition-all text-left",
-                                  m.completed ? "text-white/40 line-through" : "text-white hover:text-blue-400"
+                                  m.completed ? "text-foreground/40 line-through" : "text-foreground hover:text-blue-400"
                                 )}
                               >
                                 {m.title}
                               </button>
                               {m.dueDate && (
-                                <span className="text-[10px] text-white/40 font-semibold font-mono bg-white/5 border border-white/10 px-2 py-0.5 rounded-full">
+                                <span className="text-[10px] text-foreground/40 font-semibold font-mono bg-muted/40 border border-border px-2 py-0.5 rounded-full">
                                   Due: {new Date(m.dueDate).toLocaleDateString()}
                                 </span>
                               )}
@@ -356,7 +356,7 @@ export default function ProjectDetail() {
                             {canAccess(currentRole || "employee", "CREATE_PROJECT") && (
                               <button 
                                 onClick={() => handleDeleteMilestone(m.id)}
-                                className="text-white/20 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity p-1"
+                                className="text-foreground/20 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity p-1"
                                 title="Remove Milestone"
                               >
                                 <X className="h-3.5 w-3.5" />
@@ -370,23 +370,23 @@ export default function ProjectDetail() {
 
                   {/* Add Milestone Inline Form (Manager and above) */}
                   {canAccess(currentRole || "employee", "CREATE_PROJECT") && (
-                    <form onSubmit={handleAddMilestone} className="pt-4 border-t border-white/5 flex flex-wrap md:flex-nowrap gap-3 items-end">
+                    <form onSubmit={handleAddMilestone} className="pt-4 border-t border-border/30 flex flex-wrap md:flex-nowrap gap-3 items-end">
                       <div className="flex-1 space-y-1">
-                        <Label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">New Stage/Milestone</Label>
+                        <Label className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">New Stage/Milestone</Label>
                         <Input 
                           placeholder="e.g. Design Handover & Client Approval" 
                           value={newMilestoneTitle}
                           onChange={e => setNewMilestoneTitle(e.target.value)}
-                          className="bg-white/[0.03] border-white/10 text-white placeholder:text-white/20 text-xs h-9"
+                          className="bg-white/[0.03] border-border text-foreground placeholder:text-foreground/20 text-xs h-9"
                         />
                       </div>
                       <div className="w-full md:w-44 space-y-1">
-                        <Label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Target Date</Label>
+                        <Label className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Target Date</Label>
                         <Input 
                           type="date"
                           value={newMilestoneDate}
                           onChange={e => setNewMilestoneDate(e.target.value)}
-                          className="bg-white/[0.03] border-white/10 text-white text-xs h-9 animate-none"
+                          className="bg-white/[0.03] border-border text-foreground text-xs h-9 animate-none"
                         />
                       </div>
                       <Button type="submit" className="h-9 px-4 bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 font-bold border border-blue-500/20 text-xs shrink-0 cursor-pointer">
@@ -398,26 +398,26 @@ export default function ProjectDetail() {
               </Card>
 
               {["founder", "c_suite", "system_admin", "manager"].includes(role || "") && project.budget && (
-                <Card className="border-white/10 shadow-sm bg-white/[0.02]">
+                <Card className="border-border shadow-sm bg-white/[0.02]">
                   <CardContent className="p-6">
                     <div className="flex justify-between items-center mb-2">
-                      <h3 className="text-sm font-bold text-white uppercase tracking-wider">Budget Tracking</h3>
-                      <span className="text-sm font-bold text-white">{parseInt(project.budget).toLocaleString()} {compCurrency}</span>
+                      <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Budget Tracking</h3>
+                      <span className="text-sm font-bold text-foreground">{parseInt(project.budget).toLocaleString()} {compCurrency}</span>
                     </div>
-                    <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden mb-2">
+                    <div className="w-full h-2 bg-muted/80 rounded-full overflow-hidden mb-2">
                       <div className="h-full bg-blue-600 rounded-full" style={{ width: "45%" }}></div>
                     </div>
-                    <p className="text-xs text-white/40 text-right">45% Consumed</p>
+                    <p className="text-xs text-foreground/40 text-right">45% Consumed</p>
                   </CardContent>
                 </Card>
               )}
             </TabsContent>
 
             <TabsContent value="tasks" className="m-0 space-y-6">
-              <Card className="border-white/10 shadow-sm bg-white/[0.02]">
+              <Card className="border-border shadow-sm bg-white/[0.02]">
                 <CardContent className="p-6 space-y-4">
-                  <div className="flex justify-between items-center pb-4 border-b border-white/5">
-                    <h3 className="font-extrabold text-white text-lg flex items-center gap-2">
+                  <div className="flex justify-between items-center pb-4 border-b border-border/30">
+                    <h3 className="font-extrabold text-foreground text-lg flex items-center gap-2">
                       <CheckSquare className="h-5 w-5 text-indigo-500" />
                       Project Deliverables & Tasks
                     </h3>
@@ -428,7 +428,7 @@ export default function ProjectDetail() {
                   
                   <div className="space-y-2">
                     {projectTasks.length === 0 ? (
-                      <p className="text-xs text-white/40 italic p-6 text-center">No tasks linked to this project yet.</p>
+                      <p className="text-xs text-foreground/40 italic p-6 text-center">No tasks linked to this project yet.</p>
                     ) : (
                       projectTasks.map((t: any) => {
                         const isTaskDone = t.status === "done";
@@ -440,8 +440,8 @@ export default function ProjectDetail() {
                                 className={cn(
                                   "w-5 h-5 rounded-md border flex items-center justify-center transition-colors shrink-0 cursor-pointer",
                                   isTaskDone 
-                                    ? "bg-indigo-600 border-indigo-500 text-white" 
-                                    : "border-white/20 bg-transparent text-transparent"
+                                    ? "bg-indigo-600 border-indigo-500 text-foreground" 
+                                    : "border-border/80 bg-transparent text-transparent"
                                 )}
                               >
                                 {isTaskDone && <Check className="h-3.5 w-3.5" />}
@@ -449,12 +449,12 @@ export default function ProjectDetail() {
                               <div>
                                 <span className={cn(
                                   "text-xs font-bold block",
-                                  isTaskDone ? "text-white/40 line-through" : "text-white"
+                                  isTaskDone ? "text-foreground/40 line-through" : "text-foreground"
                                 )}>
                                   {t.title}
                                 </span>
                                 {t.dueDate && (
-                                  <span className="text-[10px] text-white/40 font-mono">Due: {new Date(t.dueDate).toLocaleDateString()}</span>
+                                  <span className="text-[10px] text-foreground/40 font-mono">Due: {new Date(t.dueDate).toLocaleDateString()}</span>
                                 )}
                               </div>
                             </div>
@@ -465,7 +465,7 @@ export default function ProjectDetail() {
                                   ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                                   : t.status === "in_progress"
                                   ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                                  : "bg-white/5 text-white/60 border-white/10"
+                                  : "bg-muted/40 text-foreground/60 border-border"
                               )}>
                                 {t.status === "in_progress" ? "In Progress" : t.status}
                               </Badge>
@@ -477,22 +477,22 @@ export default function ProjectDetail() {
                   </div>
 
                   {/* Inline Task Form */}
-                  <form onSubmit={handleAddProjectTask} className="pt-4 border-t border-white/5 flex gap-3 items-end">
+                  <form onSubmit={handleAddProjectTask} className="pt-4 border-t border-border/30 flex gap-3 items-end">
                     <div className="flex-1 space-y-1">
-                      <Label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Fast-Create Connected Task</Label>
+                      <Label className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Fast-Create Connected Task</Label>
                       <Input 
                         placeholder="e.g. Design Wireframes for Checkout" 
                         value={newTaskTitle}
                         onChange={e => setNewTaskTitle(e.target.value)}
-                        className="bg-white/[0.03] border-white/10 text-white placeholder:text-white/20 text-xs h-9"
+                        className="bg-white/[0.03] border-border text-foreground placeholder:text-foreground/20 text-xs h-9"
                       />
                     </div>
                     <div className="w-32 space-y-1">
-                      <Label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Priority</Label>
+                      <Label className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Priority</Label>
                       <select 
                         value={newTaskPriority}
                         onChange={e => setNewTaskPriority(e.target.value as any)}
-                        className="w-full h-9 border border-white/10 rounded-xl px-2 text-xs bg-[#121813] text-white font-semibold focus:border-indigo-500/60 focus:ring-0"
+                        className="w-full h-9 border border-border rounded-xl px-2 text-xs bg-[#121813] text-foreground font-semibold focus:border-indigo-500/60 focus:ring-0"
                       >
                         <option value="low">Low</option>
                         <option value="normal">Normal</option>
@@ -509,13 +509,13 @@ export default function ProjectDetail() {
             </TabsContent>
             
             <TabsContent value="files" className="m-0">
-              <Card className="border-white/10 shadow-sm">
+              <Card className="border-border shadow-sm">
                 <CardContent className="py-12 flex flex-col items-center text-center">
-                   <div className="h-16 w-16 bg-white/5 rounded-full flex items-center justify-center mb-4 border border-white/10">
-                     <FileText className="h-8 w-8 text-white/30" />
+                   <div className="h-16 w-16 bg-muted/40 rounded-full flex items-center justify-center mb-4 border border-border">
+                     <FileText className="h-8 w-8 text-foreground/30" />
                    </div>
-                   <h3 className="font-bold text-white text-lg">Document Vault</h3>
-                   <p className="text-white/40 mt-1 max-w-sm">Files and assets related to this project will appear here.</p>
+                   <h3 className="font-bold text-foreground text-lg">Document Vault</h3>
+                   <p className="text-foreground/40 mt-1 max-w-sm">Files and assets related to this project will appear here.</p>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -525,26 +525,26 @@ export default function ProjectDetail() {
         {/* Right Rail */}
         <div className="space-y-6">
           {/* Team Stack */}
-          <Card className="border-white/10 shadow-sm">
-            <CardHeader className="pb-3 border-b border-white/5">
+          <Card className="border-border shadow-sm">
+            <CardHeader className="pb-3 border-b border-border/30">
               <div className="flex justify-between items-center">
-                <CardTitle className="text-base text-white">Project Team</CardTitle>
-                <span className="text-xs font-bold text-white/40 bg-white/5 px-2 py-1 rounded-md">{project.memberIds?.length || 0}</span>
+                <CardTitle className="text-base text-foreground">Project Team</CardTitle>
+                <span className="text-xs font-bold text-foreground/40 bg-muted/40 px-2 py-1 rounded-md">{project.memberIds?.length || 0}</span>
               </div>
             </CardHeader>
             <CardContent className="p-4 space-y-4">
               {/* Manager */}
               <div>
-                <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider mb-2">Lead</p>
+                <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider mb-2">Lead</p>
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-8 w-8 border border-white/10 shadow-sm">
+                  <Avatar className="h-8 w-8 border border-border shadow-sm">
                     <AvatarImage src={employees.find(e => e.id === project.managerId)?.profilePhotoURL || ""} />
-                    <AvatarFallback className="bg-white/5 text-white/60 text-xs">
+                    <AvatarFallback className="bg-muted/40 text-foreground/60 text-xs">
                       {employees.find(e => e.id === project.managerId)?.fullName?.charAt(0) || "M"}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="text-sm font-bold text-white/80">
+                    <p className="text-sm font-bold text-foreground/80">
                       {employees.find(e => e.id === project.managerId)?.fullName || "Unassigned"}
                     </p>
                   </div>
@@ -554,25 +554,25 @@ export default function ProjectDetail() {
               {/* Members */}
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Members</p>
+                  <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Members</p>
                   
                   {canAccess(currentRole || "employee", "CREATE_PROJECT") && (
                     <Dialog>
                       <DialogTrigger className="text-[10px] bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 px-2 py-0.5 rounded-sm font-bold uppercase tracking-wider flex items-center gap-1 transition-colors">
                         <Plus className="h-3 w-3" /> Assign
                       </DialogTrigger>
-                      <DialogContent className="bg-[#121813] border-white/10 text-white sm:max-w-[425px]">
+                      <DialogContent className="bg-[#121813] border-border text-foreground sm:max-w-[425px]">
                         <DialogHeader>
-                          <DialogTitle className="text-white">Assign Team Members</DialogTitle>
+                          <DialogTitle className="text-foreground">Assign Team Members</DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4 py-4">
                           <div className="relative">
-                            <Search className="absolute left-3 top-2.5 h-4 w-4 text-white/40" />
+                            <Search className="absolute left-3 top-2.5 h-4 w-4 text-foreground/40" />
                             <Input 
                               placeholder="Search employees..." 
                               value={searchEmp}
                               onChange={(e) => setSearchEmp(e.target.value)}
-                              className="pl-9 bg-white/[0.03] border-white/10 text-white placeholder:text-white/40" 
+                              className="pl-9 bg-white/[0.03] border-border text-foreground placeholder:text-foreground/40" 
                             />
                           </div>
                           <div className="max-h-[300px] overflow-y-auto space-y-2 pr-2">
@@ -585,8 +585,8 @@ export default function ProjectDetail() {
                                       <AvatarFallback className="bg-blue-800 text-blue-200 text-xs">{emp.fullName?.charAt(0) || "U"}</AvatarFallback>
                                     </Avatar>
                                     <div>
-                                      <p className="text-sm font-bold text-white">{emp.fullName}</p>
-                                      <p className="text-[10px] text-white/40 uppercase tracking-wider">{emp.role}</p>
+                                      <p className="text-sm font-bold text-foreground">{emp.fullName}</p>
+                                      <p className="text-[10px] text-foreground/40 uppercase tracking-wider">{emp.role}</p>
                                     </div>
                                   </div>
                                   <button
@@ -621,7 +621,7 @@ export default function ProjectDetail() {
                       );
                     })
                   ) : (
-                    <p className="text-xs text-white/40 italic mt-1">No members assigned.</p>
+                    <p className="text-xs text-foreground/40 italic mt-1">No members assigned.</p>
                   )}
                 </div>
               </div>
@@ -629,13 +629,13 @@ export default function ProjectDetail() {
           </Card>
 
           {/* Activity Feed */}
-          <Card className="border-white/10 shadow-sm">
-            <CardHeader className="pb-3 border-b border-white/5">
-              <CardTitle className="text-base text-white">Activity Feed</CardTitle>
+          <Card className="border-border shadow-sm">
+            <CardHeader className="pb-3 border-b border-border/30">
+              <CardTitle className="text-base text-foreground">Activity Feed</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="divide-y divide-white/5">
-                <div className="p-6 text-center text-xs text-white/40 italic">
+                <div className="p-6 text-center text-xs text-foreground/40 italic">
                   No recent activity logged.
                 </div>
               </div>

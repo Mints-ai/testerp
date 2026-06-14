@@ -116,10 +116,10 @@ export default function ClientProfile() {
   if (!client) {
     return (
       <div className="text-center py-16 bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl rounded-2xl p-8">
-        <Building2 className="h-12 w-12 text-white/20 mx-auto mb-4" />
-        <h3 className="text-lg font-bold text-white/80">Profile Not Discovered</h3>
-        <p className="text-sm text-white/40 mt-1">This corporate account might have been archived or removed.</p>
-        <Button variant="outline" className="mt-4 rounded-xl border-white/10 text-white/60 hover:text-white hover:bg-white/5 font-semibold" onClick={() => router.push("/dashboard/clients")}>
+        <Building2 className="h-12 w-12 text-foreground/20 mx-auto mb-4" />
+        <h3 className="text-lg font-bold text-foreground/80">Profile Not Discovered</h3>
+        <p className="text-sm text-foreground/40 mt-1">This corporate account might have been archived or removed.</p>
+        <Button variant="outline" className="mt-4 rounded-xl border-border text-foreground/60 hover:text-foreground hover:bg-muted/40 font-semibold" onClick={() => router.push("/dashboard/clients")}>
           <ChevronLeft className="w-4 h-4 mr-2" /> Back to CRM
         </Button>
       </div>
@@ -132,11 +132,11 @@ export default function ClientProfile() {
     .reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
 
   return (
-    <RoleGuard permission="VIEW_ALL_EMPLOYEES" fallback={<div className="p-8 text-center text-white/40 font-bold uppercase tracking-wider text-xs">Access Denied. Interns do not have permissions to view corporate CRM databases.</div>}>
-      <div className="space-y-6 pb-24 text-white">
+    <RoleGuard permission="VIEW_ALL_EMPLOYEES" fallback={<div className="p-8 text-center text-foreground/40 font-bold uppercase tracking-wider text-xs">Access Denied. Interns do not have permissions to view corporate CRM databases.</div>}>
+      <div className="space-y-6 pb-24 text-foreground">
         {/* Navigation Breadcrumb */}
         <div className="flex items-center justify-between shrink-0">
-          <Button variant="outline" className="rounded-xl border-white/10 glass h-9 text-white/60 hover:text-white font-semibold" onClick={() => router.push("/dashboard/clients")}>
+          <Button variant="outline" className="rounded-xl border-border glass h-9 text-foreground/60 hover:text-foreground font-semibold" onClick={() => router.push("/dashboard/clients")}>
             <ChevronLeft className="w-4 h-4 mr-1.5" /> Back to CRM
           </Button>
           
@@ -149,16 +149,16 @@ export default function ClientProfile() {
         <div className="border border-white/[0.08] bg-white/[0.02] p-6 rounded-2xl shadow-card backdrop-blur-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="flex items-center gap-4">
             {client.logo ? (
-              <img src={client.logo} alt="" className="h-16 w-16 object-contain rounded-2xl border border-white/10 bg-white p-1" />
+              <img src={client.logo} alt="" className="h-16 w-16 object-contain rounded-2xl border border-border bg-white p-1" />
             ) : (
               <div className="h-16 w-16 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-300 font-bold text-2xl border border-blue-500/20">
                 {client.companyName?.substring(0, 2).toUpperCase()}
               </div>
             )}
             <div>
-              <h1 className="text-3xl font-bold tracking-tight text-white">{client.companyName}</h1>
-              <p className="text-sm text-white/40 font-semibold flex items-center gap-1.5 mt-1">
-                <Globe className="h-4 w-4 text-white/30" /> {client.country || "Global"} · Timezone: {client.timezone || "GST"}
+              <h1 className="text-3xl font-bold tracking-tight text-foreground">{client.companyName}</h1>
+              <p className="text-sm text-foreground/40 font-semibold flex items-center gap-1.5 mt-1">
+                <Globe className="h-4 w-4 text-foreground/30" /> {client.country || "Global"} · Timezone: {client.timezone || "GST"}
               </p>
             </div>
           </div>
@@ -181,38 +181,38 @@ export default function ClientProfile() {
           <div className="lg:col-span-1 space-y-6">
             <div className="border border-white/[0.08] bg-white/[0.02] rounded-2xl overflow-hidden shadow-card backdrop-blur-xl">
               <div className="p-6 pb-3 border-b border-white/[0.06] bg-white/[0.01]">
-                <h2 className="text-base font-bold text-white">Corporate Details</h2>
-                <p className="text-xs text-white/40 font-medium mt-0.5">Primary CRM metadata for corporate communications.</p>
+                <h2 className="text-base font-bold text-foreground">Corporate Details</h2>
+                <p className="text-xs text-foreground/40 font-medium mt-0.5">Primary CRM metadata for corporate communications.</p>
               </div>
-              <div className="p-6 space-y-4 text-sm text-white/60 font-semibold">
+              <div className="p-6 space-y-4 text-sm text-foreground/60 font-semibold">
                 {client.contactPerson && (
                   <div className="flex items-center gap-3">
-                    <User className="h-5 w-5 text-white/30 shrink-0" />
+                    <User className="h-5 w-5 text-foreground/30 shrink-0" />
                     <div>
-                      <p className="text-white">{client.contactPerson}</p>
-                      <p className="text-[9px] uppercase font-bold text-white/30 tracking-wider">Primary Partner contact</p>
+                      <p className="text-foreground">{client.contactPerson}</p>
+                      <p className="text-[9px] uppercase font-bold text-foreground/30 tracking-wider">Primary Partner contact</p>
                     </div>
                   </div>
                 )}
                 <div className="flex items-center gap-3">
-                  <Mail className="h-5 w-5 text-white/30 shrink-0" />
+                  <Mail className="h-5 w-5 text-foreground/30 shrink-0" />
                   <div>
                     <a href={`mailto:${client.email}`} className="text-blue-400 hover:text-blue-300 transition-colors hover:underline">{client.email || "No email listed"}</a>
-                    <p className="text-[9px] uppercase font-bold text-white/30 tracking-wider">Communication Gateway</p>
+                    <p className="text-[9px] uppercase font-bold text-foreground/30 tracking-wider">Communication Gateway</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Phone className="h-5 w-5 text-white/30 shrink-0" />
+                  <Phone className="h-5 w-5 text-foreground/30 shrink-0" />
                   <div>
-                    <p className="text-white">{client.phone || "No phone listed"}</p>
-                    <p className="text-[9px] uppercase font-bold text-white/30 tracking-wider">Primary phone line</p>
+                    <p className="text-foreground">{client.phone || "No phone listed"}</p>
+                    <p className="text-[9px] uppercase font-bold text-foreground/30 tracking-wider">Primary phone line</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Clock className="h-5 w-5 text-white/30 shrink-0" />
+                  <Clock className="h-5 w-5 text-foreground/30 shrink-0" />
                   <div>
-                    <p className="text-white">{client.timezone || "GST"}</p>
-                    <p className="text-[9px] uppercase font-bold text-white/30 tracking-wider">Corporate Timezone</p>
+                    <p className="text-foreground">{client.timezone || "GST"}</p>
+                    <p className="text-[9px] uppercase font-bold text-foreground/30 tracking-wider">Corporate Timezone</p>
                   </div>
                 </div>
               </div>
@@ -221,18 +221,18 @@ export default function ClientProfile() {
             {/* Subscribed Retainers */}
             <div className="border border-white/[0.08] bg-white/[0.02] rounded-2xl shadow-card backdrop-blur-xl">
               <div className="p-6 pb-3 border-b border-white/[0.06] bg-white/[0.01]">
-                <h2 className="text-base font-bold text-white">Services Retained</h2>
-                <p className="text-xs text-white/40 font-medium mt-0.5">Subscribed services under this account.</p>
+                <h2 className="text-base font-bold text-foreground">Services Retained</h2>
+                <p className="text-xs text-foreground/40 font-medium mt-0.5">Subscribed services under this account.</p>
               </div>
               <div className="p-6">
                 <div className="flex flex-wrap gap-2">
                   {client.servicesSubscribed?.map((svc: string) => (
-                    <Badge key={svc} variant="secondary" className="font-bold text-xs bg-white/[0.02] text-white/80 border border-white/10 rounded-lg py-1 px-2.5">
+                    <Badge key={svc} variant="secondary" className="font-bold text-xs bg-white/[0.02] text-foreground/80 border border-border rounded-lg py-1 px-2.5">
                       {svc}
                     </Badge>
                   ))}
                   {!client.servicesSubscribed?.length && (
-                    <p className="text-sm text-white/40 italic">No services registered under this profile.</p>
+                    <p className="text-sm text-foreground/40 italic">No services registered under this profile.</p>
                   )}
                 </div>
               </div>
@@ -242,8 +242,8 @@ export default function ClientProfile() {
             <div className="border border-white/[0.08] bg-white/[0.02] rounded-2xl shadow-card backdrop-blur-xl">
               <div className="p-6 pb-3 border-b border-white/[0.06] bg-white/[0.01] flex flex-row items-center justify-between">
                 <div>
-                  <h2 className="text-base font-bold text-white">CRM Account Notes</h2>
-                  <p className="text-xs text-white/40 font-medium mt-0.5">Private account updates and notes.</p>
+                  <h2 className="text-base font-bold text-foreground">CRM Account Notes</h2>
+                  <p className="text-xs text-foreground/40 font-medium mt-0.5">Private account updates and notes.</p>
                 </div>
                 <div className="text-xs font-semibold shrink-0">
                   {saveStatus === "typing" && <span className="text-amber-400">Typing...</span>}
@@ -256,9 +256,9 @@ export default function ClientProfile() {
                   placeholder="Record strategic details, onboarding checklists, client background, or strategic goals here..." 
                   value={notes}
                   onChange={handleNotesChange}
-                  className="min-h-[180px] rounded-xl border-white/10 focus:border-blue-500 focus:ring-blue-500 text-sm leading-relaxed text-white bg-white/[0.03] placeholder:text-white/20"
+                  className="min-h-[180px] rounded-xl border-border focus:border-blue-500 focus:ring-blue-500 text-sm leading-relaxed text-foreground bg-white/[0.03] placeholder:text-foreground/20"
                 />
-                <p className="text-[10px] text-white/30 mt-2 text-right">Changes are automatically saved to the database.</p>
+                <p className="text-[10px] text-foreground/30 mt-2 text-right">Changes are automatically saved to the database.</p>
               </div>
             </div>
           </div>
@@ -269,17 +269,17 @@ export default function ClientProfile() {
             <div className="border border-white/[0.08] bg-white/[0.02] rounded-2xl shadow-card backdrop-blur-xl">
               <div className="p-6 pb-4 border-b border-white/[0.06] bg-white/[0.01] flex flex-row items-center justify-between">
                 <div>
-                  <h2 className="text-base font-bold text-white">Active Projects</h2>
-                  <p className="text-xs text-white/40 font-medium mt-0.5">Operational deliverables belonging to {client.companyName}.</p>
+                  <h2 className="text-base font-bold text-foreground">Active Projects</h2>
+                  <p className="text-xs text-foreground/40 font-medium mt-0.5">Operational deliverables belonging to {client.companyName}.</p>
                 </div>
                 <Badge variant="secondary" className="bg-blue-500/10 text-blue-300 border border-blue-500/20 font-bold">{projects.length} deliverables</Badge>
               </div>
               <div className="p-0">
                 {projects.length === 0 ? (
                   <div className="text-center py-12 p-6 flex flex-col items-center">
-                    <Briefcase className="h-10 w-10 text-white/20 mb-3" />
-                    <p className="text-sm font-semibold text-white/80">No Projects Found</p>
-                    <p className="text-xs text-white/40 mt-1">There are no operational projects associated with this client profile yet.</p>
+                    <Briefcase className="h-10 w-10 text-foreground/20 mb-3" />
+                    <p className="text-sm font-semibold text-foreground/80">No Projects Found</p>
+                    <p className="text-xs text-foreground/40 mt-1">There are no operational projects associated with this client profile yet.</p>
                   </div>
                 ) : (
                   <div className="divide-y divide-white/[0.06]">
@@ -290,9 +290,9 @@ export default function ClientProfile() {
                         className="flex justify-between items-center p-4 hover:bg-white/[0.03] transition-all cursor-pointer"
                       >
                         <div className="space-y-1">
-                          <p className="font-bold text-white text-sm hover:text-blue-400 transition-colors">{proj.name}</p>
-                          <div className="flex items-center gap-2 text-xs text-white/40 font-semibold">
-                            <Badge variant="outline" className="text-[10px] font-bold uppercase bg-white/[0.02] text-white/60 border-white/10">
+                          <p className="font-bold text-foreground text-sm hover:text-blue-400 transition-colors">{proj.name}</p>
+                          <div className="flex items-center gap-2 text-xs text-foreground/40 font-semibold">
+                            <Badge variant="outline" className="text-[10px] font-bold uppercase bg-white/[0.02] text-foreground/60 border-border">
                               {proj.serviceType || "Retainer"}
                             </Badge>
                             <span>·</span>
@@ -317,22 +317,22 @@ export default function ClientProfile() {
             <div className="border border-white/[0.08] bg-white/[0.02] rounded-2xl shadow-card backdrop-blur-xl">
               <div className="p-6 pb-4 border-b border-white/[0.06] bg-white/[0.01] flex flex-row items-center justify-between">
                 <div>
-                  <h2 className="text-base font-bold text-white">Invoices & Receivables</h2>
-                  <p className="text-xs text-white/40 font-medium mt-0.5">Financial balance statements generated for this account.</p>
+                  <h2 className="text-base font-bold text-foreground">Invoices & Receivables</h2>
+                  <p className="text-xs text-foreground/40 font-medium mt-0.5">Financial balance statements generated for this account.</p>
                 </div>
-                <Badge variant="secondary" className="bg-white/[0.02] text-white/80 border border-white/10 font-bold">{invoices.length} invoices</Badge>
+                <Badge variant="secondary" className="bg-white/[0.02] text-foreground/80 border border-border font-bold">{invoices.length} invoices</Badge>
               </div>
               <div className="p-0">
                 {invoices.length === 0 ? (
                   <div className="text-center py-12 p-6 flex flex-col items-center">
-                    <Banknote className="h-10 w-10 text-white/20 mb-3" />
-                    <p className="text-sm font-semibold text-white/80">No Financial Records</p>
-                    <p className="text-xs text-white/40 mt-1">No secure financial ledger statements or invoice cards have been raised yet.</p>
+                    <Banknote className="h-10 w-10 text-foreground/20 mb-3" />
+                    <p className="text-sm font-semibold text-foreground/80">No Financial Records</p>
+                    <p className="text-xs text-foreground/40 mt-1">No secure financial ledger statements or invoice cards have been raised yet.</p>
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
-                      <thead className="bg-white/[0.01] text-white/40 text-[10px] uppercase font-bold border-b border-white/[0.06]">
+                      <thead className="bg-white/[0.01] text-foreground/40 text-[10px] uppercase font-bold border-b border-white/[0.06]">
                         <tr>
                           <th className="px-5 py-3">Invoice #</th>
                           <th className="px-5 py-3">Generated Date</th>
@@ -340,17 +340,17 @@ export default function ClientProfile() {
                           <th className="px-5 py-3 text-right">Status</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-white/[0.06] text-white/80 font-semibold">
+                      <tbody className="divide-y divide-white/[0.06] text-foreground/80 font-semibold">
                         {invoices.map((inv) => (
                           <tr key={inv.id} className="hover:bg-white/[0.03] transition-colors">
                             <td className="px-5 py-3.5 font-mono text-xs text-blue-400">{inv.invoiceNumber || inv.id?.substring(0, 8)}</td>
-                            <td className="px-5 py-3.5 text-xs text-white/40">{inv.createdAt ? new Date(inv.createdAt).toLocaleDateString() : "Pending"}</td>
-                            <td className="px-5 py-3.5 tabular-nums text-white">AED {(Number(inv.amount) || 0).toLocaleString()}</td>
+                            <td className="px-5 py-3.5 text-xs text-foreground/40">{inv.createdAt ? new Date(inv.createdAt).toLocaleDateString() : "Pending"}</td>
+                            <td className="px-5 py-3.5 tabular-nums text-foreground">AED {(Number(inv.amount) || 0).toLocaleString()}</td>
                             <td className="px-5 py-3.5 text-right">
                               <Badge className={`capitalize font-bold text-xs shadow-none border ${
                                 inv.status === "paid" ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/20" :
                                 inv.status === "overdue" ? "bg-rose-500/10 text-rose-300 border-rose-500/20" :
-                                "bg-white/[0.02] text-white/60 border-white/10"
+                                "bg-white/[0.02] text-foreground/60 border-border"
                               }`}>
                                 {inv.status || "Draft"}
                               </Badge>

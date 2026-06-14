@@ -104,7 +104,8 @@ export function CompanyOverview() {
       const { collection, addDoc } = await import("firebase/firestore");
       await addDoc(collection(db, "auditLog"), {
         actorId: currentUser.uid,
-        action: "FORCE_CLOCKOUT",
+        actorName: currentUser.fullName || currentUser.email || "Admin",
+        action: "ATTENDANCE_FORCE_CLOCK_OUT",
         targetCollection: "attendance",
         targetId: attendanceDocId,
         details: `Force clocked out ${forceOutEmployee.fullName} on ${selectedDate}. Reason: ${forceOutReason || "No reason specified"}`,
@@ -204,15 +205,15 @@ export function CompanyOverview() {
   const todayStr = new Date().toISOString().split('T')[0];
 
   return (
-    <div className="space-y-6 text-white pb-6">
+    <div className="space-y-6 text-foreground pb-6">
       {/* Top Filter and Date Selector Panel */}
       <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4 bg-white/[0.02] p-4 rounded-2xl border border-white/[0.06] backdrop-blur-[24px]">
         {/* Search Input */}
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-white/30" />
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-foreground/30" />
           <Input
             placeholder="Search employees by name or title..."
-            className="glass-input h-9 text-xs pl-10 border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full text-white"
+            className="glass-input h-9 text-xs pl-10 border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full text-foreground"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -224,17 +225,17 @@ export function CompanyOverview() {
             variant="outline"
             size="sm"
             onClick={handlePrevDay}
-            className="glass h-9 w-9 p-0 border-white/10 text-white/60 hover:text-white hover:bg-white/5 active:scale-95 shrink-0 cursor-pointer"
+            className="glass h-9 w-9 p-0 border-border text-foreground/60 hover:text-foreground hover:bg-muted/40 active:scale-95 shrink-0 cursor-pointer"
             title="Previous Day"
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
 
           <div className="relative shrink-0">
-            <CalendarIcon className="absolute left-3 top-2.5 h-4 w-4 text-white/30 pointer-events-none" />
+            <CalendarIcon className="absolute left-3 top-2.5 h-4 w-4 text-foreground/30 pointer-events-none" />
             <Input
               type="date"
-              className="glass-input h-9 text-xs pl-10 pr-3 border-white/10 text-white focus:border-blue-500/60 focus:ring-0 w-40 select-none [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+              className="glass-input h-9 text-xs pl-10 pr-3 border-border text-foreground focus:border-blue-500/60 focus:ring-0 w-40 select-none [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value || todayStr)}
               max={todayStr}
@@ -246,7 +247,7 @@ export function CompanyOverview() {
             size="sm"
             onClick={handleNextDay}
             disabled={selectedDate >= todayStr}
-            className="glass h-9 w-9 p-0 border-white/10 text-white/60 hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none active:scale-95 shrink-0 cursor-pointer"
+            className="glass h-9 w-9 p-0 border-border text-foreground/60 hover:text-foreground hover:bg-muted/40 disabled:opacity-30 disabled:pointer-events-none active:scale-95 shrink-0 cursor-pointer"
             title="Next Day"
           >
             <ChevronRight className="h-4 w-4" />
@@ -257,7 +258,7 @@ export function CompanyOverview() {
             size="sm"
             onClick={handleToday}
             disabled={selectedDate === todayStr}
-            className="glass h-9 text-xs px-3 border-white/10 text-white/60 hover:text-white hover:bg-white/5 disabled:opacity-30 disabled:pointer-events-none active:scale-95 shrink-0 cursor-pointer"
+            className="glass h-9 text-xs px-3 border-border text-foreground/60 hover:text-foreground hover:bg-muted/40 disabled:opacity-30 disabled:pointer-events-none active:scale-95 shrink-0 cursor-pointer"
           >
             Today
           </Button>
@@ -273,7 +274,7 @@ export function CompanyOverview() {
         <CardHeader className="pb-4 border-b border-white/[0.06] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-blue-400 animate-pulse" />
-            <h3 className="font-bold text-white text-lg">Organizational Attendance</h3>
+            <h3 className="font-bold text-foreground text-lg">Organizational Attendance</h3>
           </div>
           <Badge variant="outline" className="text-xs text-blue-300 font-bold bg-blue-500/10 border-blue-500/20 px-3 py-1 rounded-full shadow-none">
             Date: {formattedDateLabel(selectedDate)}
@@ -282,7 +283,7 @@ export function CompanyOverview() {
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="bg-white/[0.02] text-white/60 text-xs uppercase font-bold border-b border-white/[0.06]">
+              <thead className="bg-white/[0.02] text-foreground/60 text-xs uppercase font-bold border-b border-white/[0.06]">
                 <tr>
                   <th className="px-6 py-4">Employee</th>
                   <th className="px-6 py-4">Role / Dept</th>
@@ -295,7 +296,7 @@ export function CompanyOverview() {
               <tbody className="divide-y divide-white/[0.04]">
                 {loading ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-white/40 font-medium italic">
+                    <td colSpan={6} className="px-6 py-12 text-center text-foreground/40 font-medium italic">
                       <div className="flex items-center justify-center gap-2">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
                         <span>Loading organizational data...</span>
@@ -304,7 +305,7 @@ export function CompanyOverview() {
                   </tr>
                 ) : filteredEmployees.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-white/40 font-medium italic">
+                    <td colSpan={6} className="px-6 py-12 text-center text-foreground/40 font-medium italic">
                       No employees found matching the search criteria.
                     </td>
                   </tr>
@@ -332,7 +333,7 @@ export function CompanyOverview() {
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <div className="relative">
-                              <Avatar className="h-10 w-10 border border-white/10 shadow-sm bg-blue-950">
+                              <Avatar className="h-10 w-10 border border-border shadow-sm bg-blue-950">
                                 <AvatarImage src={emp.profilePhotoURL} />
                                 <AvatarFallback className="bg-blue-800 text-blue-200 font-bold text-xs">
                                   {getInitials(emp.fullName)}
@@ -343,8 +344,8 @@ export function CompanyOverview() {
                               )}
                             </div>
                             <div>
-                              <p className="font-bold text-white/90">{emp.fullName}</p>
-                              <p className="text-[10px] text-white/40 font-semibold">{emp.email}</p>
+                              <p className="font-bold text-foreground/90">{emp.fullName}</p>
+                              <p className="text-[10px] text-foreground/40 font-semibold">{emp.email}</p>
                             </div>
                           </div>
                         </td>
@@ -352,11 +353,11 @@ export function CompanyOverview() {
                         {/* Role & Dept */}
                         <td className="px-6 py-4">
                           <div className="flex flex-col gap-1.5 items-start">
-                            <Badge variant="outline" className={cn("text-[9px] uppercase tracking-wider font-bold shadow-none", ROLE_META[emp.role]?.color || "bg-white/5 border border-white/10 text-white/60 font-semibold")}>
+                            <Badge variant="outline" className={cn("text-[9px] uppercase tracking-wider font-bold shadow-none", ROLE_META[emp.role]?.color || "bg-muted/40 border border-border text-foreground/60 font-semibold")}>
                               {emp.jobTitle || ROLE_META[emp.role]?.label || "Employee"}
                             </Badge>
                             {emp.department && (
-                              <span className="text-[10px] font-semibold text-white/60 flex items-center">
+                              <span className="text-[10px] font-semibold text-foreground/60 flex items-center">
                                 <Building2 className="w-3 h-3 mr-1 shrink-0 text-blue-400" /> {emp.department}
                               </span>
                             )}
@@ -374,7 +375,7 @@ export function CompanyOverview() {
                               <Coffee className="w-3 h-3 mr-1 fill-amber-400/20" /> On Break
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="bg-white/5 text-white/40 border-white/10 font-bold shadow-none">
+                            <Badge variant="outline" className="bg-muted/40 text-foreground/40 border-border font-bold shadow-none">
                               <Square className="w-3 h-3 mr-1 fill-white/10" /> Offline
                             </Badge>
                           )}
@@ -383,7 +384,7 @@ export function CompanyOverview() {
                         {/* Hours Worked */}
                         <td className="px-6 py-4 text-center">
                           <div className="flex flex-col items-center">
-                            <span className={cn("font-mono font-bold tabular-nums text-sm", liveWorkingSeconds > 0 ? "text-white" : "text-white/30")}>
+                            <span className={cn("font-mono font-bold tabular-nums text-sm", liveWorkingSeconds > 0 ? "text-foreground" : "text-foreground/30")}>
                               {formatElapsed(liveWorkingSeconds)}
                             </span>
                             {liveWorkingSeconds > 28800 && (
@@ -398,13 +399,13 @@ export function CompanyOverview() {
                         <td className="px-6 py-4">
                           {lastLog ? (
                             <div>
-                              <p className="font-bold text-xs text-white/80">{lastLog.label}</p>
-                              <p className="text-[10px] text-white/40 font-semibold mt-0.5 flex items-center gap-1">
+                              <p className="font-bold text-xs text-foreground/80">{lastLog.label}</p>
+                              <p className="text-[10px] text-foreground/40 font-semibold mt-0.5 flex items-center gap-1">
                                 <Clock className="w-3 h-3 shrink-0 text-blue-400" /> {lastLog.time}
                               </p>
                             </div>
                           ) : (
-                            <span className="text-[10px] text-white/20 font-medium italic">No activity</span>
+                            <span className="text-[10px] text-foreground/20 font-medium italic">No activity</span>
                           )}
                         </td>
 
@@ -418,27 +419,27 @@ export function CompanyOverview() {
                                   size="sm"
                                   disabled={!record}
                                   className={cn(
-                                    "h-8 px-3 text-white/60 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs flex items-center justify-center gap-1 cursor-pointer",
+                                    "h-8 px-3 text-foreground/60 hover:text-foreground hover:bg-muted/40 rounded-lg font-bold text-xs flex items-center justify-center gap-1 cursor-pointer",
                                     !record && "opacity-20 cursor-not-allowed"
                                   )}
                                 >
                                   <Eye className="w-3.5 h-3.5" /> View Logs
                                 </Button>
                               }/>
-                              <DialogContent className="max-w-md bg-[#0a1628] border border-white/[0.08] text-white backdrop-blur-xl rounded-2xl shadow-2xl">
+                              <DialogContent className="max-w-md bg-[#0a1628] border border-white/[0.08] text-foreground backdrop-blur-xl rounded-2xl shadow-2xl">
                                 <DialogHeader>
-                                  <DialogTitle className="text-xl font-bold flex items-center gap-2 text-white">
+                                  <DialogTitle className="text-xl font-bold flex items-center gap-2 text-foreground">
                                     <Clock className="w-5 h-5 text-blue-400 animate-pulse" />
                                     Shift Activity Logs
                                   </DialogTitle>
-                                  <DialogDescription className="text-white/40 text-xs mt-1">
-                                    Detailed chronological timeline for <span className="text-white font-bold">{emp.fullName}</span> on <span className="text-blue-400 font-bold">{formattedDateLabel(selectedDate)}</span>
+                                  <DialogDescription className="text-foreground/40 text-xs mt-1">
+                                    Detailed chronological timeline for <span className="text-foreground font-bold">{emp.fullName}</span> on <span className="text-blue-400 font-bold">{formattedDateLabel(selectedDate)}</span>
                                   </DialogDescription>
                                 </DialogHeader>
 
                                 <div className="mt-6 space-y-4 max-h-[350px] overflow-y-auto pr-1">
                                   {record?.logs && record.logs.length > 0 ? (
-                                    <div className="relative pl-6 border-l border-white/10 space-y-4 ml-3 py-1">
+                                    <div className="relative pl-6 border-l border-border space-y-4 ml-3 py-1">
                                       {record.logs.map((log: any, idx: number) => (
                                         <div key={idx} className="relative">
                                           {/* Dot node */}
@@ -450,8 +451,8 @@ export function CompanyOverview() {
                                           )} />
                                           <div className="flex justify-between items-center bg-white/[0.02] border border-white/[0.06] rounded-xl p-3 hover:bg-white/[0.04] transition-colors">
                                             <div>
-                                              <h4 className="font-bold text-sm text-white">{log.label}</h4>
-                                              <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider mt-0.5">Terminal Action</p>
+                                              <h4 className="font-bold text-sm text-foreground">{log.label}</h4>
+                                              <p className="text-[10px] text-foreground/40 font-bold uppercase tracking-wider mt-0.5">Terminal Action</p>
                                             </div>
                                             <span className="font-bold text-sm text-blue-400 font-mono tabular-nums">{log.time}</span>
                                           </div>
@@ -459,7 +460,7 @@ export function CompanyOverview() {
                                       ))}
                                     </div>
                                   ) : (
-                                    <div className="text-center py-8 text-white/40 italic">
+                                    <div className="text-center py-8 text-foreground/40 italic">
                                       No activity logs found for this date.
                                     </div>
                                   )}
@@ -495,27 +496,27 @@ export function CompanyOverview() {
 
       {/* Admin Force Clock Out Dialog */}
       <Dialog open={forceOutOpen} onOpenChange={setForceOutOpen}>
-        <DialogContent className="max-w-md bg-[#0a1628] border border-white/[0.08] text-white backdrop-blur-xl rounded-2xl shadow-2xl">
+        <DialogContent className="max-w-md bg-[#0a1628] border border-white/[0.08] text-foreground backdrop-blur-xl rounded-2xl shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center gap-2 text-rose-400">
               <ShieldAlert className="w-5 h-5 text-rose-400 animate-pulse" />
               Force Clock Out
             </DialogTitle>
-            <DialogDescription className="text-white/40 text-xs mt-1">
-              You are about to force clock out <span className="text-white font-bold">{forceOutEmployee?.fullName}</span>. This will immediately end their active working session for <span className="text-blue-400 font-bold">{formattedDateLabel(selectedDate)}</span>.
+            <DialogDescription className="text-foreground/40 text-xs mt-1">
+              You are about to force clock out <span className="text-foreground font-bold">{forceOutEmployee?.fullName}</span>. This will immediately end their active working session for <span className="text-blue-400 font-bold">{formattedDateLabel(selectedDate)}</span>.
             </DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleForceClockOutSubmit} className="space-y-4 mt-4">
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest pl-1">Reason for Force Clock Out</label>
+              <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest pl-1">Reason for Force Clock Out</label>
               <textarea
                 required
                 rows={3}
                 placeholder="State clearly why you are force clocking out this employee (e.g. Forgot to clock out, Left premises)..."
                 value={forceOutReason}
                 onChange={(e) => setForceOutReason(e.target.value)}
-                className="w-full bg-[#0c1322] border border-white/10 rounded-xl p-3 text-xs focus:border-blue-500/60 focus:ring-0 text-white placeholder:text-white/20 resize-none"
+                className="w-full bg-[#0c1322] border border-border rounded-xl p-3 text-xs focus:border-blue-500/60 focus:ring-0 text-foreground placeholder:text-foreground/20 resize-none"
               />
             </div>
 
@@ -528,14 +529,14 @@ export function CompanyOverview() {
                   setForceOutEmployee(null);
                   setForceOutReason("");
                 }}
-                className="h-10 px-4 text-xs font-semibold text-white/60 hover:text-white hover:bg-white/5 rounded-xl cursor-pointer"
+                className="h-10 px-4 text-xs font-semibold text-foreground/60 hover:text-foreground hover:bg-muted/40 rounded-xl cursor-pointer"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={submittingForceOut || !forceOutReason.trim()}
-                className="h-10 px-4 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white shadow-glow-rose rounded-xl border-0 cursor-pointer flex items-center justify-center gap-1.5"
+                className="h-10 px-4 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-foreground shadow-glow-rose rounded-xl border-0 cursor-pointer flex items-center justify-center gap-1.5"
               >
                 {submittingForceOut ? (
                   <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>

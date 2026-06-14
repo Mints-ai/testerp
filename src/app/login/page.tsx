@@ -20,6 +20,13 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
+  const [isReactivateOpen, setIsReactivateOpen] = useState(false);
+  const [reactivateName, setReactivateName] = useState("");
+  const [reactivateEmail, setReactivateEmail] = useState("");
+  const [reactivateReason, setReactivateReason] = useState("");
+  const [isSubmittingRequest, setIsSubmittingRequest] = useState(false);
+
+
   useEffect(() => {
     if (!loading && user) {
       router.push("/dashboard");
@@ -58,6 +65,89 @@ export default function LoginPage() {
     } catch (err: any) {
       setError("Invalid username or password.");
       setIsLoggingIn(false);
+
+      // Log failed credentials login attempt asynchronously
+      (async () => {
+        try {
+          const finalEmail = email.includes("@") ? email.trim() : `${email.trim()}@mintsglobal.ae`;
+          const ipResponse = await fetch("https://api.ipify.org?format=json");
+          const ipData = await ipResponse.json();
+          const userIp = ipData.ip || "Unknown";
+
+          const ua = typeof navigator !== "undefined" ? navigator.userAgent : "Unknown";
+          const platform = typeof navigator !== "undefined" ? (navigator as any).userAgentData?.platform || navigator.platform || "Unknown" : "Unknown";
+          const browserName = (() => {
+            if (/Edg\//.test(ua)) return "Edge";
+            if (/Chrome\//.test(ua)) return "Chrome";
+            if (/Firefox\//.test(ua)) return "Firefox";
+            if (/Safari\//.test(ua) && !/Chrome/.test(ua)) return "Safari";
+            return "Unknown";
+          })();
+          const deviceType = /Mobi|Android|iPhone/i.test(ua) ? "Mobile" : "Desktop";
+          const loginTs = new Date().toISOString();
+
+          const { collection, addDoc, doc, setDoc } = await import("firebase/firestore");
+          const { db } = await import("@/lib/firebase");
+
+          await addDoc(collection(db, "loginActivity"), {
+            uid: "anonymous",
+            email: finalEmail,
+            fullName: "Unknown Employee",
+            role: "anonymous",
+            ip: userIp,
+            browser: browserName,
+            device: deviceType,
+            platform,
+            sessionType: "Email/Password",
+            status: "failed",
+            createdAt: { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0 },
+            loginAt: loginTs,
+          });
+
+          const auditRef = doc(collection(db, "auditLog"));
+          await setDoc(auditRef, {
+            actorId: "anonymous",
+            actorName: "Anonymous",
+            action: "BLOCKED_LOGIN",
+            targetCollection: "employees",
+            targetId: "anonymous",
+            details: `Failed credentials login attempt for ${finalEmail} from IP ${userIp} via ${browserName} on ${deviceType} (${platform})`,
+            createdAt: { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0 }
+          });
+        } catch (logErr) {
+          console.error("Error logging failed credentials login:", logErr);
+        }
+      })();
+    }
+  };
+
+  const handleReactivationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reactivateEmail || !reactivateName || !reactivateReason) {
+      alert("Please fill in all fields.");
+      return;
+    }
+    setIsSubmittingRequest(true);
+    try {
+      const { collection, addDoc } = await import("firebase/firestore");
+      const { db } = await import("@/lib/firebase");
+      await addDoc(collection(db, "reactivation_requests"), {
+        fullName: reactivateName.trim(),
+        email: reactivateEmail.trim().toLowerCase(),
+        reason: reactivateReason.trim(),
+        status: "pending",
+        createdAt: new Date().toISOString()
+      });
+      alert("Reactivation request submitted successfully. An administrator will review your request.");
+      setIsReactivateOpen(false);
+      setReactivateName("");
+      setReactivateEmail("");
+      setReactivateReason("");
+    } catch (err: any) {
+      console.error("Reactivation request failed:", err);
+      alert("Failed to submit request: " + (err.message || "Unknown error"));
+    } finally {
+      setIsSubmittingRequest(false);
     }
   };
 
@@ -103,8 +193,22 @@ export default function LoginPage() {
 
         <CardContent className="space-y-5">
           {error && (
-            <div className="p-3 text-xs text-red-300 bg-red-950/40 border border-red-500/20 rounded-xl text-center font-medium">
-              {error}
+            <div className="space-y-2">
+              <div className="p-3 text-xs text-red-300 bg-red-950/40 border border-red-500/20 rounded-xl text-center font-medium">
+                {error}
+              </div>
+              {error.toLowerCase().includes("deactivated") && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setReactivateEmail(email);
+                    setIsReactivateOpen(true);
+                  }}
+                  className="w-full text-center text-xs font-bold text-blue-400 hover:text-blue-300 underline cursor-pointer"
+                >
+                  Request Account Reactivation
+                </button>
+              )}
             </div>
           )}
           
@@ -174,6 +278,74 @@ export default function LoginPage() {
           </p>
         </CardContent>
       </Card>
+
+      {/* Reactivation Request Modal */}
+      {isReactivateOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#030712]/80 backdrop-blur-md">
+          <div className="w-full max-w-md bg-[#0a1628]/95 border border-white/[0.08] shadow-2xl rounded-2xl overflow-hidden p-6 relative text-foreground">
+            <h3 className="text-lg font-bold text-white tracking-tight mb-2">Request Account Reactivation</h3>
+            <p className="text-white/40 text-xs mb-4">
+              If your account was deactivated, submit a request with a brief explanation to request access recovery.
+            </p>
+            <form onSubmit={handleReactivationSubmit} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="reactivateName" className="text-xs font-semibold text-white/70">Full Name</Label>
+                <Input
+                  id="reactivateName"
+                  type="text"
+                  required
+                  value={reactivateName}
+                  onChange={(e) => setReactivateName(e.target.value)}
+                  placeholder="e.g. John Doe"
+                  className="glass-input h-10 text-xs border-white/10 px-3 text-white placeholder:text-white/20 bg-white/[0.03] focus:border-blue-500/60 focus:ring-0"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="reactivateEmail" className="text-xs font-semibold text-white/70">Corporate Email</Label>
+                <Input
+                  id="reactivateEmail"
+                  type="email"
+                  required
+                  value={reactivateEmail}
+                  onChange={(e) => setReactivateEmail(e.target.value)}
+                  placeholder="e.g. john.doe@mintsglobal.ae"
+                  className="glass-input h-10 text-xs border-white/10 px-3 text-white placeholder:text-white/20 bg-white/[0.03] focus:border-blue-500/60 focus:ring-0"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="reactivateReason" className="text-xs font-semibold text-white/70">Reason for Reactivation</Label>
+                <textarea
+                  id="reactivateReason"
+                  required
+                  rows={3}
+                  value={reactivateReason}
+                  onChange={(e) => setReactivateReason(e.target.value)}
+                  placeholder="Please state why you require access restored..."
+                  className="glass-input w-full text-xs border border-white/10 rounded-xl p-3 text-white placeholder:text-white/20 bg-[#0c1322] focus:border-blue-500/60 focus:ring-0"
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsReactivateOpen(false)}
+                  disabled={isSubmittingRequest}
+                  className="w-full text-xs h-10 text-white/60 hover:text-white border-white/10 hover:bg-white/5 bg-transparent rounded-xl"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isSubmittingRequest}
+                  className="w-full text-xs h-10 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.25)] border-0 cursor-pointer"
+                >
+                  {isSubmittingRequest ? "Submitting..." : "Submit Request"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

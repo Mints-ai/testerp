@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Building2, Mail, Phone, Calendar, UserRound, ArrowLeft, Shield, Trash2, Plus, Send, FileText, Edit, Sparkles } from "lucide-react";
+import { Building2, Mail, Phone, Calendar, UserRound, ArrowLeft, Shield, Trash2, Plus, Send, FileText, Edit, Sparkles, ArrowRightLeft, History } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 
@@ -85,6 +85,8 @@ export default function EmployeeProfile() {
   const { uid } = useParams();
   const router = useRouter();
   const { user, role } = useAuth();
+  const adminEmailsEnv = process.env.NEXT_PUBLIC_ADMIN_EMAILS || "";
+  const adminEmails = adminEmailsEnv.split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
   const [employee, setEmployee] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -104,6 +106,18 @@ export default function EmployeeProfile() {
   const [loadingNotes, setLoadingNotes] = useState(true);
   const [newNote, setNewNote] = useState("");
   const [isSubmittingNote, setIsSubmittingNote] = useState(false);
+
+  // Transfer state
+  const [isTransferOpen, setIsTransferOpen] = useState(false);
+  const [isSubmittingTransfer, setIsSubmittingTransfer] = useState(false);
+  const [transferHistory, setTransferHistory] = useState<any[]>([]);
+  const [loadingTransfers, setLoadingTransfers] = useState(true);
+  const [transferForm, setTransferForm] = useState({
+    departments: [] as string[],
+    subRoles: [] as string[],
+    role: "",
+    reason: ""
+  });
 
   // Admin Security Controls State & Handlers
   const [isResettingPassword, setIsResettingPassword] = useState(false);
@@ -364,10 +378,18 @@ export default function EmployeeProfile() {
       setLoadingNotes(false);
     });
 
+    // Transfer history
+    const qTransfers = query(collection(db, `employees/${uid}/transfers`), orderBy("createdAt", "desc"));
+    const unsubTransfers = onSnapshot(qTransfers, (snap) => {
+      setTransferHistory(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      setLoadingTransfers(false);
+    }, () => setLoadingTransfers(false));
+
     return () => {
       unsubLeaves();
       unsubDocs();
       unsubNotes();
+      unsubTransfers();
     };
   }, [uid]);
 
@@ -409,20 +431,90 @@ export default function EmployeeProfile() {
     setIsSubmittingNote(false);
   };
 
+  const handleOpenTransferModal = () => {
+    if (!employee) return;
+    setTransferForm({
+      departments: employee.departments || (employee.department ? [employee.department] : []),
+      subRoles: employee.subRoles || [],
+      role: employee.role || "",
+      reason: ""
+    });
+    setIsTransferOpen(true);
+  };
+
+  const handleSubmitTransfer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!transferForm.reason.trim()) {
+      alert("A transfer reason is mandatory for audit compliance.");
+      return;
+    }
+    if (transferForm.departments.length === 0) {
+      alert("Select at least one department.");
+      return;
+    }
+    setIsSubmittingTransfer(true);
+    try {
+      const prevDepts = employee.departments || (employee.department ? [employee.department] : []);
+      const prevSubRoles = employee.subRoles || [];
+      const prevRole = employee.role || "";
+
+      // Atomic update the employee document
+      await updateDoc(doc(db, "employees", uid as string), {
+        departments: transferForm.departments,
+        subRoles: transferForm.subRoles,
+        role: transferForm.role,
+        updatedAt: new Date().toISOString()
+      });
+
+      // Create a transfer record
+      await addDoc(collection(db, `employees/${uid}/transfers`), {
+        fromDepartments: prevDepts,
+        toDepartments: transferForm.departments,
+        fromSubRoles: prevSubRoles,
+        toSubRoles: transferForm.subRoles,
+        fromRole: prevRole,
+        toRole: transferForm.role,
+        reason: transferForm.reason.trim(),
+        executedBy: user?.uid,
+        executedByName: user?.fullName || "Admin",
+        createdAt: serverTimestamp()
+      });
+
+      // Create audit log
+      await addDoc(collection(db, "auditLog"), {
+        actorId: user?.uid || "system",
+        actorName: user?.fullName || "Admin",
+        action: "EMPLOYEE_TRANSFER",
+        targetCollection: "employees",
+        targetId: uid as string,
+        details: `Transferred ${employee.fullName} from [${prevDepts.join(", ")}] to [${transferForm.departments.join(", ")}]. Role: ${prevRole} → ${transferForm.role}. Reason: ${transferForm.reason.trim()}`,
+        createdAt: serverTimestamp()
+      });
+
+      setIsTransferOpen(false);
+      alert("Employee transferred successfully!");
+    } catch (err) {
+      console.error("Transfer failed:", err);
+      alert("Failed to execute transfer.");
+    } finally {
+      setIsSubmittingTransfer(false);
+    }
+  };
+
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64 text-white">
-        <div className="animate-pulse text-xs font-bold uppercase tracking-widest text-white/30">Loading Profile Details...</div>
+      <div className="flex justify-center items-center h-64 text-foreground">
+        <div className="animate-pulse text-xs font-bold uppercase tracking-widest text-foreground/30">Loading Profile Details...</div>
       </div>
     );
   }
 
   if (!employee) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 text-center text-white">
-        <UserRound className="h-10 w-10 text-white/20 mb-3" />
-        <h2 className="text-base font-bold uppercase tracking-wider text-white/70">Employee Not Found</h2>
-        <p className="text-xs text-white/30 mt-1 max-w-xs">The requested profile does not exist or you don't have access.</p>
+      <div className="flex flex-col items-center justify-center h-64 text-center text-foreground">
+        <UserRound className="h-10 w-10 text-foreground/20 mb-3" />
+        <h2 className="text-base font-bold uppercase tracking-wider text-foreground/70">Employee Not Found</h2>
+        <p className="text-xs text-foreground/30 mt-1 max-w-xs">The requested profile does not exist or you don't have access.</p>
         <button onClick={() => router.push('/dashboard/hr')} className="mt-4 btn-ghost h-9 py-0 px-4 text-xs font-bold flex items-center gap-1.5 cursor-pointer">
           <ArrowLeft className="h-3.5 w-3.5" /> Back to HR Hub
         </button>
@@ -456,17 +548,26 @@ export default function EmployeeProfile() {
   };
 
   return (
-    <div className="space-y-6 max-w-5xl pb-12 text-white">
+    <div className="space-y-6 max-w-5xl pb-12 text-foreground">
       {/* Top Actions */}
       <div className="flex justify-between items-center">
         <button 
           onClick={() => router.push('/dashboard/hr')} 
-          className="btn-ghost h-8 py-0 px-3 text-xs font-bold flex items-center gap-1.5 cursor-pointer text-white/50 hover:text-white"
+          className="btn-ghost h-8 py-0 px-3 text-xs font-bold flex items-center gap-1.5 cursor-pointer text-foreground/50 hover:text-foreground"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back to HR Hub
         </button>
 
         <div className="flex gap-2">
+          {canAccess(role, "MANAGE_USERS") && !isSelf && (
+            <button
+              onClick={handleOpenTransferModal}
+              className="btn-ghost bg-violet-500/10 text-violet-400 hover:bg-violet-500/20 h-8 py-0 px-3 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors border border-violet-500/20"
+            >
+              <ArrowRightLeft className="h-3.5 w-3.5" /> Transfer / Promote
+            </button>
+          )}
+
           {(canAccess(role, "MANAGE_USERS") || isSelf) && (
             <button 
               onClick={handleOpenEditModal} 
@@ -504,9 +605,9 @@ export default function EmployeeProfile() {
             
             <div className="flex-1 space-y-1 mb-1">
               <div className="flex items-center gap-3">
-                <h1 className="text-xl font-extrabold tracking-tight text-white flex items-center gap-2">
+                <h1 className="text-xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
                   {employee.fullName}
-                  {employee.email?.toLowerCase().trim() === "binuarjunanand@gmail.com" && (
+                  {employee.email && adminEmails.includes(employee.email.toLowerCase().trim()) && (
                     <span title="Super Admin Override Locked">
                       <Shield className="h-4 w-4 text-blue-500 fill-blue-500/15" />
                     </span>
@@ -516,15 +617,15 @@ export default function EmployeeProfile() {
                   <Badge variant="outline" className="bg-rose-500/15 text-rose-300 border-rose-500/20 font-bold text-[9px] uppercase tracking-wider">Inactive</Badge>
                 )}
               </div>
-              <p className="text-xs text-white/50 font-medium">{employee.jobTitle || "Team Member"}</p>
+              <p className="text-xs text-foreground/50 font-medium">{employee.jobTitle || "Team Member"}</p>
               
               <div className="flex flex-wrap items-center gap-2.5 pt-3">
                 <Badge className="bg-blue-500/10 border border-blue-500/20 text-blue-300 font-bold text-[9px] shadow-none uppercase tracking-wider py-0.5 whitespace-nowrap shrink-0">
                   💼 Privilege: {roleMeta.label}
                 </Badge>
                 {(employee.departments || (employee.department ? [employee.department] : [])).map((dept: string, idx: number) => (
-                  <Badge key={idx} variant="outline" className="bg-white/[0.02] border-white/10 text-white/50 text-[9px] font-bold uppercase tracking-wider py-0.5">
-                    <Building2 className="w-3 h-3 mr-1 text-white/30" />
+                  <Badge key={idx} variant="outline" className="bg-white/[0.02] border-border text-foreground/50 text-[9px] font-bold uppercase tracking-wider py-0.5">
+                    <Building2 className="w-3 h-3 mr-1 text-foreground/30" />
                     {dept}
                   </Badge>
                 ))}
@@ -560,7 +661,7 @@ export default function EmployeeProfile() {
           <div className="grid md:grid-cols-2 gap-6">
             <Card className="glass-card border-white/[0.08] bg-white/[0.02] overflow-hidden">
               <CardHeader className="p-5 border-b border-white/[0.06]">
-                <CardTitle className="text-xs font-bold text-white uppercase tracking-wider">Contact Information</CardTitle>
+                <CardTitle className="text-xs font-bold text-foreground uppercase tracking-wider">Contact Information</CardTitle>
               </CardHeader>
               <CardContent className="p-5 space-y-4">
                 <div className="flex items-center gap-3">
@@ -568,8 +669,8 @@ export default function EmployeeProfile() {
                     <Mail className="h-4 w-4" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold text-white/30 uppercase tracking-wider">Email Address</p>
-                    <p className="text-xs font-semibold text-white/95 mt-0.5">{employee.email}</p>
+                    <p className="text-[10px] font-bold text-foreground/30 uppercase tracking-wider">Email Address</p>
+                    <p className="text-xs font-semibold text-foreground/95 mt-0.5">{employee.email}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -577,8 +678,8 @@ export default function EmployeeProfile() {
                     <Phone className="h-4 w-4" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold text-white/30 uppercase tracking-wider">Phone number</p>
-                    <p className="text-xs font-semibold text-white/95 mt-0.5 font-mono">{employee.phone || "Not registered"}</p>
+                    <p className="text-[10px] font-bold text-foreground/30 uppercase tracking-wider">Phone number</p>
+                    <p className="text-xs font-semibold text-foreground/95 mt-0.5 font-mono">{employee.phone || "Not registered"}</p>
                   </div>
                 </div>
               </CardContent>
@@ -586,7 +687,7 @@ export default function EmployeeProfile() {
 
             <Card className="glass-card border-white/[0.08] bg-white/[0.02] overflow-hidden">
               <CardHeader className="p-5 border-b border-white/[0.06]">
-                <CardTitle className="text-xs font-bold text-white uppercase tracking-wider">Employment particulars</CardTitle>
+                <CardTitle className="text-xs font-bold text-foreground uppercase tracking-wider">Employment particulars</CardTitle>
               </CardHeader>
               <CardContent className="p-5 space-y-4">
                 <div className="flex items-center gap-3">
@@ -594,8 +695,8 @@ export default function EmployeeProfile() {
                     <Calendar className="h-4 w-4" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold text-white/30 uppercase tracking-wider">Onboarding Date</p>
-                    <p className="text-xs font-semibold text-white/95 mt-0.5">
+                    <p className="text-[10px] font-bold text-foreground/30 uppercase tracking-wider">Onboarding Date</p>
+                    <p className="text-xs font-semibold text-foreground/95 mt-0.5">
                       {employee.dateJoined ? new Date(employee.dateJoined).toLocaleDateString(undefined, { dateStyle: 'medium' }) : "TBD"}
                     </p>
                   </div>
@@ -606,7 +707,7 @@ export default function EmployeeProfile() {
                       <Calendar className="h-4 w-4" />
                     </div>
                     <div>
-                      <p className="text-[10px] font-bold text-white/30 uppercase tracking-wider">Internship Expiration</p>
+                      <p className="text-[10px] font-bold text-foreground/30 uppercase tracking-wider">Internship Expiration</p>
                       <p className="text-xs font-bold text-amber-300 mt-0.5">
                         {employee.internEndDate ? new Date(employee.internEndDate).toLocaleDateString(undefined, { dateStyle: 'medium' }) : "TBD"}
                       </p>
@@ -622,14 +723,14 @@ export default function EmployeeProfile() {
                 <CardHeader className="p-5 border-b border-white/[0.06] bg-blue-950/20">
                   <div className="flex items-center gap-2">
                     <Shield className="h-4 w-4 text-blue-400" />
-                    <CardTitle className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1">Admin Security & Lifecycle Panel</CardTitle>
+                    <CardTitle className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-1">Admin Security & Lifecycle Panel</CardTitle>
                   </div>
                 </CardHeader>
                 <CardContent className="p-5 space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
                     <div>
-                      <p className="text-xs font-bold text-white">System Access Status</p>
-                      <p className="text-[10px] text-white/40 uppercase tracking-wider mt-1">Current state in Firebase Auth & Firestore</p>
+                      <p className="text-xs font-bold text-foreground">System Access Status</p>
+                      <p className="text-[10px] text-foreground/40 uppercase tracking-wider mt-1">Current state in Firebase Auth & Firestore</p>
                     </div>
                     <div className="flex items-center gap-3">
                       <Badge className={cn("font-bold text-[10px] uppercase tracking-wider py-1 px-3 shadow-none border", 
@@ -646,7 +747,7 @@ export default function EmployeeProfile() {
                         className={cn("h-8 text-xs font-bold px-3 rounded-lg shrink-0", 
                           employee.isActive 
                             ? "bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30" 
-                            : "bg-emerald-600 hover:bg-emerald-500 text-white shadow-glow-emerald"
+                            : "bg-emerald-600 hover:bg-emerald-500 text-foreground shadow-glow-emerald"
                         )}
                       >
                         {employee.isActive ? "Deactivate Account" : "Reactivate Account"}
@@ -656,18 +757,64 @@ export default function EmployeeProfile() {
 
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-xl bg-white/[0.02] border border-white/[0.06]">
                     <div>
-                      <p className="text-xs font-bold text-white">Account Password Control</p>
-                      <p className="text-[10px] text-white/40 uppercase tracking-wider mt-1">Dispatches secure email to set a new password</p>
+                      <p className="text-xs font-bold text-foreground">Account Password Control</p>
+                      <p className="text-[10px] text-foreground/40 uppercase tracking-wider mt-1">Dispatches secure email to set a new password</p>
                     </div>
                     <Button
                       type="button"
                       onClick={handlePasswordReset}
                       disabled={isResettingPassword || !employee.email}
-                      className="bg-blue-600 hover:bg-blue-500 text-white h-8 text-xs font-bold px-4 rounded-lg shrink-0 shadow-glow-blue flex items-center gap-1.5"
+                      className="bg-blue-600 hover:bg-blue-500 text-foreground h-8 text-xs font-bold px-4 rounded-lg shrink-0 shadow-glow-blue flex items-center gap-1.5"
                     >
                       <Plus className="h-3.5 w-3.5 rotate-45" /> Dispatch Password Reset
                     </Button>
                   </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Transfer History Section */}
+            {transferHistory.length > 0 && (
+              <Card className="glass-card border-white/[0.08] bg-white/[0.02] overflow-hidden md:col-span-2">
+                <CardHeader className="p-5 border-b border-white/[0.06]">
+                  <div className="flex items-center gap-2">
+                    <History className="h-4 w-4 text-violet-400" />
+                    <CardTitle className="text-xs font-bold text-foreground uppercase tracking-wider">Transfer & Promotion History</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0 divide-y divide-white/[0.04]">
+                  {transferHistory.map((t: any) => (
+                    <div key={t.id} className="p-4 hover:bg-white/[0.01] transition-colors">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 rounded-lg bg-violet-500/10 border border-violet-500/20 text-violet-400 shrink-0 mt-0.5">
+                          <ArrowRightLeft className="h-3.5 w-3.5" />
+                        </div>
+                        <div className="flex-1 min-w-0 space-y-1.5">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Badge variant="outline" className="bg-rose-500/10 text-rose-300 border-rose-500/20 text-[9px] font-bold uppercase shadow-none">
+                              {(t.fromDepartments || []).join(", ") || "N/A"}
+                            </Badge>
+                            <span className="text-foreground/25 text-xs">→</span>
+                            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-300 border-emerald-500/20 text-[9px] font-bold uppercase shadow-none">
+                              {(t.toDepartments || []).join(", ") || "N/A"}
+                            </Badge>
+                            {t.fromRole !== t.toRole && (
+                              <span className="text-[10px] text-foreground/40 font-mono">
+                                Role: {t.fromRole} → <span className="text-blue-300">{t.toRole}</span>
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-foreground/50 leading-relaxed">
+                            <strong className="text-foreground/60">Reason:</strong> {t.reason}
+                          </p>
+                          <div className="flex items-center gap-3 text-[10px] text-foreground/25 font-mono">
+                            <span>By: {t.executedByName || "Admin"}</span>
+                            <span>{t.createdAt ? new Date(t.createdAt.seconds ? t.createdAt.seconds * 1000 : t.createdAt).toLocaleDateString() : "Just now"}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </CardContent>
               </Card>
             )}
@@ -678,30 +825,30 @@ export default function EmployeeProfile() {
           <Card className="glass-card border-white/[0.08] bg-white/[0.02] overflow-hidden">
             <CardHeader className="p-5 border-b border-white/[0.06] flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="text-xs font-bold text-white uppercase tracking-wider">Onboard Documents Ledger</CardTitle>
-                <CardDescription className="text-xs text-white/40 mt-1">Passport copies, Global Visas, National ID, and Corporate Contracts.</CardDescription>
+                <CardTitle className="text-xs font-bold text-foreground uppercase tracking-wider">Onboard Documents Ledger</CardTitle>
+                <CardDescription className="text-xs text-foreground/40 mt-1">Passport copies, Global Visas, National ID, and Corporate Contracts.</CardDescription>
               </div>
               <Dialog open={isAddDocOpen} onOpenChange={setIsAddDocOpen}>
-                <DialogTrigger render={<Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-white h-8 text-xs font-bold px-3" />}>
+                <DialogTrigger render={<Button size="sm" className="bg-blue-600 hover:bg-blue-500 text-foreground h-8 text-xs font-bold px-3" />}>
                   <Plus className="h-3 w-3 mr-1" /> Add Record
                 </DialogTrigger>
-                <DialogContent className="bg-[#0f172a] border-white/10 text-white">
+                <DialogContent className="bg-[#0f172a] border-border text-foreground">
                   <DialogHeader>
                     <DialogTitle>Log New Document</DialogTitle>
-                    <DialogDescription className="text-white/40">Record the receipt of a new employment document.</DialogDescription>
+                    <DialogDescription className="text-foreground/40">Record the receipt of a new employment document.</DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleAddDocument} className="space-y-4 pt-4">
                     <div className="space-y-2">
-                      <label className="text-xs font-bold uppercase text-white/60">Document Name</label>
-                      <Input value={newDoc.name} onChange={e => setNewDoc({...newDoc, name: e.target.value})} placeholder="e.g. Passport Scan 2026" className="bg-white/5 border-white/10 text-white" required />
+                      <label className="text-xs font-bold uppercase text-foreground/60">Document Name</label>
+                      <Input value={newDoc.name} onChange={e => setNewDoc({...newDoc, name: e.target.value})} placeholder="e.g. Passport Scan 2026" className="bg-muted/40 border-border text-foreground" required />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-xs font-bold uppercase text-white/60">Document Type</label>
+                      <label className="text-xs font-bold uppercase text-foreground/60">Document Type</label>
                       <Select value={newDoc.type} onValueChange={v => setNewDoc({...newDoc, type: v || ""})}>
-                        <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                        <SelectTrigger className="bg-muted/40 border-border text-foreground">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="bg-[#1e293b] border-white/10 text-white">
+                        <SelectContent className="bg-[#1e293b] border-border text-foreground">
                           <SelectItem value="Passport">Passport</SelectItem>
                           <SelectItem value="Visa">Visa</SelectItem>
                           <SelectItem value="National ID">National ID</SelectItem>
@@ -720,19 +867,19 @@ export default function EmployeeProfile() {
               {loadingDocs ? (
                  <div className="flex justify-center"><div className="animate-pulse w-4 h-4 rounded-full bg-blue-500" /></div>
               ) : documents.length === 0 ? (
-                <div className="text-center py-12 border-2 border-dashed border-white/10 rounded-2xl bg-white/[0.01]">
-                  <p className="text-xs font-bold uppercase tracking-wider text-white/20">No documents recorded yet.</p>
+                <div className="text-center py-12 border-2 border-dashed border-border rounded-2xl bg-white/[0.01]">
+                  <p className="text-xs font-bold uppercase tracking-wider text-foreground/20">No documents recorded yet.</p>
                 </div>
               ) : (
                 <div className="grid gap-3 md:grid-cols-2">
                   {documents.map(doc => (
-                    <div key={doc.id} className="p-4 bg-white/[0.02] border border-white/10 rounded-xl flex items-center gap-4">
+                    <div key={doc.id} className="p-4 bg-white/[0.02] border border-border rounded-xl flex items-center gap-4">
                       <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 shrink-0">
                         <FileText className="h-5 w-5" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-white truncate">{doc.name}</p>
-                        <p className="text-xs text-white/40 mt-0.5">{doc.type} • Added {doc.createdAt ? new Date(doc.createdAt.toMillis()).toLocaleDateString() : 'Just now'}</p>
+                        <p className="text-sm font-bold text-foreground truncate">{doc.name}</p>
+                        <p className="text-xs text-foreground/40 mt-0.5">{doc.type} • Added {doc.createdAt ? new Date(doc.createdAt.toMillis()).toLocaleDateString() : 'Just now'}</p>
                       </div>
                     </div>
                   ))}
@@ -745,21 +892,21 @@ export default function EmployeeProfile() {
         <TabsContent value="projects" className="mt-4">
           <Card className="glass-card border-white/[0.08] bg-white/[0.02] overflow-hidden">
             <CardHeader className="p-5 border-b border-white/[0.06]">
-              <CardTitle className="text-xs font-bold text-white uppercase tracking-wider">Assigned Strategic Projects</CardTitle>
+              <CardTitle className="text-xs font-bold text-foreground uppercase tracking-wider">Assigned Strategic Projects</CardTitle>
             </CardHeader>
             <CardContent className="p-6">
               {loadingProjects ? (
                 <div className="flex justify-center"><div className="animate-pulse w-4 h-4 rounded-full bg-blue-500" /></div>
               ) : projects.length === 0 ? (
-                <p className="text-xs text-white/35 text-center font-bold uppercase tracking-wider">No active project scopes registered under this staff profile.</p>
+                <p className="text-xs text-foreground/35 text-center font-bold uppercase tracking-wider">No active project scopes registered under this staff profile.</p>
               ) : (
                 <div className="grid gap-4 md:grid-cols-2">
                   {projects.map((proj: any) => (
-                    <div key={proj.id} className="p-4 bg-white/[0.02] border border-white/10 rounded-xl cursor-pointer hover:bg-white/[0.05] transition-colors" onClick={() => router.push(`/dashboard/projects/${proj.id}`)}>
-                      <h4 className="text-sm font-bold text-white mb-1">{proj.name}</h4>
+                    <div key={proj.id} className="p-4 bg-white/[0.02] border border-border rounded-xl cursor-pointer hover:bg-white/[0.05] transition-colors" onClick={() => router.push(`/dashboard/projects/${proj.id}`)}>
+                      <h4 className="text-sm font-bold text-foreground mb-1">{proj.name}</h4>
                       <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="bg-white/5 border-white/10 text-white/60 text-[9px] uppercase tracking-wider">{proj.status || "active"}</Badge>
-                        <span className="text-[10px] text-white/40 font-mono">{proj.serviceType}</span>
+                        <Badge variant="outline" className="bg-muted/40 border-border text-foreground/60 text-[9px] uppercase tracking-wider">{proj.status || "active"}</Badge>
+                        <span className="text-[10px] text-foreground/40 font-mono">{proj.serviceType}</span>
                       </div>
                     </div>
                   ))}
@@ -772,19 +919,19 @@ export default function EmployeeProfile() {
         <TabsContent value="leaves" className="mt-4">
           <Card className="glass-card border-white/[0.08] bg-white/[0.02] overflow-hidden">
             <CardHeader className="p-5 border-b border-white/[0.06]">
-              <CardTitle className="text-xs font-bold text-white uppercase tracking-wider">Staff Leave logs</CardTitle>
+              <CardTitle className="text-xs font-bold text-foreground uppercase tracking-wider">Staff Leave logs</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               {loadingLeaves ? (
                 <div className="flex justify-center p-6"><div className="animate-pulse w-4 h-4 rounded-full bg-blue-500" /></div>
               ) : employeeLeaves.length === 0 ? (
                 <div className="p-6">
-                  <p className="text-xs text-white/35 text-center font-bold uppercase tracking-wider">No leave balance or history entries recorded.</p>
+                  <p className="text-xs text-foreground/35 text-center font-bold uppercase tracking-wider">No leave balance or history entries recorded.</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left text-white/80">
-                    <thead className="bg-white/[0.02] border-b border-white/[0.06] text-[10px] uppercase tracking-wider text-white/50">
+                  <table className="w-full text-sm text-left text-foreground/80">
+                    <thead className="bg-white/[0.02] border-b border-white/[0.06] text-[10px] uppercase tracking-wider text-foreground/50">
                       <tr>
                         <th className="px-5 py-3 font-bold">Leave Type</th>
                         <th className="px-5 py-3 font-bold">Dates</th>
@@ -795,9 +942,9 @@ export default function EmployeeProfile() {
                     <tbody className="divide-y divide-white/[0.06]">
                       {employeeLeaves.map((leave) => (
                         <tr key={leave.id} className="hover:bg-white/[0.02] transition-colors">
-                          <td className="px-5 py-3 font-medium text-white">{leave.leaveType}</td>
-                          <td className="px-5 py-3 text-white/50">
-                            {leave.startDate} <span className="mx-1 text-white/20">to</span> {leave.endDate}
+                          <td className="px-5 py-3 font-medium text-foreground">{leave.leaveType}</td>
+                          <td className="px-5 py-3 text-foreground/50">
+                            {leave.startDate} <span className="mx-1 text-foreground/20">to</span> {leave.endDate}
                           </td>
                           <td className="px-5 py-3">{leave.daysCount}</td>
                           <td className="px-5 py-3">
@@ -823,7 +970,7 @@ export default function EmployeeProfile() {
           <TabsContent value="notes" className="mt-4">
             <Card className="glass-card border-white/[0.08] bg-white/[0.02] overflow-hidden">
               <CardHeader className="p-5 border-b border-white/[0.06]">
-                <CardTitle className="text-xs font-bold text-white uppercase tracking-wider">Private Executive Notes</CardTitle>
+                <CardTitle className="text-xs font-bold text-foreground uppercase tracking-wider">Private Executive Notes</CardTitle>
               </CardHeader>
               <CardContent className="p-6 space-y-6">
                 <form onSubmit={handleAddNote} className="flex gap-3">
@@ -831,9 +978,9 @@ export default function EmployeeProfile() {
                     placeholder="Add a performance observation..." 
                     value={newNote} 
                     onChange={e => setNewNote(e.target.value)} 
-                    className="bg-white/5 border-white/10 text-white" 
+                    className="bg-muted/40 border-border text-foreground" 
                   />
-                  <Button type="submit" disabled={isSubmittingNote || !newNote.trim()} className="bg-blue-600 hover:bg-blue-500 text-white px-6 shrink-0">
+                  <Button type="submit" disabled={isSubmittingNote || !newNote.trim()} className="bg-blue-600 hover:bg-blue-500 text-foreground px-6 shrink-0">
                     <Send className="h-4 w-4" />
                   </Button>
                 </form>
@@ -842,12 +989,12 @@ export default function EmployeeProfile() {
                   {loadingNotes ? (
                     <div className="flex justify-center py-4"><div className="animate-pulse w-4 h-4 rounded-full bg-blue-500" /></div>
                   ) : notes.length === 0 ? (
-                    <p className="text-xs text-white/35 text-center font-bold uppercase tracking-wider py-8">No private observations or performance assessments entered.</p>
+                    <p className="text-xs text-foreground/35 text-center font-bold uppercase tracking-wider py-8">No private observations or performance assessments entered.</p>
                   ) : (
                     notes.map(note => (
-                      <div key={note.id} className="p-4 bg-white/[0.02] border border-white/10 rounded-xl">
-                        <p className="text-sm text-white/90 leading-relaxed whitespace-pre-wrap">{note.text}</p>
-                        <div className="mt-3 flex items-center justify-between text-[10px] text-white/40 font-mono uppercase tracking-wider border-t border-white/5 pt-3">
+                      <div key={note.id} className="p-4 bg-white/[0.02] border border-border rounded-xl">
+                        <p className="text-sm text-foreground/90 leading-relaxed whitespace-pre-wrap">{note.text}</p>
+                        <div className="mt-3 flex items-center justify-between text-[10px] text-foreground/40 font-mono uppercase tracking-wider border-t border-border/30 pt-3">
                           <span>{note.authorName}</span>
                           <span>{note.createdAt ? new Date(note.createdAt.toMillis()).toLocaleString() : 'Just now'}</span>
                         </div>
@@ -864,7 +1011,7 @@ export default function EmployeeProfile() {
           <div className="grid md:grid-cols-3 gap-6">
             {/* Circular Progress Gauge */}
             <Card className="glass-card border-white/[0.08] bg-white/[0.02] p-6 flex flex-col items-center justify-center text-center">
-              <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-4">Onboarding Completion</h4>
+              <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-4">Onboarding Completion</h4>
               
               <div className="relative w-36 h-36 flex items-center justify-center">
                 <svg className="w-full h-full transform -rotate-90">
@@ -891,16 +1038,16 @@ export default function EmployeeProfile() {
                   />
                 </svg>
                 <div className="absolute flex flex-col items-center">
-                  <span className="text-2xl font-extrabold text-white font-mono tracking-tight">
+                  <span className="text-2xl font-extrabold text-foreground font-mono tracking-tight">
                     {Math.round((Object.values(employee?.onboardingChecklist || {
                       nda: "pending", visa: "pending", emiratesId: "pending", digitalSetup: "pending", hardware: "pending", training: "pending"
                     }).filter(s => s === "completed").length / 6) * 100)}%
                   </span>
-                  <span className="text-[9px] font-bold text-white/40 uppercase tracking-wider mt-0.5">Verified</span>
+                  <span className="text-[9px] font-bold text-foreground/40 uppercase tracking-wider mt-0.5">Verified</span>
                 </div>
               </div>
 
-              <p className="text-[10px] text-white/50 font-bold uppercase tracking-wider mt-4">
+              <p className="text-[10px] text-foreground/50 font-bold uppercase tracking-wider mt-4">
                 {Object.values(employee?.onboardingChecklist || {
                   nda: "pending", visa: "pending", emiratesId: "pending", digitalSetup: "pending", hardware: "pending", training: "pending"
                 }).filter(s => s === "completed").length} of 6 Milestones Complete
@@ -910,8 +1057,8 @@ export default function EmployeeProfile() {
             {/* Checklist List */}
             <Card className="glass-card border-white/[0.08] bg-white/[0.02] md:col-span-2 overflow-hidden">
               <CardHeader className="p-5 border-b border-white/[0.06]">
-                <CardTitle className="text-xs font-bold text-white uppercase tracking-wider">Milestone Progress Ledger</CardTitle>
-                <CardDescription className="text-[10px] text-white/40">Verify residency documentation, digital accounts, and hardware allocation tracks.</CardDescription>
+                <CardTitle className="text-xs font-bold text-foreground uppercase tracking-wider">Milestone Progress Ledger</CardTitle>
+                <CardDescription className="text-[10px] text-foreground/40">Verify residency documentation, digital accounts, and hardware allocation tracks.</CardDescription>
               </CardHeader>
               <CardContent className="p-0 divide-y divide-white/[0.04]">
                 {Object.entries(employee?.onboardingChecklist || {
@@ -934,8 +1081,8 @@ export default function EmployeeProfile() {
                   return (
                     <div key={taskKey} className="p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 hover:bg-white/[0.01] transition-colors">
                       <div className="space-y-1">
-                        <span className="text-xs font-bold text-white block">{label}</span>
-                        <span className="text-[9px] font-mono text-white/30 uppercase tracking-widest block">{taskKey}</span>
+                        <span className="text-xs font-bold text-foreground block">{label}</span>
+                        <span className="text-[9px] font-mono text-foreground/30 uppercase tracking-widest block">{taskKey}</span>
                       </div>
                       
                       <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
@@ -977,10 +1124,10 @@ export default function EmployeeProfile() {
 
       {/* Edit Profile Modal */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="bg-[#0f172a] border-white/10 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-[#0f172a] border-border text-foreground max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold uppercase tracking-wider text-white">Edit Employee Profile</DialogTitle>
-            <DialogDescription className="text-white/40 text-xs">Update the employee's system particulars, department assignments, and job details.</DialogDescription>
+            <DialogTitle className="text-base font-bold uppercase tracking-wider text-foreground">Edit Employee Profile</DialogTitle>
+            <DialogDescription className="text-foreground/40 text-xs">Update the employee's system particulars, department assignments, and job details.</DialogDescription>
           </DialogHeader>
           
           {editError && (
@@ -992,10 +1139,10 @@ export default function EmployeeProfile() {
           <form onSubmit={handleUpdateEmployee} className="space-y-5 pt-2">
             {/* Profile Photo Upload / Curated presets */}
             <div className="p-4 bg-white/[0.02] rounded-2xl border border-white/[0.06] space-y-4">
-              <label className="text-xs font-bold text-white/60 uppercase tracking-wider block">Profile Avatar</label>
+              <label className="text-xs font-bold text-foreground/60 uppercase tracking-wider block">Profile Avatar</label>
               
               <div className="flex flex-col sm:flex-row gap-5 items-center">
-                <Avatar className="h-16 w-16 border-2 border-white/10 bg-[#121813] rounded-xl shrink-0">
+                <Avatar className="h-16 w-16 border-2 border-border bg-[#121813] rounded-xl shrink-0">
                   <AvatarImage src={editForm.profilePhotoURL} />
                   <AvatarFallback className="bg-blue-500/10 text-blue-300 text-lg font-bold">
                     {getInitials(editForm.fullName)}
@@ -1016,7 +1163,7 @@ export default function EmployeeProfile() {
                       onClick={() => document.getElementById('profile-photo-upload')?.click()}
                       disabled={uploadingAvatar}
                       variant="outline"
-                      className="text-xs h-9 border-white/15 bg-white/5 text-white hover:bg-white/10"
+                      className="text-xs h-9 border-white/15 bg-muted/40 text-foreground hover:bg-muted/80"
                     >
                       {uploadingAvatar ? "Uploading..." : "Upload Photo"}
                     </Button>
@@ -1031,13 +1178,13 @@ export default function EmployeeProfile() {
                       </Button>
                     )}
                   </div>
-                  <p className="text-[10px] text-white/40">PNG, JPG or WEBP. Max 2MB.</p>
+                  <p className="text-[10px] text-foreground/40">PNG, JPG or WEBP. Max 2MB.</p>
                 </div>
               </div>
 
               {/* Presets Row */}
               <div className="space-y-2">
-                <p className="text-[10px] text-white/50 uppercase tracking-wider font-bold">Or select a premium preset avatar:</p>
+                <p className="text-[10px] text-foreground/50 uppercase tracking-wider font-bold">Or select a premium preset avatar:</p>
                 <div className="flex flex-wrap gap-2.5">
                   {PRESET_AVATARS.map((avatar, idx) => (
                     <button
@@ -1046,7 +1193,7 @@ export default function EmployeeProfile() {
                       onClick={() => setEditForm({ ...editForm, profilePhotoURL: avatar })}
                       className={cn(
                         "h-10 w-10 rounded-lg overflow-hidden border-2 transition-all p-0.5 bg-[#0a0f18]",
-                        editForm.profilePhotoURL === avatar ? "border-blue-500 scale-105 shadow-glow-blue" : "border-white/10 hover:border-white/30"
+                        editForm.profilePhotoURL === avatar ? "border-blue-500 scale-105 shadow-glow-blue" : "border-border hover:border-white/30"
                       )}
                     >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -1059,46 +1206,46 @@ export default function EmployeeProfile() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-white/60 uppercase tracking-wider">Full Name</label>
+                <label className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Full Name</label>
                 <Input 
                   value={editForm.fullName} 
                   onChange={e => setEditForm({...editForm, fullName: e.target.value})} 
                   placeholder="e.g. John Doe" 
-                  className="glass-input h-10 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full" 
+                  className="glass-input h-10 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full" 
                   required 
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-white/60 uppercase tracking-wider">Phone Number</label>
+                <label className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Phone Number</label>
                 <Input 
                   value={editForm.phone} 
                   onChange={e => setEditForm({...editForm, phone: e.target.value})} 
                   placeholder="e.g. +971 50 123 4567" 
-                  className="glass-input h-10 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono" 
+                  className="glass-input h-10 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono" 
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-white/60 uppercase tracking-wider">Job Title</label>
+                <label className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Job Title</label>
                 <Input 
                   value={editForm.jobTitle} 
                   onChange={e => setEditForm({...editForm, jobTitle: e.target.value})} 
                   placeholder="e.g. Senior Software Architect" 
-                  className="glass-input h-10 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full disabled:opacity-50 disabled:cursor-not-allowed" 
+                  className="glass-input h-10 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full disabled:opacity-50 disabled:cursor-not-allowed" 
                   required 
                   disabled={!canAccess(role, "MANAGE_USERS")}
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-white/60 uppercase tracking-wider">System Role</label>
+                <label className="text-xs font-bold text-foreground/60 uppercase tracking-wider">System Role</label>
                 <select 
                   value={editForm.role} 
                   onChange={e => setEditForm({...editForm, role: e.target.value})} 
-                  className="w-full h-10 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full h-10 border border-border rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                   required
                   disabled={!canAccess(role, "MANAGE_USERS")}
                 >
@@ -1112,8 +1259,8 @@ export default function EmployeeProfile() {
 
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-bold text-white/60 uppercase tracking-wider">Departments</label>
-                <p className="text-[9px] text-white/30 uppercase tracking-wider">Select one or more departments for this employee.</p>
+                <label className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Departments</label>
+                <p className="text-[9px] text-foreground/30 uppercase tracking-wider">Select one or more departments for this employee.</p>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {DEPARTMENTS.map((dept) => {
@@ -1122,7 +1269,7 @@ export default function EmployeeProfile() {
                   return (
                     <div
                       key={dept}
-                      className="flex flex-row items-center space-x-2 rounded-md border border-white/5 bg-[#121813] p-2 hover:bg-white/5 transition-colors"
+                      className="flex flex-row items-center space-x-2 rounded-md border border-border/30 bg-[#121813] p-2 hover:bg-muted/40 transition-colors"
                     >
                       <Checkbox
                         id={deptId}
@@ -1137,7 +1284,7 @@ export default function EmployeeProfile() {
                       />
                       <label 
                         htmlFor={deptId}
-                        className="text-xs text-white/80 cursor-pointer select-none flex-1 py-0.5"
+                        className="text-xs text-foreground/80 cursor-pointer select-none flex-1 py-0.5"
                       >
                         {dept}
                       </label>
@@ -1151,11 +1298,11 @@ export default function EmployeeProfile() {
             {editForm.departments.some(dept => SUBROLES_MAPPING[dept]?.length > 0) && (
               <div className="space-y-3 p-4 bg-white/[0.02] rounded-2xl border border-white/[0.06]">
                 <div>
-                  <label className="text-xs font-bold text-white/60 uppercase tracking-wider flex items-center gap-1.5">
+                  <label className="text-xs font-bold text-foreground/60 uppercase tracking-wider flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
                     Specializations & Services (Subroles)
                   </label>
-                  <p className="text-[9px] text-white/30 uppercase tracking-wider">Select specific service subroles within selected departments.</p>
+                  <p className="text-[9px] text-foreground/30 uppercase tracking-wider">Select specific service subroles within selected departments.</p>
                 </div>
                 
                 <div className="space-y-4 max-h-48 overflow-y-auto pr-2">
@@ -1163,7 +1310,7 @@ export default function EmployeeProfile() {
                     const mappedSubroles = SUBROLES_MAPPING[dept] || [];
                     if (mappedSubroles.length === 0) return null;
                     return (
-                      <div key={dept} className="space-y-2 border-b border-white/5 pb-3 last:border-b-0 last:pb-0">
+                      <div key={dept} className="space-y-2 border-b border-border/30 pb-3 last:border-b-0 last:pb-0">
                         <h5 className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">{dept} Specialities</h5>
                         <div className="grid grid-cols-2 gap-2">
                           {mappedSubroles.map(sub => {
@@ -1172,7 +1319,7 @@ export default function EmployeeProfile() {
                             return (
                               <div
                                 key={sub}
-                                className="flex flex-row items-center space-x-2 rounded-md border border-white/5 bg-[#0a1628] p-2 hover:bg-white/5 transition-colors"
+                                className="flex flex-row items-center space-x-2 rounded-md border border-border/30 bg-[#0a1628] p-2 hover:bg-muted/40 transition-colors"
                               >
                                 <Checkbox
                                   id={checkboxId}
@@ -1187,7 +1334,7 @@ export default function EmployeeProfile() {
                                 />
                                 <label 
                                   htmlFor={checkboxId}
-                                  className="text-xs text-white/70 cursor-pointer select-none flex-1 py-0.5"
+                                  className="text-xs text-foreground/70 cursor-pointer select-none flex-1 py-0.5"
                                 >
                                   {sub}
                                 </label>
@@ -1211,8 +1358,8 @@ export default function EmployeeProfile() {
                   disabled={!canAccess(role, "MANAGE_USERS")}
                 />
                 <div className="space-y-1 leading-none">
-                  <label htmlFor="editIsIntern" className="text-xs font-bold text-white/80 cursor-pointer">This employee is an Intern</label>
-                  <p className="text-[10px] text-white/30 mt-0.5">
+                  <label htmlFor="editIsIntern" className="text-xs font-bold text-foreground/80 cursor-pointer">This employee is an Intern</label>
+                  <p className="text-[10px] text-foreground/30 mt-0.5">
                     Interns have restricted dashboards and automatic time-bound account termination.
                   </p>
                 </div>
@@ -1220,12 +1367,12 @@ export default function EmployeeProfile() {
 
               {editForm.isIntern && (
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-white/60 uppercase tracking-wider">Internship Expiration Date</label>
+                  <label className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Internship Expiration Date</label>
                   <Input 
                     type="date" 
                     value={editForm.internEndDate} 
                     onChange={e => setEditForm({...editForm, internEndDate: e.target.value})} 
-                    className="glass-input h-10 text-xs border-white/10 focus:border-blue-500/60 focus:ring-0 w-full disabled:opacity-50" 
+                    className="glass-input h-10 text-xs border-border focus:border-blue-500/60 focus:ring-0 w-full disabled:opacity-50" 
                     required={editForm.isIntern}
                     disabled={!canAccess(role, "MANAGE_USERS")}
                   />
@@ -1238,7 +1385,7 @@ export default function EmployeeProfile() {
                 type="button" 
                 onClick={() => setIsEditOpen(false)} 
                 disabled={isSubmittingEdit}
-                className="btn-ghost h-10 py-0 px-5 text-xs font-bold border-white/10 text-white/70 hover:text-white cursor-pointer"
+                className="btn-ghost h-10 py-0 px-5 text-xs font-bold border-border text-foreground/70 hover:text-foreground cursor-pointer"
               >
                 Cancel
               </button>
@@ -1248,6 +1395,156 @@ export default function EmployeeProfile() {
                 className="btn-primary h-10 py-0 px-5 text-xs font-bold flex items-center justify-center cursor-pointer shadow-glow-blue"
               >
                 {isSubmittingEdit ? "Saving..." : "Save Changes"}
+              </button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Transfer / Promote Dialog */}
+      <Dialog open={isTransferOpen} onOpenChange={setIsTransferOpen}>
+        <DialogContent className="bg-[#0f172a] border-border text-foreground max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold uppercase tracking-wider text-foreground flex items-center gap-2">
+              <ArrowRightLeft className="h-4 w-4 text-violet-400" />
+              Transfer / Promote Employee
+            </DialogTitle>
+            <DialogDescription className="text-foreground/40 text-xs">
+              Reassign {employee?.fullName}'s department, specializations, and role. A mandatory reason is required for audit compliance.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSubmitTransfer} className="space-y-5 pt-2">
+            {/* Role */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-foreground/60 uppercase tracking-wider">New System Role</label>
+              <select
+                value={transferForm.role}
+                onChange={e => setTransferForm({ ...transferForm, role: e.target.value })}
+                className="w-full h-10 border border-border rounded-xl px-3 text-xs focus:border-violet-500/60 focus:ring-0 bg-[#121813] text-foreground"
+                required
+              >
+                <option value="">Select role...</option>
+                {Object.entries(ROLE_META).map(([key, meta]) => (
+                  <option key={key} value={key}>{meta.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Departments */}
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Target Departments</label>
+                <p className="text-[9px] text-foreground/30 uppercase tracking-wider">Select the new department assignment(s).</p>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {DEPARTMENTS.map((dept) => {
+                  const isChecked = transferForm.departments.includes(dept);
+                  const deptId = `transfer-dept-${dept.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase()}`;
+                  return (
+                    <div
+                      key={dept}
+                      className="flex flex-row items-center space-x-2 rounded-md border border-border/30 bg-[#121813] p-2 hover:bg-muted/40 transition-colors"
+                    >
+                      <Checkbox
+                        id={deptId}
+                        checked={isChecked}
+                        onCheckedChange={(checked) => {
+                          const updated = checked
+                            ? [...transferForm.departments, dept]
+                            : transferForm.departments.filter(d => d !== dept);
+                          setTransferForm({ ...transferForm, departments: updated });
+                        }}
+                      />
+                      <label
+                        htmlFor={deptId}
+                        className="text-xs text-foreground/80 cursor-pointer select-none flex-1 py-0.5"
+                      >
+                        {dept}
+                      </label>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Subroles */}
+            {transferForm.departments.some(dept => SUBROLES_MAPPING[dept]?.length > 0) && (
+              <div className="space-y-3 p-4 bg-white/[0.02] rounded-2xl border border-white/[0.06]">
+                <label className="text-xs font-bold text-foreground/60 uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                  Transfer Specializations
+                </label>
+                <div className="space-y-4 max-h-48 overflow-y-auto pr-2">
+                  {transferForm.departments.map(dept => {
+                    const mappedSubroles = SUBROLES_MAPPING[dept] || [];
+                    if (mappedSubroles.length === 0) return null;
+                    return (
+                      <div key={dept} className="space-y-2 border-b border-border/30 pb-3 last:border-b-0 last:pb-0">
+                        <h5 className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">{dept}</h5>
+                        <div className="grid grid-cols-2 gap-2">
+                          {mappedSubroles.map(sub => {
+                            const isChecked = transferForm.subRoles.includes(sub);
+                            const checkboxId = `transfer-sub-${sub.replace(/[^a-zA-Z0-9]/g, "-").toLowerCase()}`;
+                            return (
+                              <div
+                                key={sub}
+                                className="flex flex-row items-center space-x-2 rounded-md border border-border/30 bg-[#0a1628] p-2 hover:bg-muted/40 transition-colors"
+                              >
+                                <Checkbox
+                                  id={checkboxId}
+                                  checked={isChecked}
+                                  onCheckedChange={(checked) => {
+                                    const updated = checked
+                                      ? [...transferForm.subRoles, sub]
+                                      : transferForm.subRoles.filter(s => s !== sub);
+                                    setTransferForm({ ...transferForm, subRoles: updated });
+                                  }}
+                                />
+                                <label
+                                  htmlFor={checkboxId}
+                                  className="text-xs text-foreground/70 cursor-pointer select-none flex-1 py-0.5"
+                                >
+                                  {sub}
+                                </label>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Reason */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Reason for Transfer *</label>
+              <Textarea
+                placeholder="e.g. Departmental restructuring, performance-based promotion, project requirements..."
+                value={transferForm.reason}
+                onChange={e => setTransferForm({ ...transferForm, reason: e.target.value })}
+                className="glass-input min-h-[80px] text-xs border-border p-3 placeholder:text-foreground/20 focus:border-violet-500/60 focus:ring-0"
+                required
+              />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-white/[0.06]">
+              <button
+                type="button"
+                onClick={() => setIsTransferOpen(false)}
+                disabled={isSubmittingTransfer}
+                className="btn-ghost h-10 py-0 px-5 text-xs font-bold border-border text-foreground/70 hover:text-foreground cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmittingTransfer}
+                className="h-10 py-0 px-5 text-xs font-bold flex items-center justify-center cursor-pointer rounded-xl bg-violet-600 hover:bg-violet-500 text-foreground transition-colors"
+              >
+                {isSubmittingTransfer ? "Executing Transfer..." : "Execute Transfer"}
               </button>
             </div>
           </form>

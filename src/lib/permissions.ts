@@ -29,9 +29,22 @@ export const PERMISSIONS = {
   DELETE_DATA:          ["founder", "system_admin", "c_suite"],
 } as const;
 
+let dynamicPermissions: Record<string, string[]> | null = null;
+
+export function setDynamicPermissions(perms: Record<string, string[]>) {
+  dynamicPermissions = perms;
+}
+
+export function getPermissionsMap(): Record<string, readonly string[] | string[]> {
+  return dynamicPermissions || PERMISSIONS;
+}
+
 export function canAccess(role: string | null | undefined, permission: keyof typeof PERMISSIONS): boolean {
   if (!role) return false;
-  return (PERMISSIONS[permission] as readonly string[]).includes(role);
+  const currentMap = dynamicPermissions || PERMISSIONS;
+  const rolesWithAccess = currentMap[permission];
+  if (!rolesWithAccess) return false;
+  return (rolesWithAccess as string[]).includes(role);
 }
 
 // Role display names and badge colors
@@ -44,3 +57,4 @@ export const ROLE_META: Record<string, { label: string; color: string }> = {
   employee:        { label: "Employee",         color: "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20" },
   intern:          { label: "Intern",           color: "bg-slate-500/10 text-slate-300 border border-slate-500/20" },
 };
+

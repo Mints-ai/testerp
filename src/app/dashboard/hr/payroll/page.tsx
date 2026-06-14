@@ -125,15 +125,15 @@ export default function PayrollDashboard() {
   const totalPayroll = payroll.reduce((sum, p) => sum + p.netPay, 0);
 
   return (
-    <RoleGuard permission="MANAGE_USERS" fallback={<div className="p-8 text-center text-white/40 font-bold uppercase tracking-wider text-xs">Access Denied. Only authorized HR personnel can run payroll metrics.</div>}>
+    <RoleGuard permission="MANAGE_USERS" fallback={<div className="p-8 text-center text-foreground/40 font-bold uppercase tracking-wider text-xs">Access Denied. Only authorized HR personnel can run payroll metrics.</div>}>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">Payroll & Compensation</h1>
-            <p className="text-white/40 mt-1">Manage salaries, pro-rate unpaid leave deductions, and generate secure payslips.</p>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">Payroll & Compensation</h1>
+            <p className="text-foreground/40 mt-1">Manage salaries, pro-rate unpaid leave deductions, and generate secure payslips.</p>
           </div>
           
-          <Button className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white shadow-[0_0_24px_rgba(37,99,235,0.3)] border-0 rounded-xl font-bold h-10 px-5 cursor-pointer">
+          <Button className="bg-[#2563eb] hover:bg-[#1d4ed8] text-foreground shadow-[0_0_24px_rgba(37,99,235,0.3)] border-0 rounded-xl font-bold h-10 px-5 cursor-pointer">
             <Calculator className="mr-2 h-4 w-4" /> Run Payroll Cycle
           </Button>
         </div>
@@ -142,15 +142,15 @@ export default function PayrollDashboard() {
         <div className="grid gap-6 md:grid-cols-3">
           <div className="border border-white/[0.08] bg-white/[0.02] shadow-card rounded-2xl p-6 backdrop-blur-xl">
             <div className="flex flex-row items-center justify-between pb-2">
-              <span className="text-xs font-bold text-white/40 uppercase tracking-wider">Total Net Disbursements</span>
+              <span className="text-xs font-bold text-foreground/40 uppercase tracking-wider">Total Net Disbursements</span>
               <Banknote className="h-4 w-4 text-blue-400 shadow-glow-blue" />
             </div>
-            <div className="text-2xl font-black text-white mt-1 tabular-nums">{totalPayroll.toLocaleString()} AED</div>
+            <div className="text-2xl font-black text-foreground mt-1 tabular-nums">{totalPayroll.toLocaleString()} AED</div>
           </div>
           
           <div className="border border-white/[0.08] bg-white/[0.02] shadow-card rounded-2xl p-6 backdrop-blur-xl">
             <div className="flex flex-row items-center justify-between pb-2">
-              <span className="text-xs font-bold text-white/40 uppercase tracking-wider">Pending Approvals</span>
+              <span className="text-xs font-bold text-foreground/40 uppercase tracking-wider">Pending Approvals</span>
               <Banknote className="h-4 w-4 text-amber-400 shadow-glow-amber" />
             </div>
             <div className="text-2xl font-black text-amber-400 mt-1 tabular-nums">
@@ -160,10 +160,10 @@ export default function PayrollDashboard() {
 
           <div className="border border-white/[0.08] bg-white/[0.02] shadow-card rounded-2xl p-6 backdrop-blur-xl">
             <div className="flex flex-row items-center justify-between pb-2">
-              <span className="text-xs font-bold text-white/40 uppercase tracking-wider">Active Deductions (Unpaid Leaves)</span>
+              <span className="text-xs font-bold text-foreground/40 uppercase tracking-wider">Active Deductions (Unpaid Leaves)</span>
               <Calculator className="h-4 w-4 text-rose-400 shadow-glow-rose" />
             </div>
-            <div className="text-2xl font-black text-white mt-1 tabular-nums">
+            <div className="text-2xl font-black text-foreground mt-1 tabular-nums">
               {payroll.reduce((sum, p) => sum + p.deductions, 0).toLocaleString()} AED
             </div>
           </div>
@@ -172,22 +172,22 @@ export default function PayrollDashboard() {
         {/* Payroll Table */}
         <div className="border border-white/[0.08] bg-white/[0.02] shadow-card rounded-2xl overflow-hidden backdrop-blur-xl">
           <div className="p-6 pb-4 border-b border-white/[0.06] bg-white/[0.01]">
-            <h2 className="text-lg font-bold text-white">Salary Disbursements Ledger</h2>
+            <h2 className="text-lg font-bold text-foreground">Salary Disbursements Ledger</h2>
           </div>
           
           <div className="p-0">
             {loading ? (
-              <div className="h-40 flex items-center justify-center text-white/40 font-bold text-sm">Aggregating attendance and leave deductions...</div>
+              <div className="h-40 flex items-center justify-center text-foreground/40 font-bold text-sm">Aggregating attendance and leave deductions...</div>
             ) : payroll.length === 0 ? (
               <div className="text-center py-12 p-6 flex flex-col items-center">
-                <Banknote className="h-10 w-10 text-white/20 mb-3" />
-                <p className="text-sm font-semibold text-white/80">No Personnel Found</p>
-                <p className="text-xs text-white/40 mt-1">There are no active employees in the system to run payroll disbursements for.</p>
+                <Banknote className="h-10 w-10 text-foreground/20 mb-3" />
+                <p className="text-sm font-semibold text-foreground/80">No Personnel Found</p>
+                <p className="text-xs text-foreground/40 mt-1">There are no active employees in the system to run payroll disbursements for.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left">
-                  <thead className="bg-white/[0.01] text-white/40 text-[10px] uppercase font-bold border-b border-white/[0.06]">
+                  <thead className="bg-white/[0.01] text-foreground/40 text-[10px] uppercase font-bold border-b border-white/[0.06]">
                     <tr>
                       <th className="px-6 py-4">Employee</th>
                       <th className="px-6 py-4">Base Salary</th>
@@ -197,7 +197,7 @@ export default function PayrollDashboard() {
                       <th className="px-6 py-4 text-right">Payslip</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-white/[0.06] text-white/80 font-semibold">
+                  <tbody className="divide-y divide-white/[0.06] text-foreground/80 font-semibold">
                     {payroll.map((record, i) => (
                       <motion.tr 
                         initial={{ opacity: 0 }}
@@ -208,19 +208,19 @@ export default function PayrollDashboard() {
                       >
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <Avatar className="h-9 w-9 border border-white/10">
+                            <Avatar className="h-9 w-9 border border-border">
                               <AvatarImage src={record.avatar} />
                               <AvatarFallback className="bg-blue-500/10 text-blue-300 text-xs font-bold">
                                 {getInitials(record.name)}
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <div className="font-bold text-white">{record.name}</div>
-                              <div className="text-[9px] text-white/40 uppercase tracking-wider font-bold mt-0.5">{record.role?.replace("_", " ")}</div>
+                              <div className="font-bold text-foreground">{record.name}</div>
+                              <div className="text-[9px] text-foreground/40 uppercase tracking-wider font-bold mt-0.5">{record.role?.replace("_", " ")}</div>
                             </div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 font-bold text-white/60 tabular-nums">{record.baseSalary.toLocaleString()} AED</td>
+                        <td className="px-6 py-4 font-bold text-foreground/60 tabular-nums">{record.baseSalary.toLocaleString()} AED</td>
                         <td className="px-6 py-4 font-bold text-rose-400 tabular-nums">
                           {record.deductions > 0 ? `-${record.deductions.toLocaleString()} AED` : '0 AED'}
                           {record.unpaidLeaves > 0 && <span className="block text-[10px] text-rose-400/60 font-bold mt-0.5">({record.unpaidLeaves} days Unpaid Leave)</span>}
@@ -239,7 +239,7 @@ export default function PayrollDashboard() {
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            className="text-white/60 hover:text-white hover:bg-white/5 rounded-xl cursor-pointer"
+                            className="text-foreground/60 hover:text-foreground hover:bg-muted/40 rounded-xl cursor-pointer"
                             onClick={() => handleGeneratePayslip(record)}
                           >
                             <Download className="h-4 w-4" />

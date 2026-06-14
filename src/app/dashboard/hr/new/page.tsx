@@ -614,26 +614,26 @@ export default function OnboardEmployees() {
   };
 
   return (
-    <RoleGuard permission="MANAGE_USERS" fallback={<div className="p-8 text-center text-white/40 font-bold uppercase tracking-wider text-xs">Access Denied. You do not have permission to add employees.</div>}>
-      <div className="space-y-6 max-w-4xl pb-12 text-white">
+    <RoleGuard permission="MANAGE_USERS" fallback={<div className="p-8 text-center text-foreground/40 font-bold uppercase tracking-wider text-xs">Access Denied. You do not have permission to add employees.</div>}>
+      <div className="space-y-6 max-w-4xl pb-12 text-foreground">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
               <UserPlus className="h-5 w-5 text-blue-500" /> Onboard Employees
             </h1>
-            <p className="text-xs text-white/40 mt-1">Provision login credentials and dashboard settings for your team members.</p>
+            <p className="text-xs text-foreground/40 mt-1">Provision login credentials and dashboard settings for your team members.</p>
           </div>
           
           <div className="flex bg-white/[0.03] p-1 rounded-xl border border-white/[0.08] shadow-inner">
             <button 
               onClick={() => setActiveTab("single")}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "single" ? "bg-blue-600 text-white shadow-glow-blue" : "text-white/40 hover:text-white/80"}`}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "single" ? "bg-blue-600 text-foreground shadow-glow-blue" : "text-foreground/40 hover:text-foreground/80"}`}
             >
               Single Onboarding
             </button>
             <button 
               onClick={() => setActiveTab("bulk")}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "bulk" ? "bg-blue-600 text-white shadow-glow-blue" : "text-white/40 hover:text-white/80"}`}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "bulk" ? "bg-blue-600 text-foreground shadow-glow-blue" : "text-foreground/40 hover:text-foreground/80"}`}
             >
               Bulk CSV Wizard
             </button>
@@ -643,13 +643,13 @@ export default function OnboardEmployees() {
         {activeTab === "single" ? (
           <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
             <CardHeader className="p-6 border-b border-white/[0.06]">
-              <CardTitle className="text-sm font-bold text-white uppercase tracking-wider flex justify-between items-center w-full">
+              <CardTitle className="text-sm font-bold text-foreground uppercase tracking-wider flex justify-between items-center w-full">
                 <span>Employee Onboarding Sheet</span>
                 <span className="text-[10px] font-mono font-bold text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20 shadow-glow-blue shrink-0 uppercase tracking-widest">
                   ID: {nextEmpId || "Calculating..."}
                 </span>
               </CardTitle>
-              <CardDescription className="text-xs text-white/40 mt-1.5">
+              <CardDescription className="text-xs text-foreground/40 mt-1.5">
                 Input system details. Generates encrypted Firebase credentials automatically.
               </CardDescription>
             </CardHeader>
@@ -669,11 +669,11 @@ export default function OnboardEmployees() {
                       name="fullName"
                       render={({ field }) => (
                         <FormItem className="space-y-1.5">
-                          <FormLabel className="text-xs font-bold text-white/60 uppercase tracking-wider">Full Name</FormLabel>
+                          <FormLabel className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Full Name</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="e.g. John Doe" 
-                              className="glass-input h-10 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full" 
+                              className="glass-input h-10 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full" 
                               {...field} 
                             />
                           </FormControl>
@@ -688,7 +688,7 @@ export default function OnboardEmployees() {
                       render={({ field }) => (
                         <FormItem className="space-y-1.5">
                           <div className="flex justify-between items-center">
-                            <FormLabel className="text-xs font-bold text-white/60 uppercase tracking-wider">Email Address</FormLabel>
+                            <FormLabel className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Email Address</FormLabel>
                             <button 
                               type="button" 
                               onClick={handleGenerateStaticEmail}
@@ -701,11 +701,11 @@ export default function OnboardEmployees() {
                             <Input 
                               placeholder="e.g. john.doe@mintsglobal.ae or personal@gmail.com" 
                               type="email" 
-                              className="glass-input h-10 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full" 
+                              className="glass-input h-10 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full" 
                               {...field} 
                             />
                           </FormControl>
-                          <FormDescription className="text-[10px] text-white/30 leading-relaxed">
+                          <FormDescription className="text-[10px] text-foreground/30 leading-relaxed">
                             💡 <strong>Static Accounts:</strong> Auto-generating an @mintsglobal.ae email lets users log in using their username slug (e.g. `john.doe`) without needing a real Google Account!
                           </FormDescription>
                           <FormMessage className="text-rose-400 font-bold text-[10px]" />
@@ -720,12 +720,12 @@ export default function OnboardEmployees() {
                       name="role"
                       render={({ field }) => (
                         <FormItem className="space-y-1.5">
-                          <FormLabel className="text-xs font-bold text-white/60 uppercase tracking-wider">System Role</FormLabel>
+                          <FormLabel className="text-xs font-bold text-foreground/60 uppercase tracking-wider">System Role</FormLabel>
                           <FormControl>
                             <select 
                               onChange={field.onChange} 
                               value={field.value || ""} 
-                              className="w-full h-10 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-white"
+                              className="w-full h-10 border border-border rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-foreground"
                             >
                               <option value="">Select role...</option>
                               {Object.entries(ROLE_META).map(([key, meta]) => (
@@ -733,7 +733,7 @@ export default function OnboardEmployees() {
                               ))}
                             </select>
                           </FormControl>
-                          <FormDescription className="text-[9px] text-white/30 uppercase tracking-wider">Determines permissions and access levels.</FormDescription>
+                          <FormDescription className="text-[9px] text-foreground/30 uppercase tracking-wider">Determines permissions and access levels.</FormDescription>
                           <FormMessage className="text-rose-400 font-bold text-[10px]" />
                         </FormItem>
                       )}
@@ -745,8 +745,8 @@ export default function OnboardEmployees() {
                       render={() => (
                         <FormItem className="space-y-3 col-span-1 md:col-span-2">
                           <div className="mb-2">
-                            <FormLabel className="text-xs font-bold text-white/60 uppercase tracking-wider">Departments</FormLabel>
-                            <FormDescription className="text-[9px] text-white/30 uppercase tracking-wider">Select one or more departments for this employee.</FormDescription>
+                            <FormLabel className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Departments</FormLabel>
+                            <FormDescription className="text-[9px] text-foreground/30 uppercase tracking-wider">Select one or more departments for this employee.</FormDescription>
                           </div>
                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                             {DEPARTMENTS.map((dept) => (
@@ -758,7 +758,7 @@ export default function OnboardEmployees() {
                                   return (
                                     <FormItem
                                       key={dept}
-                                      className="flex flex-row items-start space-x-2 space-y-0 rounded-md border border-white/5 bg-[#121813] p-2 hover:bg-white/5 transition-colors cursor-pointer"
+                                      className="flex flex-row items-start space-x-2 space-y-0 rounded-md border border-border/30 bg-[#121813] p-2 hover:bg-muted/40 transition-colors cursor-pointer"
                                     >
                                       <FormControl>
                                         <Checkbox
@@ -773,7 +773,7 @@ export default function OnboardEmployees() {
                                           className="mt-0.5"
                                         />
                                       </FormControl>
-                                      <FormLabel className="font-normal text-xs text-white/80 cursor-pointer">
+                                      <FormLabel className="font-normal text-xs text-foreground/80 cursor-pointer">
                                         {dept}
                                       </FormLabel>
                                     </FormItem>
@@ -795,11 +795,11 @@ export default function OnboardEmployees() {
                       render={({ field }) => (
                         <FormItem className="space-y-3 col-span-1 md:col-span-2 p-4 bg-white/[0.02] rounded-2xl border border-white/[0.06]">
                           <div>
-                            <FormLabel className="text-xs font-bold text-white/60 uppercase tracking-wider flex items-center gap-1.5">
+                            <FormLabel className="text-xs font-bold text-foreground/60 uppercase tracking-wider flex items-center gap-1.5">
                               <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
                               Specializations & Services (Subroles)
                             </FormLabel>
-                            <FormDescription className="text-[9px] text-white/30 uppercase tracking-wider">Select specific service subroles within selected departments.</FormDescription>
+                            <FormDescription className="text-[9px] text-foreground/30 uppercase tracking-wider">Select specific service subroles within selected departments.</FormDescription>
                           </div>
                           
                           <div className="space-y-4 max-h-48 overflow-y-auto pr-2">
@@ -807,7 +807,7 @@ export default function OnboardEmployees() {
                               const mappedSubroles = SUBROLES_MAPPING[dept] || [];
                               if (mappedSubroles.length === 0) return null;
                               return (
-                                <div key={dept} className="space-y-2 border-b border-white/5 pb-3 last:border-b-0 last:pb-0">
+                                <div key={dept} className="space-y-2 border-b border-border/30 pb-3 last:border-b-0 last:pb-0">
                                   <h5 className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">{dept} Specialities</h5>
                                   <div className="grid grid-cols-2 gap-2">
                                     {mappedSubroles.map(sub => {
@@ -816,7 +816,7 @@ export default function OnboardEmployees() {
                                       return (
                                         <div
                                           key={sub}
-                                          className="flex flex-row items-center space-x-2 rounded-md border border-white/5 bg-[#0a1628] p-2 hover:bg-white/5 transition-colors cursor-pointer"
+                                          className="flex flex-row items-center space-x-2 rounded-md border border-border/30 bg-[#0a1628] p-2 hover:bg-muted/40 transition-colors cursor-pointer"
                                         >
                                           <Checkbox
                                             id={checkboxId}
@@ -832,7 +832,7 @@ export default function OnboardEmployees() {
                                           />
                                           <label 
                                             htmlFor={checkboxId}
-                                            className="text-xs text-white/70 cursor-pointer select-none flex-1 py-0.5"
+                                            className="text-xs text-foreground/70 cursor-pointer select-none flex-1 py-0.5"
                                           >
                                             {sub}
                                           </label>
@@ -856,11 +856,11 @@ export default function OnboardEmployees() {
                       name="jobTitle"
                       render={({ field }) => (
                         <FormItem className="space-y-1.5">
-                          <FormLabel className="text-xs font-bold text-white/60 uppercase tracking-wider">Job Title</FormLabel>
+                          <FormLabel className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Job Title</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="e.g. Senior SEO Specialist" 
-                              className="glass-input h-10 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full" 
+                              className="glass-input h-10 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full" 
                               {...field} 
                             />
                           </FormControl>
@@ -875,13 +875,13 @@ export default function OnboardEmployees() {
                       render={({ field }) => (
                         <FormItem className="space-y-1.5">
                           <div className="flex justify-between items-center">
-                            <FormLabel className="text-xs font-bold text-white/60 uppercase tracking-wider">Phone Number</FormLabel>
-                            <span className="text-[9px] text-white/30 uppercase tracking-wider font-bold">Optional</span>
+                            <FormLabel className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Phone Number</FormLabel>
+                            <span className="text-[9px] text-foreground/30 uppercase tracking-wider font-bold">Optional</span>
                           </div>
                           <FormControl>
                             <Input 
                               placeholder="e.g. +971 50 123 4567" 
-                              className="glass-input h-10 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono" 
+                              className="glass-input h-10 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono" 
                               {...field} 
                             />
                           </FormControl>
@@ -904,8 +904,8 @@ export default function OnboardEmployees() {
                             />
                           </FormControl>
                           <div className="space-y-1 leading-none">
-                            <FormLabel className="text-xs font-bold text-white/80">This employee is an Intern</FormLabel>
-                            <FormDescription className="text-[10px] text-white/30 mt-0.5">
+                            <FormLabel className="text-xs font-bold text-foreground/80">This employee is an Intern</FormLabel>
+                            <FormDescription className="text-[10px] text-foreground/30 mt-0.5">
                               Interns have restricted dashboards and automatic time-bound account termination.
                             </FormDescription>
                           </div>
@@ -919,11 +919,11 @@ export default function OnboardEmployees() {
                         name="internEndDate"
                         render={({ field }) => (
                           <FormItem className="space-y-1.5">
-                            <FormLabel className="text-xs font-bold text-white/60 uppercase tracking-wider">Internship Expiration Date</FormLabel>
+                            <FormLabel className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Internship Expiration Date</FormLabel>
                             <FormControl>
                               <Input 
                                 type="date" 
-                                className="glass-input h-10 text-xs border-white/10 focus:border-blue-500/60 focus:ring-0 w-full" 
+                                className="glass-input h-10 text-xs border-border focus:border-blue-500/60 focus:ring-0 w-full" 
                                 {...field} 
                               />
                             </FormControl>
@@ -940,17 +940,17 @@ export default function OnboardEmployees() {
                       name="temporaryPassword"
                       render={({ field }) => (
                         <FormItem className="space-y-1.5">
-                          <FormLabel className="text-xs font-bold text-white/60 uppercase tracking-wider flex items-center gap-1">
+                          <FormLabel className="text-xs font-bold text-foreground/60 uppercase tracking-wider flex items-center gap-1">
                             <Key className="h-3.5 w-3.5 text-blue-400" /> Temporary Login Password
                           </FormLabel>
                           <FormControl>
                             <Input 
                               type="text" 
-                              className="glass-input h-10 text-xs border-white/10 focus:border-blue-500/60 focus:ring-0 w-full font-mono text-blue-400 font-bold" 
+                              className="glass-input h-10 text-xs border-border focus:border-blue-500/60 focus:ring-0 w-full font-mono text-blue-400 font-bold" 
                               {...field} 
                             />
                           </FormControl>
-                          <FormDescription className="text-[9px] text-white/30 uppercase tracking-wider">Auto-generated secure credentials. Provide to the employee.</FormDescription>
+                          <FormDescription className="text-[9px] text-foreground/30 uppercase tracking-wider">Auto-generated secure credentials. Provide to the employee.</FormDescription>
                           <FormMessage className="text-rose-400 font-bold text-[10px]" />
                         </FormItem>
                       )}
@@ -962,7 +962,7 @@ export default function OnboardEmployees() {
                       type="button" 
                       onClick={() => router.back()} 
                       disabled={isSubmitting}
-                      className="btn-ghost h-10 py-0 px-5 text-xs font-bold border-white/10 text-white/70 hover:text-white cursor-pointer"
+                      className="btn-ghost h-10 py-0 px-5 text-xs font-bold border-border text-foreground/70 hover:text-foreground cursor-pointer"
                     >
                       Cancel
                     </button>
@@ -982,10 +982,10 @@ export default function OnboardEmployees() {
           <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
             <CardHeader className="p-6 border-b border-white/[0.06] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
-                <CardTitle className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <CardTitle className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
                   <FileSpreadsheet className="w-4.5 h-4.5 text-blue-400" /> Bulk CSV Onboarding
                 </CardTitle>
-                <CardDescription className="text-xs text-white/40 mt-1.5">
+                <CardDescription className="text-xs text-foreground/40 mt-1.5">
                   Upload employee details in bulk. System validates rules and creates secure logins in batches.
                 </CardDescription>
               </div>
@@ -998,37 +998,37 @@ export default function OnboardEmployees() {
             </CardHeader>
             <CardContent className="p-6">
               {!csvFile ? (
-                <div className="border-2 border-dashed border-white/10 hover:border-blue-500/40 rounded-2xl p-12 text-center bg-white/[0.01] hover:bg-white/[0.02] transition-all relative group cursor-pointer flex flex-col items-center justify-center">
+                <div className="border-2 border-dashed border-border hover:border-blue-500/40 rounded-2xl p-12 text-center bg-white/[0.01] hover:bg-white/[0.02] transition-all relative group cursor-pointer flex flex-col items-center justify-center">
                   <input
                     type="file"
                     accept=".csv"
                     onChange={handleCSVUpload}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
-                  <Upload className="w-8 h-8 text-white/20 group-hover:text-blue-400 transition-colors mb-4" />
-                  <p className="text-xs font-bold text-white/80">Drag & Drop your CSV file here, or click to browse</p>
-                  <p className="text-[10px] text-white/30 mt-1.5 uppercase tracking-wider">Supports .csv files up to 10MB</p>
+                  <Upload className="w-8 h-8 text-foreground/20 group-hover:text-blue-400 transition-colors mb-4" />
+                  <p className="text-xs font-bold text-foreground/80">Drag & Drop your CSV file here, or click to browse</p>
+                  <p className="text-[10px] text-foreground/30 mt-1.5 uppercase tracking-wider">Supports .csv files up to 10MB</p>
                 </div>
               ) : (
                 <div className="space-y-6">
                   {/* Stats Summary */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <div className="p-3.5 rounded-xl border border-white/[0.06] bg-white/[0.01]">
-                      <p className="text-[9px] font-bold text-white/40 uppercase tracking-wider">Total Records</p>
-                      <p className="text-lg font-bold text-white mt-1">{parsedEmployees.length}</p>
+                      <p className="text-[9px] font-bold text-foreground/40 uppercase tracking-wider">Total Records</p>
+                      <p className="text-lg font-bold text-foreground mt-1">{parsedEmployees.length}</p>
                     </div>
                     <div className="p-3.5 rounded-xl border border-white/[0.06] bg-white/[0.01]">
-                      <p className="text-[9px] font-bold text-white/40 uppercase tracking-wider">Validation Errors</p>
+                      <p className="text-[9px] font-bold text-foreground/40 uppercase tracking-wider">Validation Errors</p>
                       <p className={`text-lg font-bold mt-1 ${parsedEmployees.some(e => Object.keys(e.errors).length > 0) ? 'text-amber-400' : 'text-emerald-400'}`}>
                         {parsedEmployees.filter(e => Object.keys(e.errors).length > 0).length}
                       </p>
                     </div>
                     <div className="p-3.5 rounded-xl border border-white/[0.06] bg-white/[0.01]">
-                      <p className="text-[9px] font-bold text-white/40 uppercase tracking-wider">Successfully Created</p>
+                      <p className="text-[9px] font-bold text-foreground/40 uppercase tracking-wider">Successfully Created</p>
                       <p className="text-lg font-bold text-emerald-400 mt-1">{bulkSuccessCount}</p>
                     </div>
                     <div className="p-3.5 rounded-xl border border-white/[0.06] bg-white/[0.01]">
-                      <p className="text-[9px] font-bold text-white/40 uppercase tracking-wider">Failed Runs</p>
+                      <p className="text-[9px] font-bold text-foreground/40 uppercase tracking-wider">Failed Runs</p>
                       <p className="text-lg font-bold text-rose-400 mt-1">{bulkErrorCount}</p>
                     </div>
                   </div>
@@ -1058,7 +1058,7 @@ export default function OnboardEmployees() {
                         <p className="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
                           <CheckCircle2 className="w-4 h-4" /> Batch Onboarding Complete!
                         </p>
-                        <p className="text-[10px] text-white/40 mt-1">
+                        <p className="text-[10px] text-foreground/40 mt-1">
                           Successfully onboarded {bulkSuccessCount} employee profiles ({bulkErrorCount} failed).
                         </p>
                       </div>
@@ -1078,7 +1078,7 @@ export default function OnboardEmployees() {
                     <div className="overflow-x-auto max-h-[350px]">
                       <table className="w-full text-left text-xs border-collapse">
                         <thead>
-                          <tr className="border-b border-white/[0.06] bg-white/[0.02] text-white/40 font-bold uppercase tracking-wider text-[9px]">
+                          <tr className="border-b border-white/[0.06] bg-white/[0.02] text-foreground/40 font-bold uppercase tracking-wider text-[9px]">
                             <th className="p-3 w-10 text-center">Status</th>
                             <th className="p-3">Full Name</th>
                             <th className="p-3">Email</th>
@@ -1113,18 +1113,18 @@ export default function OnboardEmployees() {
                                     <div className="w-2 h-2 bg-white/20 rounded-full mx-auto" />
                                   )}
                                 </td>
-                                <td className="p-3 font-bold text-white">
+                                <td className="p-3 font-bold text-foreground">
                                   {emp.fullName || <span className="text-rose-400 italic">Empty</span>}
                                 </td>
-                                <td className="p-3 font-mono text-[11px] text-white/80">{emp.email || <span className="text-rose-400 italic">Empty</span>}</td>
+                                <td className="p-3 font-mono text-[11px] text-foreground/80">{emp.email || <span className="text-rose-400 italic">Empty</span>}</td>
                                 <td className="p-3">
                                   <div className="font-semibold">{emp.jobTitle || <span className="text-rose-400 italic">Empty</span>}</div>
-                                  <div className="text-[10px] text-white/40 capitalize">{emp.role}</div>
+                                  <div className="text-[10px] text-foreground/40 capitalize">{emp.role}</div>
                                 </td>
                                 <td className="p-3">
                                   <div className="flex flex-wrap gap-1 max-w-[200px]">
                                     {emp.departments.map(d => (
-                                      <span key={d} className="badge bg-white/5 border border-white/10 text-white/50 text-[8px] px-1 py-0.5 uppercase tracking-wider">{d}</span>
+                                      <span key={d} className="badge bg-muted/40 border border-border text-foreground/50 text-[8px] px-1 py-0.5 uppercase tracking-wider">{d}</span>
                                     ))}
                                     {emp.subRoles.map(s => (
                                       <span key={s} className="badge bg-indigo-500/5 border border-indigo-500/10 text-indigo-300 text-[8px] px-1 py-0.5 uppercase tracking-wider">{s}</span>
@@ -1136,7 +1136,7 @@ export default function OnboardEmployees() {
                                   {emp.isIntern ? (
                                     <span className="text-amber-400 text-[10px] font-bold">Intern (Exp: {emp.internEndDate || "Date missing"})</span>
                                   ) : (
-                                    <span className="text-white/30 text-[10px]">Regular</span>
+                                    <span className="text-foreground/30 text-[10px]">Regular</span>
                                   )}
                                 </td>
                                 <td className="p-3 text-center">
@@ -1147,7 +1147,7 @@ export default function OnboardEmployees() {
                                         setEditingIndex(index);
                                         setEditFormData({ ...emp });
                                       }}
-                                      className="p-1 text-white/40 hover:text-white hover:bg-white/5 rounded transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                                      className="p-1 text-foreground/40 hover:text-foreground hover:bg-muted/40 rounded transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                                     >
                                       <Edit className="w-3.5 h-3.5" />
                                     </button>
@@ -1157,7 +1157,7 @@ export default function OnboardEmployees() {
                                         const updated = parsedEmployees.filter((_, i) => i !== index);
                                         setParsedEmployees(updated);
                                       }}
-                                      className="p-1 text-white/40 hover:text-rose-400 hover:bg-rose-500/5 rounded transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                                      className="p-1 text-foreground/40 hover:text-rose-400 hover:bg-rose-500/5 rounded transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
                                     </button>
@@ -1180,7 +1180,7 @@ export default function OnboardEmployees() {
                         setBulkFinished(false);
                       }}
                       disabled={isProcessingBulk}
-                      className="btn-ghost h-10 px-5 text-xs font-bold border-white/10 text-white/70 hover:text-white cursor-pointer w-full sm:w-auto"
+                      className="btn-ghost h-10 px-5 text-xs font-bold border-border text-foreground/70 hover:text-foreground cursor-pointer w-full sm:w-auto"
                     >
                       Clear & Upload New File
                     </button>
@@ -1210,7 +1210,7 @@ export default function OnboardEmployees() {
       {/* Edit row dialog */}
       {editingIndex !== null && editFormData && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#121813] border border-white/[0.08] rounded-2xl w-full max-w-lg overflow-hidden shadow-xl text-white">
+          <div className="bg-[#121813] border border-white/[0.08] rounded-2xl w-full max-w-lg overflow-hidden shadow-xl text-foreground">
             <div className="p-5 border-b border-white/[0.06] flex justify-between items-center">
               <h3 className="font-bold text-sm uppercase tracking-wider flex items-center gap-1.5">
                 <Edit className="w-4 h-4 text-blue-400" />
@@ -1221,7 +1221,7 @@ export default function OnboardEmployees() {
                   setEditingIndex(null);
                   setEditFormData(null);
                 }}
-                className="text-white/40 hover:text-white transition-colors"
+                className="text-foreground/40 hover:text-foreground transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1229,32 +1229,32 @@ export default function OnboardEmployees() {
             
             <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto pr-2">
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Full Name</label>
+                <label className="text-[10px] font-bold text-foreground/60 uppercase tracking-wider">Full Name</label>
                 <Input 
                   value={editFormData.fullName}
                   onChange={(e) => setEditFormData({ ...editFormData, fullName: e.target.value })}
                   placeholder="e.g. John Doe"
-                  className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full"
+                  className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Email Address</label>
+                <label className="text-[10px] font-bold text-foreground/60 uppercase tracking-wider">Email Address</label>
                 <Input 
                   value={editFormData.email}
                   onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
                   placeholder="e.g. john.doe@mintsglobal.ae"
-                  className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full"
+                  className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider">System Role</label>
+                  <label className="text-[10px] font-bold text-foreground/60 uppercase tracking-wider">System Role</label>
                   <select 
                     value={editFormData.role}
                     onChange={(e) => setEditFormData({ ...editFormData, role: e.target.value })}
-                    className="w-full h-9 border border-white/10 rounded-xl px-2.5 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#0f1510] text-white"
+                    className="w-full h-9 border border-border rounded-xl px-2.5 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#0f1510] text-foreground"
                   >
                     {Object.entries(ROLE_META).map(([key, meta]) => (
                       <option key={key} value={key}>{meta.label}</option>
@@ -1263,18 +1263,18 @@ export default function OnboardEmployees() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Job Title</label>
+                  <label className="text-[10px] font-bold text-foreground/60 uppercase tracking-wider">Job Title</label>
                   <Input 
                     value={editFormData.jobTitle}
                     onChange={(e) => setEditFormData({ ...editFormData, jobTitle: e.target.value })}
                     placeholder="e.g. SEO Specialist"
-                    className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full"
+                    className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Departments</label>
+                <label className="text-[10px] font-bold text-foreground/60 uppercase tracking-wider">Departments</label>
                 <div className="grid grid-cols-3 gap-2">
                   {DEPARTMENTS.map((dept) => (
                     <div 
@@ -1285,15 +1285,15 @@ export default function OnboardEmployees() {
                           : [...editFormData.departments, dept];
                         setEditFormData({ ...editFormData, departments: depts });
                       }}
-                      className={`flex items-center space-x-2 border rounded-md p-1.5 hover:bg-white/5 transition-colors cursor-pointer ${editFormData.departments.includes(dept) ? 'border-blue-500/40 bg-blue-500/5' : 'border-white/5 bg-[#0a100b]'}`}
+                      className={`flex items-center space-x-2 border rounded-md p-1.5 hover:bg-muted/40 transition-colors cursor-pointer ${editFormData.departments.includes(dept) ? 'border-blue-500/40 bg-blue-500/5' : 'border-border/30 bg-[#0a100b]'}`}
                     >
                       <input 
                         type="checkbox" 
                         checked={editFormData.departments.includes(dept)}
                         onChange={() => {}}
-                        className="rounded border-white/20"
+                        className="rounded border-border/80"
                       />
-                      <span className="text-[10px] text-white/80">{dept}</span>
+                      <span className="text-[10px] text-foreground/80">{dept}</span>
                     </div>
                   ))}
                 </div>
@@ -1309,7 +1309,7 @@ export default function OnboardEmployees() {
                       const subs = SUBROLES_MAPPING[d] || [];
                       if (subs.length === 0) return null;
                       return (
-                        <div key={d} className="space-y-1 border-b border-white/5 pb-2 last:border-0 last:pb-0">
+                        <div key={d} className="space-y-1 border-b border-border/30 pb-2 last:border-0 last:pb-0">
                           <h6 className="text-[9px] font-bold text-indigo-300 uppercase tracking-wider">{d}</h6>
                           <div className="grid grid-cols-2 gap-2">
                             {subs.map((sub: string) => (
@@ -1321,15 +1321,15 @@ export default function OnboardEmployees() {
                                     : [...editFormData.subRoles, sub];
                                   setEditFormData({ ...editFormData, subRoles: subroles });
                                 }}
-                                className={`flex items-center space-x-2 border rounded p-1 hover:bg-white/5 transition-colors cursor-pointer ${editFormData.subRoles.includes(sub) ? 'border-indigo-500/40 bg-indigo-500/5' : 'border-white/5 bg-[#050912]'}`}
+                                className={`flex items-center space-x-2 border rounded p-1 hover:bg-muted/40 transition-colors cursor-pointer ${editFormData.subRoles.includes(sub) ? 'border-indigo-500/40 bg-indigo-500/5' : 'border-border/30 bg-[#050912]'}`}
                               >
                                 <input 
                                   type="checkbox" 
                                   checked={editFormData.subRoles.includes(sub)}
                                   onChange={() => {}}
-                                  className="rounded border-white/20"
+                                  className="rounded border-border/80"
                                 />
-                                <span className="text-[9px] text-white/70">{sub}</span>
+                                <span className="text-[9px] text-foreground/70">{sub}</span>
                               </div>
                             ))}
                           </div>
@@ -1342,22 +1342,22 @@ export default function OnboardEmployees() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Phone</label>
+                  <label className="text-[10px] font-bold text-foreground/60 uppercase tracking-wider">Phone</label>
                   <Input 
                     value={editFormData.phone}
                     onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
                     placeholder="Optional"
-                    className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full"
+                    className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-white/60 uppercase tracking-wider">Temporary Password</label>
+                  <label className="text-[10px] font-bold text-foreground/60 uppercase tracking-wider">Temporary Password</label>
                   <Input 
                     value={editFormData.temporaryPassword}
                     onChange={(e) => setEditFormData({ ...editFormData, temporaryPassword: e.target.value })}
                     placeholder="Auto-Generated"
-                    className="glass-input h-9 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono"
+                    className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono"
                   />
                 </div>
               </div>
@@ -1369,9 +1369,9 @@ export default function OnboardEmployees() {
                     id="edit-is-intern"
                     checked={editFormData.isIntern}
                     onChange={(e) => setEditFormData({ ...editFormData, isIntern: e.target.checked })}
-                    className="rounded border-white/20"
+                    className="rounded border-border/80"
                   />
-                  <label htmlFor="edit-is-intern" className="text-xs text-white/80 cursor-pointer">This employee is an Intern</label>
+                  <label htmlFor="edit-is-intern" className="text-xs text-foreground/80 cursor-pointer">This employee is an Intern</label>
                 </div>
 
                 {editFormData.isIntern && (
@@ -1379,7 +1379,7 @@ export default function OnboardEmployees() {
                     type="date"
                     value={editFormData.internEndDate}
                     onChange={(e) => setEditFormData({ ...editFormData, internEndDate: e.target.value })}
-                    className="glass-input h-8 text-[11px] border-white/10 focus:border-blue-500/60 focus:ring-0 w-32"
+                    className="glass-input h-8 text-[11px] border-border focus:border-blue-500/60 focus:ring-0 w-32"
                   />
                 )}
               </div>
@@ -1391,7 +1391,7 @@ export default function OnboardEmployees() {
                   setEditingIndex(null);
                   setEditFormData(null);
                 }}
-                className="btn-ghost h-9 px-4 text-xs font-bold border-white/10 text-white/70"
+                className="btn-ghost h-9 px-4 text-xs font-bold border-border text-foreground/70"
               >
                 Cancel
               </button>

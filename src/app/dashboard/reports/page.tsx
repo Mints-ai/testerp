@@ -295,14 +295,14 @@ export default function ReportsAndIntelligence() {
   };
 
   return (
-    <div className="space-y-6 pb-12 text-white">
+    <div className="space-y-6 pb-12 text-foreground">
       {/* Header controls bar */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+          <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <BarChart3 className="w-5 h-5 text-blue-500" /> {isManager ? "Intelligence & Reports" : "Status Reports"}
           </h1>
-          <p className="text-xs text-white/40 mt-1">
+          <p className="text-xs text-foreground/40 mt-1">
             {isManager 
               ? "Real-time business performance analytics, agency metrics, and financial statements." 
               : "Submit and view your daily accomplishments and weekly status reports."}
@@ -311,8 +311,8 @@ export default function ReportsAndIntelligence() {
 
         {isManager && (
           <div className="flex items-center gap-3">
-            <button className="btn-ghost py-0 px-4 h-9 text-xs font-bold border-white/10 text-white/70 hover:text-white flex items-center justify-center cursor-pointer" onClick={handlePrint}>
-              <Printer className="w-4 h-4 mr-2 text-white/50" /> Print PDF
+            <button className="btn-ghost py-0 px-4 h-9 text-xs font-bold border-border text-foreground/70 hover:text-foreground flex items-center justify-center cursor-pointer" onClick={handlePrint}>
+              <Printer className="w-4 h-4 mr-2 text-foreground/50" /> Print PDF
             </button>
             <button className="btn-primary h-9 py-0 px-4 text-xs font-bold flex items-center justify-center cursor-pointer" onClick={handleJSONExport}>
               <FileDown className="w-4 h-4 mr-2" /> Export Data Sheet
@@ -327,7 +327,7 @@ export default function ReportsAndIntelligence() {
           <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
           <div>
             <p className="font-bold text-xs uppercase tracking-wider">No Live Financial Data Found</p>
-            <p className="text-[11px] text-white/40 leading-relaxed mt-1 font-semibold">
+            <p className="text-[11px] text-foreground/40 leading-relaxed mt-1 font-semibold">
               There are no invoices or logged expenses in your database yet. 
               Once you generate invoices or log expenses, this intelligence dashboard will automatically switch to displaying your live data.
             </p>
@@ -341,13 +341,13 @@ export default function ReportsAndIntelligence() {
           <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Gross Revenue</span>
+                <span className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Gross Revenue</span>
                 <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
                   <DollarSign className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-4">
-                <h3 className="text-xl font-bold text-white font-mono">
+                <h3 className="text-xl font-bold text-foreground font-mono">
                   AED {(financialKPIs.totalBilled || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </h3>
                 <p className="text-[10px] text-emerald-400 flex items-center mt-2 font-bold uppercase tracking-wider">
@@ -360,13 +360,13 @@ export default function ReportsAndIntelligence() {
           <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Total Expenses</span>
+                <span className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Total Expenses</span>
                 <div className="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
                   <Landmark className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-4">
-                <h3 className="text-xl font-bold text-white font-mono">
+                <h3 className="text-xl font-bold text-foreground font-mono">
                   AED {(financialKPIs.totalExpenses || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </h3>
                 <p className="text-[10px] text-rose-400 flex items-center mt-2 font-bold uppercase tracking-wider">
@@ -379,13 +379,13 @@ export default function ReportsAndIntelligence() {
           <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Net profit</span>
+                <span className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Net profit</span>
                 <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
                   <Activity className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-4">
-                <h3 className="text-xl font-bold text-white font-mono">
+                <h3 className="text-xl font-bold text-foreground font-mono">
                   AED {(financialKPIs.netProfit || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </h3>
                 <p className="text-[10px] text-emerald-400 mt-2 font-bold uppercase tracking-wider">
@@ -398,16 +398,16 @@ export default function ReportsAndIntelligence() {
           <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Active Portfolio</span>
+                <span className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Active Portfolio</span>
                 <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
                   <Briefcase className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-4">
-                <h3 className="text-xl font-bold text-white tracking-tight">
+                <h3 className="text-xl font-bold text-foreground tracking-tight">
                   {projectMetrics.totalCount || 0} Active Projects
                 </h3>
-                <p className="text-[10px] text-white/30 mt-2 font-semibold">
+                <p className="text-[10px] text-foreground/30 mt-2 font-semibold">
                   Avg. Budget: AED {((projectMetrics.activeBudget / (projectMetrics.totalCount || 1)) || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                 </p>
               </div>
@@ -418,25 +418,25 @@ export default function ReportsAndIntelligence() {
 
       {/* Main Tabbed Analysis Panels */}
       <Tabs defaultValue={isManager ? "financial" : "my-reports"} className="w-full">
-        <TabsList className="bg-white/[0.02] border border-white/[0.08] shadow-inner p-1 rounded-xl mb-6 flex overflow-x-auto scrollbar-hide flex-nowrap max-w-full justify-start w-full sm:w-fit gap-1 text-white">
+        <TabsList className="bg-white/[0.02] border border-white/[0.08] shadow-inner p-1 rounded-xl mb-6 flex overflow-x-auto scrollbar-hide flex-nowrap max-w-full justify-start w-full sm:w-fit gap-1 text-foreground">
           {isManager && (
             <>
-              <TabsTrigger value="financial" className="text-xs py-1.5 px-4 font-bold rounded-lg text-white/40 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-glow-blue transition-all cursor-pointer shrink-0">
+              <TabsTrigger value="financial" className="text-xs py-1.5 px-4 font-bold rounded-lg text-foreground/40 data-[state=active]:bg-blue-600 data-[state=active]:text-foreground data-[state=active]:shadow-glow-blue transition-all cursor-pointer shrink-0">
                 Financial Analytics
               </TabsTrigger>
-              <TabsTrigger value="operational" className="text-xs py-1.5 px-4 font-bold rounded-lg text-white/40 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-glow-blue transition-all cursor-pointer shrink-0">
+              <TabsTrigger value="operational" className="text-xs py-1.5 px-4 font-bold rounded-lg text-foreground/40 data-[state=active]:bg-blue-600 data-[state=active]:text-foreground data-[state=active]:shadow-glow-blue transition-all cursor-pointer shrink-0">
                 Operational Delivery
               </TabsTrigger>
-              <TabsTrigger value="team" className="text-xs py-1.5 px-4 font-bold rounded-lg text-white/40 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-glow-blue transition-all cursor-pointer shrink-0">
+              <TabsTrigger value="team" className="text-xs py-1.5 px-4 font-bold rounded-lg text-foreground/40 data-[state=active]:bg-blue-600 data-[state=active]:text-foreground data-[state=active]:shadow-glow-blue transition-all cursor-pointer shrink-0">
                 Team Intelligence
               </TabsTrigger>
             </>
           )}
-          <TabsTrigger value="my-reports" className="text-xs py-1.5 px-4 font-bold rounded-lg text-white/40 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-glow-blue transition-all cursor-pointer shrink-0">
+          <TabsTrigger value="my-reports" className="text-xs py-1.5 px-4 font-bold rounded-lg text-foreground/40 data-[state=active]:bg-blue-600 data-[state=active]:text-foreground data-[state=active]:shadow-glow-blue transition-all cursor-pointer shrink-0">
             My Status Reports
           </TabsTrigger>
           {isManager && (
-            <TabsTrigger value="team-reports" className="text-xs py-1.5 px-4 font-bold rounded-lg text-white/40 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-glow-blue transition-all cursor-pointer shrink-0">
+            <TabsTrigger value="team-reports" className="text-xs py-1.5 px-4 font-bold rounded-lg text-foreground/40 data-[state=active]:bg-blue-600 data-[state=active]:text-foreground data-[state=active]:shadow-glow-blue transition-all cursor-pointer shrink-0">
               Team Status Reports
             </TabsTrigger>
           )}
@@ -449,8 +449,8 @@ export default function ReportsAndIntelligence() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <Card className="lg:col-span-2 glass-card overflow-hidden border-white/[0.08] bg-white/[0.02] p-5">
                   <CardHeader className="p-0 mb-6">
-                    <CardTitle className="text-sm font-bold text-white">Revenue vs. Expenses Trend</CardTitle>
-                    <CardDescription className="text-[11px] text-white/40 mt-1">Monthly track of incoming receivables and operational overhead expenses.</CardDescription>
+                    <CardTitle className="text-sm font-bold text-foreground">Revenue vs. Expenses Trend</CardTitle>
+                    <CardDescription className="text-[11px] text-foreground/40 mt-1">Monthly track of incoming receivables and operational overhead expenses.</CardDescription>
                   </CardHeader>
                   <CardContent className="h-[300px] p-0 w-full min-w-0">
                     {mounted ? (
@@ -481,35 +481,35 @@ export default function ReportsAndIntelligence() {
                         </AreaChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="h-full w-full flex items-center justify-center text-xs text-white/20">Loading chart...</div>
+                      <div className="h-full w-full flex items-center justify-center text-xs text-foreground/20">Loading chart...</div>
                     )}
                   </CardContent>
                 </Card>
 
                 <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02] p-5">
                   <CardHeader className="p-0 mb-6">
-                    <CardTitle className="text-sm font-bold text-white">Financial Health Statement</CardTitle>
-                    <CardDescription className="text-[11px] text-white/40 mt-1">Key stability performance indicators.</CardDescription>
+                    <CardTitle className="text-sm font-bold text-foreground">Financial Health Statement</CardTitle>
+                    <CardDescription className="text-[11px] text-foreground/40 mt-1">Key stability performance indicators.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6 pt-2 p-0">
                     <div className="border border-white/[0.06] rounded-xl p-4 bg-white/[0.01] space-y-4">
                       <div className="flex items-center justify-between text-xs font-semibold">
-                        <span className="text-white/40">Monthly Burn Rate</span>
-                        <span className="text-white font-mono">AED 0</span>
+                        <span className="text-foreground/40">Monthly Burn Rate</span>
+                        <span className="text-foreground font-mono">AED 0</span>
                       </div>
                       <div className="flex items-center justify-between text-xs font-semibold">
-                        <span className="text-white/40">Estimated Runaway</span>
+                        <span className="text-foreground/40">Estimated Runaway</span>
                         <span className="badge bg-blue-500/10 border border-blue-500/20 text-blue-300 font-bold uppercase tracking-wider text-[9px] py-0.5">N/A</span>
                       </div>
                       <div className="flex items-center justify-between text-xs font-semibold">
-                        <span className="text-white/40">Invoiced Unpaid Balance</span>
+                        <span className="text-foreground/40">Invoiced Unpaid Balance</span>
                         <span className="text-amber-400 font-mono">AED {((financialKPIs.totalBilled * 0.15) || 0).toLocaleString(undefined, {maximumFractionDigits:0})}</span>
                       </div>
                     </div>
 
                     <div className="space-y-3.5">
-                      <h4 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.12em]">Quick Advice & Insights</h4>
-                      <div className="flex gap-2.5 p-3.5 rounded-xl bg-blue-950/30 border border-blue-500/10 text-white/70 text-xs">
+                      <h4 className="text-[10px] font-bold text-foreground/30 uppercase tracking-[0.12em]">Quick Advice & Insights</h4>
+                      <div className="flex gap-2.5 p-3.5 rounded-xl bg-muted/20 border border-blue-500/10 text-foreground/70 text-xs">
                         <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
                         <p className="leading-relaxed font-semibold text-[11px]">
                           Your net margin is <strong>{financialKPIs.profitMargin > 0 ? financialKPIs.profitMargin.toFixed(1) : "0.0"}%</strong>. Add data to generate insights.
@@ -526,8 +526,8 @@ export default function ReportsAndIntelligence() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02] p-5">
                   <CardHeader className="p-0 mb-6">
-                    <CardTitle className="text-sm font-bold text-white">Delivery Portfolio Mix</CardTitle>
-                    <CardDescription className="text-[11px] text-white/40 mt-1">Visual summary of client projects status.</CardDescription>
+                    <CardTitle className="text-sm font-bold text-foreground">Delivery Portfolio Mix</CardTitle>
+                    <CardDescription className="text-[11px] text-foreground/40 mt-1">Visual summary of client projects status.</CardDescription>
                   </CardHeader>
                   <CardContent className="h-64 p-0 flex flex-col items-center justify-center w-full min-w-0">
                     {mounted ? (
@@ -553,12 +553,12 @@ export default function ReportsAndIntelligence() {
                         </PieChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="h-full w-full flex items-center justify-center text-xs text-white/20">Loading chart...</div>
+                      <div className="h-full w-full flex items-center justify-center text-xs text-foreground/20">Loading chart...</div>
                     )}
                     
                     <div className="flex flex-wrap gap-x-4 gap-y-1.5 justify-center mt-4">
                       {getProjectStatusDistribution().map((entry, index) => (
-                        <div key={entry.name} className="flex items-center gap-1.5 text-[10px] text-white/60 font-semibold uppercase tracking-wider">
+                        <div key={entry.name} className="flex items-center gap-1.5 text-[10px] text-foreground/60 font-semibold uppercase tracking-wider">
                           <div className="w-2 h-2 rounded-full" style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }} />
                           <span>{entry.name}: {entry.value}</span>
                         </div>
@@ -569,8 +569,8 @@ export default function ReportsAndIntelligence() {
 
                 <Card className="lg:col-span-2 glass-card overflow-hidden border-white/[0.08] bg-white/[0.02] p-5">
                   <CardHeader className="p-0 mb-6">
-                    <CardTitle className="text-sm font-bold text-white">Project Velocity vs. Delivery Speed</CardTitle>
-                    <CardDescription className="text-[11px] text-white/40 mt-1">Monthly distribution of total actively loaded projects.</CardDescription>
+                    <CardTitle className="text-sm font-bold text-foreground">Project Velocity vs. Delivery Speed</CardTitle>
+                    <CardDescription className="text-[11px] text-foreground/40 mt-1">Monthly distribution of total actively loaded projects.</CardDescription>
                   </CardHeader>
                   <CardContent className="h-[300px] p-0 w-full min-w-0">
                     {mounted ? (
@@ -585,7 +585,7 @@ export default function ReportsAndIntelligence() {
                         </BarChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="h-full w-full flex items-center justify-center text-xs text-white/20">Loading chart...</div>
+                      <div className="h-full w-full flex items-center justify-center text-xs text-foreground/20">Loading chart...</div>
                     )}
                   </CardContent>
                 </Card>
@@ -597,8 +597,8 @@ export default function ReportsAndIntelligence() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <Card className="lg:col-span-2 glass-card overflow-hidden border-white/[0.08] bg-white/[0.02] p-5">
                   <CardHeader className="p-0 mb-6">
-                    <CardTitle className="text-sm font-bold text-white">Headcount Breakdown by Department</CardTitle>
-                    <CardDescription className="text-[11px] text-white/40 mt-1">Shows team density and capacity allocations.</CardDescription>
+                    <CardTitle className="text-sm font-bold text-foreground">Headcount Breakdown by Department</CardTitle>
+                    <CardDescription className="text-[11px] text-foreground/40 mt-1">Shows team density and capacity allocations.</CardDescription>
                   </CardHeader>
                   <CardContent className="h-[300px] p-0 w-full min-w-0">
                     {mounted ? (
@@ -612,15 +612,15 @@ export default function ReportsAndIntelligence() {
                         </BarChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="h-full w-full flex items-center justify-center text-xs text-white/20">Loading chart...</div>
+                      <div className="h-full w-full flex items-center justify-center text-xs text-foreground/20">Loading chart...</div>
                     )}
                   </CardContent>
                 </Card>
 
                 <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02] p-5">
                   <CardHeader className="p-0 mb-6">
-                    <CardTitle className="text-sm font-bold text-white">Total Headcount Density</CardTitle>
-                    <CardDescription className="text-[11px] text-white/40 mt-1">Full Team dynamics overview.</CardDescription>
+                    <CardTitle className="text-sm font-bold text-foreground">Total Headcount Density</CardTitle>
+                    <CardDescription className="text-[11px] text-foreground/40 mt-1">Full Team dynamics overview.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6 p-0 pt-2">
                     <div className="flex items-center justify-between p-4 border border-white/[0.06] rounded-xl bg-white/[0.01]">
@@ -629,19 +629,19 @@ export default function ReportsAndIntelligence() {
                           <Users className="w-5 h-5" />
                         </div>
                         <div>
-                          <h4 className="font-bold text-white text-xs">{employees.length || 0} Employees</h4>
-                          <p className="text-[10px] text-white/40 mt-0.5 font-semibold">Active personnel directory</p>
+                          <h4 className="font-bold text-foreground text-xs">{employees.length || 0} Employees</h4>
+                          <p className="text-[10px] text-foreground/40 mt-0.5 font-semibold">Active personnel directory</p>
                         </div>
                       </div>
-                      <ChevronRight className="w-4 h-4 text-white/30" />
+                      <ChevronRight className="w-4 h-4 text-foreground/30" />
                     </div>
 
-                    <div className="space-y-3.5 text-xs text-white/70 leading-relaxed bg-blue-950/30 p-4 border border-blue-500/10 rounded-xl">
-                      <h4 className="font-bold text-white text-[11px] uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                    <div className="space-y-3.5 text-xs text-foreground/70 leading-relaxed bg-muted/20 p-4 border border-blue-500/10 rounded-xl">
+                      <h4 className="font-bold text-foreground text-[11px] uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                         <Calendar className="w-4 h-4 text-blue-400" />
                         Workforce Health Assessment
                       </h4>
-                      <ul className="space-y-2 list-disc pl-4 text-white/60 font-semibold text-[11px]">
+                      <ul className="space-y-2 list-disc pl-4 text-foreground/60 font-semibold text-[11px]">
                         <li>Not enough data to calculate attendance metrics.</li>
                       </ul>
                     </div>
@@ -658,11 +658,11 @@ export default function ReportsAndIntelligence() {
             {/* Submit Report Form */}
             <Card className="lg:col-span-1 glass bg-white/[0.02] border border-white/[0.08] shadow-lg rounded-2xl p-6">
               <CardHeader className="p-0 mb-4">
-                <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
+                <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
                   <Send className="w-4 h-4 text-blue-400" />
                   Submit Status Report
                 </CardTitle>
-                <CardDescription className="text-[10px] text-white/40 mt-1">
+                <CardDescription className="text-[10px] text-foreground/40 mt-1">
                   Submit a daily update or a weekly summary to update your team leads.
                 </CardDescription>
               </CardHeader>
@@ -670,7 +670,7 @@ export default function ReportsAndIntelligence() {
                 <form onSubmit={handleSubmitReport} className="space-y-4">
                   {/* Report Type Selection */}
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Report Type</label>
+                    <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Report Type</label>
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         type="button"
@@ -678,7 +678,7 @@ export default function ReportsAndIntelligence() {
                         className={`h-9 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                           reportType === "daily"
                             ? "bg-blue-600/20 text-blue-300 border-blue-500/30"
-                            : "bg-white/[0.01] text-white/40 border-white/[0.08] hover:text-white/80 hover:bg-white/[0.03]"
+                            : "bg-white/[0.01] text-foreground/40 border-white/[0.08] hover:text-foreground/80 hover:bg-white/[0.03]"
                         }`}
                       >
                         Daily Report
@@ -689,7 +689,7 @@ export default function ReportsAndIntelligence() {
                         className={`h-9 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                           reportType === "weekly"
                             ? "bg-cyan-600/20 text-cyan-300 border-cyan-500/30"
-                            : "bg-white/[0.01] text-white/40 border-white/[0.08] hover:text-white/80 hover:bg-white/[0.03]"
+                            : "bg-white/[0.01] text-foreground/40 border-white/[0.08] hover:text-foreground/80 hover:bg-white/[0.03]"
                         }`}
                       >
                         Weekly Report
@@ -699,20 +699,20 @@ export default function ReportsAndIntelligence() {
 
                   {/* Date Input */}
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
+                    <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">
                       {reportType === "daily" ? "Report Date" : "Week Ending Date"}
                     </label>
                     <Input
                       type="date"
                       value={reportDate}
                       onChange={(e) => setReportDate(e.target.value)}
-                      className="glass-input h-9 text-xs border-white/10 text-white placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0"
+                      className="glass-input h-9 text-xs border-border text-foreground placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0"
                     />
                   </div>
 
                   {/* Accomplishments */}
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
+                    <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">
                       Accomplishments / What I did
                     </label>
                     <Textarea
@@ -720,13 +720,13 @@ export default function ReportsAndIntelligence() {
                       value={accomplishments}
                       onChange={(e) => setAccomplishments(e.target.value)}
                       rows={4}
-                      className="glass-input text-xs border-white/10 text-white placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 resize-none"
+                      className="glass-input text-xs border-border text-foreground placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 resize-none"
                     />
                   </div>
 
                   {/* Planned */}
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider">
+                    <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">
                       Planned / What's Next
                     </label>
                     <Textarea
@@ -734,13 +734,13 @@ export default function ReportsAndIntelligence() {
                       value={planned}
                       onChange={(e) => setPlanned(e.target.value)}
                       rows={3}
-                      className="glass-input text-xs border-white/10 text-white placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 resize-none"
+                      className="glass-input text-xs border-border text-foreground placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 resize-none"
                     />
                   </div>
 
                   {/* Blockers */}
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-white/40 uppercase tracking-wider flex items-center gap-1 text-amber-400/80">
+                    <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider flex items-center gap-1 text-amber-400/80">
                       <AlertTriangle className="w-3 h-3 text-amber-400" />
                       Blockers / Challenges (Optional)
                     </label>
@@ -749,7 +749,7 @@ export default function ReportsAndIntelligence() {
                       value={blockers}
                       onChange={(e) => setBlockers(e.target.value)}
                       rows={2}
-                      className="glass-input text-xs border-white/10 text-white placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 resize-none"
+                      className="glass-input text-xs border-border text-foreground placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 resize-none"
                     />
                   </div>
 
@@ -782,20 +782,20 @@ export default function ReportsAndIntelligence() {
             <Card className="lg:col-span-2 glass bg-white/[0.02] border border-white/[0.08] shadow-lg rounded-2xl p-6">
               <CardHeader className="p-0 mb-4 flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
+                  <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
                     <FileText className="w-4 h-4 text-blue-400" />
                     My Report Submissions
                   </CardTitle>
-                  <CardDescription className="text-[10px] text-white/40 mt-1">
+                  <CardDescription className="text-[10px] text-foreground/40 mt-1">
                     Your previous submissions are listed below. Click details to expand.
                   </CardDescription>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
                 {loadingReports ? (
-                  <div className="py-12 text-center text-xs text-white/20 font-semibold">Loading status reports...</div>
+                  <div className="py-12 text-center text-xs text-foreground/20 font-semibold">Loading status reports...</div>
                 ) : myReports.length === 0 ? (
-                  <div className="py-16 text-center text-xs text-white/30 border border-dashed border-white/10 rounded-xl font-semibold uppercase tracking-wider">
+                  <div className="py-16 text-center text-xs text-foreground/30 border border-dashed border-border rounded-xl font-semibold uppercase tracking-wider">
                     No status reports submitted yet. Submit your first update today!
                   </div>
                 ) : (
@@ -812,12 +812,12 @@ export default function ReportsAndIntelligence() {
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className="font-bold text-xs text-white capitalize">{rep.type} Update</span>
+                              <span className="font-bold text-xs text-foreground capitalize">{rep.type} Update</span>
                               <Badge className={rep.type === "daily" ? "bg-blue-500/10 text-blue-400 border-blue-500/25" : "bg-cyan-500/10 text-cyan-400 border-cyan-500/25"}>
                                 {rep.date}
                               </Badge>
                             </div>
-                            <p className="text-[11px] text-white/50 mt-1.5 line-clamp-1 max-w-[280px] sm:max-w-[400px] font-medium">
+                            <p className="text-[11px] text-foreground/50 mt-1.5 line-clamp-1 max-w-[280px] sm:max-w-[400px] font-medium">
                               {rep.accomplishments}
                             </p>
                           </div>
@@ -825,7 +825,7 @@ export default function ReportsAndIntelligence() {
 
                         <button 
                           onClick={() => { setSelectedReport(rep); setIsViewModalOpen(true); }}
-                          className="btn-ghost p-2 text-white/40 hover:text-white hover:bg-white/5 rounded-xl border-white/5 cursor-pointer shrink-0"
+                          className="btn-ghost p-2 text-foreground/40 hover:text-foreground hover:bg-muted/40 rounded-xl border-border/30 cursor-pointer shrink-0"
                           title="View report details"
                         >
                           <Eye className="w-4 h-4" />
@@ -845,11 +845,11 @@ export default function ReportsAndIntelligence() {
             <Card className="glass bg-white/[0.02] border border-white/[0.08] shadow-lg rounded-2xl p-6">
               <CardHeader className="p-0 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                  <CardTitle className="text-sm font-bold text-white flex items-center gap-2">
+                  <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
                     <Users className="w-4 h-4 text-blue-400" />
                     Team Status Reports
                   </CardTitle>
-                  <CardDescription className="text-[10px] text-white/40 mt-1">
+                  <CardDescription className="text-[10px] text-foreground/40 mt-1">
                     Review Daily and Weekly work reports submitted across the organization.
                   </CardDescription>
                 </div>
@@ -857,11 +857,11 @@ export default function ReportsAndIntelligence() {
                 {/* Filters Row */}
                 <div className="flex flex-wrap gap-3">
                   <div className="flex items-center gap-2">
-                    <Filter className="w-3.5 h-3.5 text-white/30" />
+                    <Filter className="w-3.5 h-3.5 text-foreground/30" />
                     <select 
                       value={filterType} 
                       onChange={(e) => setFilterType(e.target.value)}
-                      className="glass-input h-8 text-[11px] font-semibold border-white/10 bg-[#090e18]/80 text-white rounded-lg focus:border-blue-500/60 focus:ring-0 px-2.5 py-0"
+                      className="glass-input h-8 text-[11px] font-semibold border-border bg-[#090e18]/80 text-foreground rounded-lg focus:border-blue-500/60 focus:ring-0 px-2.5 py-0"
                     >
                       <option value="all">All Types</option>
                       <option value="daily">Daily Reports</option>
@@ -872,7 +872,7 @@ export default function ReportsAndIntelligence() {
                   <select 
                     value={filterEmployee} 
                     onChange={(e) => setFilterEmployee(e.target.value)}
-                    className="glass-input h-8 text-[11px] font-semibold border-white/10 bg-[#090e18]/80 text-white rounded-lg focus:border-blue-500/60 focus:ring-0 px-2.5 py-0"
+                    className="glass-input h-8 text-[11px] font-semibold border-border bg-[#090e18]/80 text-foreground rounded-lg focus:border-blue-500/60 focus:ring-0 px-2.5 py-0"
                   >
                     <option value="all">All Employees</option>
                     {Array.from(new Set(teamReports.map(r => r.employeeName))).map(name => (
@@ -883,7 +883,7 @@ export default function ReportsAndIntelligence() {
               </CardHeader>
               <CardContent className="p-0">
                 {loadingReports ? (
-                  <div className="py-12 text-center text-xs text-white/20 font-semibold">Loading status reports...</div>
+                  <div className="py-12 text-center text-xs text-foreground/20 font-semibold">Loading status reports...</div>
                 ) : (
                   (() => {
                     const filtered = teamReports.filter(rep => {
@@ -894,7 +894,7 @@ export default function ReportsAndIntelligence() {
 
                     if (filtered.length === 0) {
                       return (
-                        <div className="py-16 text-center text-xs text-white/30 border border-dashed border-white/10 rounded-xl font-semibold uppercase tracking-wider">
+                        <div className="py-16 text-center text-xs text-foreground/30 border border-dashed border-border rounded-xl font-semibold uppercase tracking-wider">
                           No status reports match the current filters.
                         </div>
                       );
@@ -914,13 +914,13 @@ export default function ReportsAndIntelligence() {
                               </div>
                               <div>
                                 <div className="flex flex-wrap items-center gap-2.5">
-                                  <span className="font-bold text-xs text-white">{rep.employeeName}</span>
-                                  <span className="text-[10px] text-white/40 font-semibold">{rep.employeeTitle || "Team Member"}</span>
+                                  <span className="font-bold text-xs text-foreground">{rep.employeeName}</span>
+                                  <span className="text-[10px] text-foreground/40 font-semibold">{rep.employeeTitle || "Team Member"}</span>
                                   <Badge className={rep.type === "daily" ? "bg-blue-500/10 text-blue-400 border-blue-500/25" : "bg-cyan-500/10 text-cyan-400 border-cyan-500/25"}>
                                     {rep.type} • {rep.date}
                                   </Badge>
                                 </div>
-                                <p className="text-[11px] text-white/50 mt-1.5 line-clamp-1 max-w-[280px] sm:max-w-[400px] font-medium">
+                                <p className="text-[11px] text-foreground/50 mt-1.5 line-clamp-1 max-w-[280px] sm:max-w-[400px] font-medium">
                                   {rep.accomplishments}
                                 </p>
                               </div>
@@ -928,7 +928,7 @@ export default function ReportsAndIntelligence() {
 
                             <button 
                               onClick={() => { setSelectedReport(rep); setIsViewModalOpen(true); }}
-                              className="btn-ghost p-2 text-white/40 hover:text-white hover:bg-white/5 rounded-xl border-white/5 cursor-pointer shrink-0"
+                              className="btn-ghost p-2 text-foreground/40 hover:text-foreground hover:bg-muted/40 rounded-xl border-border/30 cursor-pointer shrink-0"
                               title="View report details"
                             >
                               <Eye className="w-4 h-4" />
@@ -947,12 +947,12 @@ export default function ReportsAndIntelligence() {
 
       {/* Detailed Report View Modal */}
       <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent className="max-w-md bg-[#0a1122]/98 border border-white/10 rounded-2xl text-white p-6 shadow-2xl backdrop-blur-xl">
+        <DialogContent className="max-w-md bg-[#0a1122]/98 border border-border rounded-2xl text-foreground p-6 shadow-2xl backdrop-blur-xl">
           {selectedReport && (
             <>
               <DialogHeader className="border-b border-white/[0.08] pb-4">
                 <div className="flex items-center justify-between">
-                  <DialogTitle className="text-sm font-bold text-white flex items-center gap-2">
+                  <DialogTitle className="text-sm font-bold text-foreground flex items-center gap-2">
                     <FileText className="w-4 h-4 text-blue-400" />
                     {selectedReport.employeeName}'s {selectedReport.type === "daily" ? "Daily" : "Weekly"} Report
                   </DialogTitle>
@@ -960,7 +960,7 @@ export default function ReportsAndIntelligence() {
                     {selectedReport.date}
                   </Badge>
                 </div>
-                <DialogDescription className="text-[9px] text-white/40 font-semibold mt-1">
+                <DialogDescription className="text-[9px] text-foreground/40 font-semibold mt-1">
                   Submitted by {selectedReport.employeeTitle || "Team Member"}
                 </DialogDescription>
               </DialogHeader>
@@ -968,8 +968,8 @@ export default function ReportsAndIntelligence() {
               <div className="space-y-4 py-4 max-h-[420px] overflow-y-auto pr-1">
                 {/* Accomplishments */}
                 <div className="space-y-1.5">
-                  <h4 className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Accomplishments / Work Done</h4>
-                  <p className="text-xs text-white/80 whitespace-pre-wrap leading-relaxed bg-white/[0.01] border border-white/[0.04] p-3.5 rounded-xl font-medium">
+                  <h4 className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Accomplishments / Work Done</h4>
+                  <p className="text-xs text-foreground/80 whitespace-pre-wrap leading-relaxed bg-white/[0.01] border border-white/[0.04] p-3.5 rounded-xl font-medium">
                     {selectedReport.accomplishments}
                   </p>
                 </div>
@@ -977,8 +977,8 @@ export default function ReportsAndIntelligence() {
                 {/* Planned */}
                 {selectedReport.planned && (
                   <div className="space-y-1.5">
-                    <h4 className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Planned / Next Steps</h4>
-                    <p className="text-xs text-white/85 whitespace-pre-wrap leading-relaxed bg-white/[0.01] border border-white/[0.04] p-3.5 rounded-xl font-medium">
+                    <h4 className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Planned / Next Steps</h4>
+                    <p className="text-xs text-foreground/85 whitespace-pre-wrap leading-relaxed bg-white/[0.01] border border-white/[0.04] p-3.5 rounded-xl font-medium">
                       {selectedReport.planned}
                     </p>
                   </div>

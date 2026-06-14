@@ -72,11 +72,11 @@ export default function InternManagement() {
   };
 
   return (
-    <RoleGuard permission="VIEW_ALL_EMPLOYEES" fallback={<div className="p-8 text-center text-white/40 font-bold uppercase tracking-wider text-xs">Access Denied. Only HR personnel can view active intern trackers.</div>}>
+    <RoleGuard permission="VIEW_ALL_EMPLOYEES" fallback={<div className="p-8 text-center text-foreground/40 font-bold uppercase tracking-wider text-xs">Access Denied. Only HR personnel can view active intern trackers.</div>}>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">Intern Management</h1>
-          <p className="text-white/40 mt-1">Track internship progress and generate completion certificates.</p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Intern Management</h1>
+          <p className="text-foreground/40 mt-1">Track internship progress and generate completion certificates.</p>
         </div>
 
         {loading ? (
@@ -85,8 +85,8 @@ export default function InternManagement() {
           </div>
         ) : interns.length === 0 ? (
           <div className="text-center p-12 bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl rounded-2xl">
-            <h3 className="text-lg font-medium text-white/80">No active interns found</h3>
-            <p className="text-sm text-white/40 mt-1">When interns are added, they will appear here.</p>
+            <h3 className="text-lg font-medium text-foreground/80">No active interns found</h3>
+            <p className="text-sm text-foreground/40 mt-1">When interns are added, they will appear here.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -101,19 +101,19 @@ export default function InternManagement() {
                     <div className="p-5 pb-4 bg-white/[0.01] border-b border-white/[0.06]">
                       <div className="flex justify-between items-start">
                         <div className="flex items-center gap-3">
-                          <Avatar className="h-12 w-12 border border-white/10 shadow-glow-blue/20">
+                          <Avatar className="h-12 w-12 border border-border shadow-glow-blue/20">
                             <AvatarImage src={intern.profilePhotoURL} alt={intern.fullName} />
                             <AvatarFallback className="bg-blue-500/10 text-blue-300 font-bold">
                               {getInitials(intern.fullName)}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <h3 className="text-base font-bold text-white hover:text-blue-400 transition-colors">
+                            <h3 className="text-base font-bold text-foreground hover:text-blue-400 transition-colors">
                               <Link href={`/dashboard/hr/${intern.id}`}>
                                 {intern.fullName}
                               </Link>
                             </h3>
-                            <div className="text-xs text-white/40 font-bold uppercase tracking-wider mt-0.5">{intern.department || "No Department"}</div>
+                            <div className="text-xs text-foreground/40 font-bold uppercase tracking-wider mt-0.5">{intern.department || "No Department"}</div>
                           </div>
                         </div>
                         {isEndingSoon && (
@@ -123,24 +123,24 @@ export default function InternManagement() {
                     </div>
                     
                     <div className="p-5 space-y-5">
-                      <div className="flex items-center gap-2 text-sm text-white/80">
-                        <CalendarClock className="h-4 w-4 text-white/40" />
+                      <div className="flex items-center gap-2 text-sm text-foreground/80">
+                        <CalendarClock className="h-4 w-4 text-foreground/40" />
                         <span className="font-semibold">Ends:</span>
-                        <span className="text-white/60">
+                        <span className="text-foreground/60">
                           {intern.internEndDate ? new Date(intern.internEndDate).toLocaleDateString() : 'TBD'}
                         </span>
-                        <Badge variant="outline" className="ml-auto font-bold border-white/10 text-white/60 bg-white/[0.02]">
+                        <Badge variant="outline" className="ml-auto font-bold border-border text-foreground/60 bg-white/[0.02]">
                           {daysRemaining}
                         </Badge>
                       </div>
 
                       <div className="space-y-1.5">
                         <div className="flex justify-between text-xs">
-                          <span className="text-white/40 font-bold uppercase tracking-wider">Internship Progress</span>
-                          <span className="font-bold text-white/80">{progress}%</span>
+                          <span className="text-foreground/40 font-bold uppercase tracking-wider">Internship Progress</span>
+                          <span className="font-bold text-foreground/80">{progress}%</span>
                         </div>
                         {/* High-fidelity glowing custom progress bar */}
-                        <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
+                        <div className="h-2 w-full bg-muted/40 rounded-full overflow-hidden">
                           <div 
                             className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 shadow-glow-blue transition-all duration-300 rounded-full" 
                             style={{ width: `${progress}%` }}
@@ -152,11 +152,11 @@ export default function InternManagement() {
 
                   <div className="p-5 pt-0">
                     <div className="pt-4 flex justify-between gap-3 border-t border-white/[0.06]">
-                      <Button variant="outline" className="w-full border-white/10 text-white/60 hover:text-white hover:bg-white/5 font-semibold rounded-xl cursor-pointer" render={<Link href={`/dashboard/hr/${intern.id}`} />} nativeButton={false}>
+                      <Button variant="outline" className="w-full border-border text-foreground/60 hover:text-foreground hover:bg-muted/40 font-semibold rounded-xl cursor-pointer" render={<Link href={`/dashboard/hr/${intern.id}`} />} nativeButton={false}>
                         View Profile
                       </Button>
                       <Button 
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white shadow-glow-blue border-0 rounded-xl font-bold gap-2 cursor-pointer" 
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-foreground shadow-glow-blue border-0 rounded-xl font-bold gap-2 cursor-pointer" 
                         onClick={() => generateInternCertificate(intern.fullName, intern.department || "General", new Date().toLocaleDateString())}
                       >
                         <FileText className="h-4 w-4" /> Certificate

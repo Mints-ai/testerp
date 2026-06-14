@@ -20,6 +20,8 @@ import { cn } from "@/lib/utils";
 
 export default function EmployeeDirectory() {
   const { role } = useAuth();
+  const adminEmailsEnv = process.env.NEXT_PUBLIC_ADMIN_EMAILS || "";
+  const adminEmails = adminEmailsEnv.split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -64,25 +66,23 @@ export default function EmployeeDirectory() {
   const founders = filteredEmployees.filter(
     e => (e.role === "founder" || e.role === "c_suite") && 
          e.fullName !== "System Administrator" && 
-         e.email !== "admin@mintsglobal.ae" && 
-         e.email !== "admin@mintsgloabal.ae"
+         !adminEmails.includes(e.email?.toLowerCase().trim() || "")
   );
   const others = filteredEmployees.filter(
     e => e.role !== "founder" && 
          e.role !== "c_suite" && 
          e.fullName !== "System Administrator" &&
-         e.email !== "admin@mintsglobal.ae" &&
-         e.email !== "admin@mintsgloabal.ae"
+         !adminEmails.includes(e.email?.toLowerCase().trim() || "")
   );
 
   return (
-    <div className="space-y-6 pb-12 text-white">
+    <div className="space-y-6 pb-12 text-foreground">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+          <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <Users className="h-5 w-5 text-blue-500" /> Directory
           </h1>
-          <p className="text-xs text-white/40 mt-1">Manage and view organizational intelligence.</p>
+          <p className="text-xs text-foreground/40 mt-1">Manage and view organizational intelligence.</p>
         </div>
         
         <RoleGuard permission="VIEW_ALL_EMPLOYEES">
@@ -92,8 +92,8 @@ export default function EmployeeDirectory() {
                 onClick={() => setViewMode("grid")}
                 className={cn("px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center transition-all cursor-pointer", 
                   viewMode === "grid" 
-                    ? "bg-blue-600 text-white shadow-glow-blue" 
-                    : "text-white/40 hover:text-white/80"
+                    ? "bg-blue-600 text-foreground shadow-glow-blue" 
+                    : "text-foreground/40 hover:text-foreground/80"
                 )}
               >
                 <LayoutGrid className="w-3.5 h-3.5 mr-1.5" /> Grid
@@ -102,8 +102,8 @@ export default function EmployeeDirectory() {
                 onClick={() => setViewMode("tree")}
                 className={cn("px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center transition-all cursor-pointer", 
                   viewMode === "tree" 
-                    ? "bg-blue-600 text-white shadow-glow-blue" 
-                    : "text-white/40 hover:text-white/80"
+                    ? "bg-blue-600 text-foreground shadow-glow-blue" 
+                    : "text-foreground/40 hover:text-foreground/80"
                 )}
               >
                 <Network className="w-3.5 h-3.5 mr-1.5" /> Org Chart
@@ -124,10 +124,10 @@ export default function EmployeeDirectory() {
       {/* Filters */}
       <div className="flex flex-col md:flex-row gap-4 bg-white/[0.02] p-4 rounded-2xl border border-white/[0.06] backdrop-blur-[24px]">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-white/30" />
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-foreground/30" />
           <Input
             placeholder="Search by name or title..."
-            className="glass-input h-9 text-xs pl-10 border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full"
+            className="glass-input h-9 text-xs pl-10 border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -135,25 +135,25 @@ export default function EmployeeDirectory() {
         
         <div className="flex gap-4 md:w-1/2">
           <Select value={deptFilter} onValueChange={(val) => setDeptFilter(val || "all")}>
-            <SelectTrigger className="flex-1 bg-white/[0.03] border-white/10 text-white placeholder:text-white/20 focus:ring-blue-500/60 h-9 text-xs rounded-xl">
+            <SelectTrigger className="flex-1 bg-white/[0.03] border-border text-foreground placeholder:text-foreground/20 focus:ring-blue-500/60 h-9 text-xs rounded-xl">
               <SelectValue placeholder="All Departments" />
             </SelectTrigger>
-            <SelectContent className="bg-[#121813] border-white/[0.08] text-white">
-              <SelectItem value="all" className="text-xs hover:bg-white/5 focus:bg-white/5">All Departments</SelectItem>
+            <SelectContent className="bg-[#121813] border-white/[0.08] text-foreground">
+              <SelectItem value="all" className="text-xs hover:bg-muted/40 focus:bg-muted/40">All Departments</SelectItem>
               {departments.map((dept: any) => (
-                <SelectItem key={dept} value={dept} className="text-xs hover:bg-white/5 focus:bg-white/5">{dept}</SelectItem>
+                <SelectItem key={dept} value={dept} className="text-xs hover:bg-muted/40 focus:bg-muted/40">{dept}</SelectItem>
               ))}
             </SelectContent>
           </Select>
 
           <Select value={roleFilter} onValueChange={(val) => setRoleFilter(val || "all")}>
-            <SelectTrigger className="flex-1 bg-white/[0.03] border-white/10 text-white placeholder:text-white/20 focus:ring-blue-500/60 h-9 text-xs rounded-xl">
+            <SelectTrigger className="flex-1 bg-white/[0.03] border-border text-foreground placeholder:text-foreground/20 focus:ring-blue-500/60 h-9 text-xs rounded-xl">
               <SelectValue placeholder="All Roles" />
             </SelectTrigger>
-            <SelectContent className="bg-[#121813] border-white/[0.08] text-white">
-              <SelectItem value="all" className="text-xs hover:bg-white/5 focus:bg-white/5">All Roles</SelectItem>
+            <SelectContent className="bg-[#121813] border-white/[0.08] text-foreground">
+              <SelectItem value="all" className="text-xs hover:bg-muted/40 focus:bg-muted/40">All Roles</SelectItem>
               {Object.entries(ROLE_META).map(([key, meta]) => (
-                <SelectItem key={key} value={key} className="text-xs hover:bg-white/5 focus:bg-white/5">{meta.label}</SelectItem>
+                <SelectItem key={key} value={key} className="text-xs hover:bg-muted/40 focus:bg-muted/40">{meta.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -167,14 +167,14 @@ export default function EmployeeDirectory() {
         </div>
       ) : filteredEmployees.length === 0 ? (
         <div className="text-center py-16 px-4 bg-white/[0.01] rounded-2xl border border-white/[0.05] border-dashed">
-          <h3 className="text-sm font-bold text-white/50 uppercase tracking-wider">No people found</h3>
-          <p className="text-xs text-white/30 mt-1">Try adjusting your search or filters.</p>
+          <h3 className="text-sm font-bold text-foreground/50 uppercase tracking-wider">No people found</h3>
+          <p className="text-xs text-foreground/30 mt-1">Try adjusting your search or filters.</p>
         </div>
       ) : viewMode === "grid" ? (
         <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           <AnimatePresence>
             {filteredEmployees.map((emp) => {
-              const roleMeta = ROLE_META[emp.role] || { label: "Employee", color: "bg-white/5 text-white border-white/10" };
+              const roleMeta = ROLE_META[emp.role] || { label: "Employee", color: "bg-muted/40 text-foreground border-border" };
               const isOnline = emp.lastSeenAt && (Date.now() - new Date(emp.lastSeenAt).getTime() < 5 * 60 * 1000);
               
               return (
@@ -196,7 +196,7 @@ export default function EmployeeDirectory() {
                     <CardContent className="px-4 pb-4 pt-0 text-center relative">
                       <div className="absolute -top-10 left-1/2 -translate-x-1/2 rounded-full p-1 bg-[#0a1628] shadow-sm">
                         <div className="relative">
-                          <Avatar className="h-16 w-16 border-2 border-white/10 shadow-sm bg-blue-950">
+                          <Avatar className="h-16 w-16 border-2 border-border shadow-sm bg-blue-950">
                             <AvatarImage src={emp.profilePhotoURL} alt={emp.fullName} />
                             <AvatarFallback className="bg-blue-800 text-blue-200 text-base font-bold">
                               {getInitials(emp.fullName)}
@@ -211,17 +211,17 @@ export default function EmployeeDirectory() {
                       
                       <div className="mt-10 space-y-3">
                         <div>
-                          <h3 className="font-bold text-sm text-white line-clamp-1 group-hover:text-blue-400 transition-colors" title={emp.fullName}>
+                          <h3 className="font-bold text-sm text-foreground line-clamp-1 group-hover:text-blue-400 transition-colors" title={emp.fullName}>
                             {emp.fullName}
                           </h3>
-                          <p className="text-[10px] text-white/40 line-clamp-1 font-semibold mt-0.5" title={emp.jobTitle || "Team Member"}>
+                          <p className="text-[10px] text-foreground/40 line-clamp-1 font-semibold mt-0.5" title={emp.jobTitle || "Team Member"}>
                             {emp.jobTitle || "Team Member"}
                           </p>
                         </div>
 
                         <div className="flex flex-col items-center gap-1.5 w-full">
                           {(emp.departments || (emp.department ? [emp.department] : [])).map((dept: string, i: number) => (
-                            <span key={i} className="badge bg-white/5 border border-white/10 text-white/60 font-semibold text-[9px] py-0.5 uppercase tracking-wider">
+                            <span key={i} className="badge bg-muted/40 border border-border text-foreground/60 font-semibold text-[9px] py-0.5 uppercase tracking-wider">
                               <Building2 className="w-2.5 h-2.5 mr-1 text-blue-400" />
                               {dept}
                             </span>
@@ -247,7 +247,7 @@ export default function EmployeeDirectory() {
                         
                         {emp.role === "intern" && (
                           <div className="mt-3 pt-3 border-t border-white/[0.04] w-full text-left">
-                            <div className="flex justify-between text-[9px] text-white/40 font-bold mb-1 uppercase tracking-wider">
+                            <div className="flex justify-between text-[9px] text-foreground/40 font-bold mb-1 uppercase tracking-wider">
                               <span>Intern Progress</span>
                               <span>65%</span>
                             </div>
@@ -276,11 +276,11 @@ export default function EmployeeDirectory() {
                     <AvatarImage src={emp.profilePhotoURL} />
                     <AvatarFallback className="text-base font-bold bg-blue-800 text-blue-200">{getInitials(emp.fullName)}</AvatarFallback>
                   </Avatar>
-                  <p className="font-bold text-xs text-white mt-3">{emp.fullName}</p>
+                  <p className="font-bold text-xs text-foreground mt-3">{emp.fullName}</p>
                   <p className="text-[10px] text-blue-400 font-semibold mt-0.5">{emp.jobTitle || ROLE_META[emp.role]?.label || "Executive"}</p>
                 </div>
               )) : (
-                <div className="text-white/20 italic text-xs">No executives defined</div>
+                <div className="text-foreground/20 italic text-xs">No executives defined</div>
               )}
               {/* Connector line down */}
               {founders.length > 0 && others.length > 0 && (
@@ -295,19 +295,19 @@ export default function EmployeeDirectory() {
                 <div className="absolute top-0 left-12 right-12 h-0.5 bg-blue-500/25"></div>
                 <div className="flex gap-6 justify-center flex-wrap max-w-6xl">
                   {others.map(emp => {
-                    const roleMeta = ROLE_META[emp.role] || { label: "Employee", color: "bg-white/5 text-white border-white/10" };
+                    const roleMeta = ROLE_META[emp.role] || { label: "Employee", color: "bg-muted/40 text-foreground border-border" };
                     return (
                       <div key={emp.id} className="flex flex-col items-center relative cursor-pointer hover:-translate-y-1 transition-transform bg-white/[0.02] p-4 rounded-xl border border-white/[0.06] shadow-sm w-36" onClick={() => setSelectedEmployee(emp)}>
                         {/* Vertical connector line up */}
                         <div className="absolute -top-6 left-1/2 -ml-px w-0.5 h-6 bg-blue-500/25"></div>
                         <Avatar className={cn("h-12 w-12 shadow-sm z-10 bg-blue-950 border-2", 
-                          emp.role === "manager" || emp.role === "director" || emp.role === "system_admin" ? "border-blue-500" : "border-white/10"
+                          emp.role === "manager" || emp.role === "director" || emp.role === "system_admin" ? "border-blue-500" : "border-border"
                         )}>
                           <AvatarImage src={emp.profilePhotoURL} />
                           <AvatarFallback className="bg-blue-800 text-blue-200 font-bold text-xs">{getInitials(emp.fullName)}</AvatarFallback>
                         </Avatar>
-                        <p className="font-bold text-white mt-3 text-xs truncate w-full text-center" title={emp.fullName}>{emp.fullName}</p>
-                        <p className="text-[9px] text-white/40 text-center truncate w-full font-bold uppercase mt-0.5">{emp.jobTitle || roleMeta.label}</p>
+                        <p className="font-bold text-foreground mt-3 text-xs truncate w-full text-center" title={emp.fullName}>{emp.fullName}</p>
+                        <p className="text-[9px] text-foreground/40 text-center truncate w-full font-bold uppercase mt-0.5">{emp.jobTitle || roleMeta.label}</p>
                       </div>
                     );
                   })}
@@ -320,25 +320,25 @@ export default function EmployeeDirectory() {
 
       {/* Detail Drawer */}
       <Sheet open={!!selectedEmployee} onOpenChange={(open) => !open && setSelectedEmployee(null)}>
-        <SheetContent className="w-[400px] sm:w-[520px] overflow-y-auto border-l border-white/[0.08] bg-[#121813] text-white flex flex-col p-6">
+        <SheetContent className="w-[400px] sm:w-[520px] overflow-y-auto border-l border-white/[0.08] bg-[#121813] text-foreground flex flex-col p-6">
           {selectedEmployee && (
             <div className="space-y-6 pb-12 mt-6">
               <SheetHeader className="text-left flex flex-row items-center gap-4 border-b border-white/[0.06] pb-6 shrink-0">
-                <Avatar className="h-16 w-16 border border-white/10 ring-2 ring-blue-500/20 shrink-0 bg-blue-950">
+                <Avatar className="h-16 w-16 border border-border ring-2 ring-blue-500/20 shrink-0 bg-blue-950">
                   <AvatarImage src={selectedEmployee.profilePhotoURL} />
                   <AvatarFallback className="text-base font-bold text-blue-200 bg-blue-800">{getInitials(selectedEmployee.fullName)}</AvatarFallback>
                 </Avatar>
                 <div>
-                  <SheetTitle className="text-base font-bold text-white leading-tight">{selectedEmployee.fullName}</SheetTitle>
+                  <SheetTitle className="text-base font-bold text-foreground leading-tight">{selectedEmployee.fullName}</SheetTitle>
                   <SheetDescription className="text-blue-400 font-semibold text-xs mt-0.5 leading-none">
                     {selectedEmployee.jobTitle || "No Title"}
                   </SheetDescription>
                   <div className="flex flex-wrap gap-1.5 mt-2.5">
-                    <Badge variant="outline" className="border-white/10 text-white/60 bg-white/5 text-[9px] uppercase tracking-wider font-bold shadow-none whitespace-nowrap shrink-0">
+                    <Badge variant="outline" className="border-border text-foreground/60 bg-muted/40 text-[9px] uppercase tracking-wider font-bold shadow-none whitespace-nowrap shrink-0">
                       {ROLE_META[selectedEmployee.role]?.label || "Employee"}
                     </Badge>
                     {(selectedEmployee.departments || (selectedEmployee.department ? [selectedEmployee.department] : [])).map((dept: string, i: number) => (
-                      <Badge key={i} variant="outline" className="border-white/10 text-white/60 bg-white/5 text-[9px] uppercase tracking-wider font-bold shadow-none whitespace-nowrap shrink-0">
+                      <Badge key={i} variant="outline" className="border-border text-foreground/60 bg-muted/40 text-[9px] uppercase tracking-wider font-bold shadow-none whitespace-nowrap shrink-0">
                         {dept}
                       </Badge>
                     ))}
@@ -356,11 +356,11 @@ export default function EmployeeDirectory() {
                 <button className="flex-1 min-w-[80px] whitespace-nowrap btn-primary h-9 text-xs font-bold flex items-center justify-center cursor-pointer px-2">
                   <MessageSquare className="w-3.5 h-3.5 mr-1.5 shrink-0" /> Message
                 </button>
-                <button className="flex-1 min-w-[80px] whitespace-nowrap btn-ghost h-9 text-xs font-semibold flex items-center justify-center border-white/10 text-white/70 cursor-pointer px-2">
+                <button className="flex-1 min-w-[80px] whitespace-nowrap btn-ghost h-9 text-xs font-semibold flex items-center justify-center border-border text-foreground/70 cursor-pointer px-2">
                   <Mail className="w-3.5 h-3.5 mr-1.5 shrink-0" /> Email
                 </button>
                 <Link href={`/dashboard/hr/${selectedEmployee.id}`} className="flex-1 min-w-[90px] flex cursor-pointer">
-                  <button className="w-full whitespace-nowrap btn-ghost h-9 text-xs font-semibold flex items-center justify-center border-white/10 text-white/70 cursor-pointer px-2">
+                  <button className="w-full whitespace-nowrap btn-ghost h-9 text-xs font-semibold flex items-center justify-center border-border text-foreground/70 cursor-pointer px-2">
                     Full Profile
                   </button>
                 </Link>
@@ -368,7 +368,7 @@ export default function EmployeeDirectory() {
 
               <div className="space-y-5">
                 <div>
-                  <h4 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.12em] mb-2.5">Current Status</h4>
+                  <h4 className="text-[10px] font-bold text-foreground/30 uppercase tracking-[0.12em] mb-2.5">Current Status</h4>
                   <Card className="border-white/[0.06] bg-white/[0.01]">
                     <CardContent className="p-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -376,8 +376,8 @@ export default function EmployeeDirectory() {
                           selectedEmployeeIsOnline ? "bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.8)] animate-pulse" : "bg-white/20"
                         )}></div>
                         <div>
-                          <p className="text-xs font-bold text-white">{selectedEmployeeIsOnline ? "Active Now" : "Offline"}</p>
-                          <p className="text-[10px] text-white/40 mt-0.5">
+                          <p className="text-xs font-bold text-foreground">{selectedEmployeeIsOnline ? "Active Now" : "Offline"}</p>
+                          <p className="text-[10px] text-foreground/40 mt-0.5">
                             {selectedEmployeeIsOnline ? "Active on Mints ERP" : selectedEmployee.lastSeenAt ? `Last active ${new Date(selectedEmployee.lastSeenAt).toLocaleString()}` : "Offline"}
                           </p>
                         </div>
@@ -387,29 +387,29 @@ export default function EmployeeDirectory() {
                 </div>
 
                 <div>
-                  <h4 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.12em] mb-2.5 flex justify-between items-center">
+                  <h4 className="text-[10px] font-bold text-foreground/30 uppercase tracking-[0.12em] mb-2.5 flex justify-between items-center">
                     Leave Balance
-                    <span className="text-[9px] text-white/40 normal-case font-bold">24 days total</span>
+                    <span className="text-[9px] text-foreground/40 normal-case font-bold">24 days total</span>
                   </h4>
                   <div className="space-y-2">
                     <div className="flex justify-between text-xs font-bold">
-                      <span className="text-white/60">Used</span>
-                      <span className="text-white">0 days</span>
+                      <span className="text-foreground/60">Used</span>
+                      <span className="text-foreground">0 days</span>
                     </div>
                     <div className="glass-progress w-full">
                       <div className="glass-progress-fill" style={{ width: `0%` }}></div>
                     </div>
                     <div className="flex justify-between text-xs font-bold">
-                      <span className="text-white/30">Remaining</span>
+                      <span className="text-foreground/30">Remaining</span>
                       <span className="text-blue-400">24 days</span>
                     </div>
                   </div>
                 </div>
 
                 <div>
-                  <h4 className="text-[10px] font-bold text-white/30 uppercase tracking-[0.12em] mb-2.5">Active Projects</h4>
+                  <h4 className="text-[10px] font-bold text-foreground/30 uppercase tracking-[0.12em] mb-2.5">Active Projects</h4>
                   <div className="space-y-2">
-                    <div className="p-4 text-center text-xs text-white/40 italic bg-white/[0.01] rounded-xl border border-white/[0.06]">
+                    <div className="p-4 text-center text-xs text-foreground/40 italic bg-white/[0.01] rounded-xl border border-white/[0.06]">
                       No active projects assigned.
                     </div>
                   </div>
@@ -433,7 +433,7 @@ export default function EmployeeDirectory() {
                           }
                         }
                       }}
-                      className="w-full py-2 bg-rose-600/10 hover:bg-rose-600 border border-rose-500/20 hover:border-rose-500 text-rose-300 hover:text-white text-xs font-bold rounded-xl transition-all duration-300 cursor-pointer flex items-center justify-center gap-1.5"
+                      className="w-full py-2 bg-rose-600/10 hover:bg-rose-600 border border-rose-500/20 hover:border-rose-500 text-rose-300 hover:text-foreground text-xs font-bold rounded-xl transition-all duration-300 cursor-pointer flex items-center justify-center gap-1.5"
                     >
                       <Trash2 className="w-3.5 h-3.5" /> Deprovision Employee Profile
                     </button>

@@ -333,7 +333,7 @@ export default function CloudDrive() {
             onChange={handleUpload}
           />
           <Button 
-            className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md"
+            className="bg-indigo-600 hover:bg-indigo-700 text-foreground shadow-md"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
           >

@@ -64,13 +64,12 @@ export default function Announcements() {
       const allAnns = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as any));
       
       // Filter based on audience
-      // Assuming user has a department field. Since we don't have it directly in user context here,
-      // we'll fetch it from the employee doc or assume it's in user object
-      const userDept = user.department || "unknown"; // Make sure to add department to AuthUser interface
+      // Support multiple departments via user.departments array
+      const userDepts: string[] = user.departments || (user.department ? [user.department] : []);
       
       const visibleAnns = allAnns.filter(ann => {
         if (ann.audience === "all") return true;
-        if (ann.audience === "department" && ann.targetValue === userDept) return true;
+        if (ann.audience === "department" && userDepts.includes(ann.targetValue)) return true;
         if (ann.audience === "role" && ann.targetValue === role) return true;
         // The creator can always see their posts
         if (ann.createdBy === user.uid) return true;
@@ -200,42 +199,42 @@ export default function Announcements() {
     <div className="space-y-6 max-w-5xl mx-auto pb-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2 text-white">
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2 text-foreground">
             <Megaphone className="h-8 w-8 text-blue-400" />
             Notice Board
           </h1>
-          <p className="text-white/40 mt-1">Company-wide and department announcements.</p>
+          <p className="text-foreground/40 mt-1">Company-wide and department announcements.</p>
         </div>
         
         {isManagerOrAbove && (
           <Dialog open={isPostOpen} onOpenChange={setIsPostOpen}>
-            <DialogTrigger className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold h-10 px-5 bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-all hover:translate-y-[-1px]">
+            <DialogTrigger className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold h-10 px-5 bg-blue-600 hover:bg-blue-700 text-foreground shadow-md transition-all hover:translate-y-[-1px]">
               Post Announcement
             </DialogTrigger>
-            <DialogContent className="max-w-3xl bg-[#121813] border-white/10 rounded-2xl shadow-xl text-white">
+            <DialogContent className="max-w-3xl bg-[#121813] border-border rounded-2xl shadow-xl text-foreground">
               <DialogHeader>
-                <DialogTitle className="text-xl font-bold text-white">New Announcement</DialogTitle>
+                <DialogTitle className="text-xl font-bold text-foreground">New Announcement</DialogTitle>
               </DialogHeader>
               
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label className="text-xs font-bold text-white/60 uppercase">Announcement Title</Label>
-                  <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="E.g. Q3 Town Hall Meeting" className="bg-white/5 border-white/10 rounded-xl text-white" />
+                  <Label className="text-xs font-bold text-foreground/60 uppercase">Announcement Title</Label>
+                  <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="E.g. Q3 Town Hall Meeting" className="bg-muted/40 border-border rounded-xl text-foreground" />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label className="text-xs font-bold text-white/60 uppercase">Message Content</Label>
-                  <EditorContent editor={editor} className="bg-white/5 border border-white/10 rounded-xl text-white overflow-hidden" />
+                  <Label className="text-xs font-bold text-foreground/60 uppercase">Message Content</Label>
+                  <EditorContent editor={editor} className="bg-muted/40 border border-border rounded-xl text-foreground overflow-hidden" />
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-xs font-bold text-white/60 uppercase">Target Audience</Label>
+                    <Label className="text-xs font-bold text-foreground/60 uppercase">Target Audience</Label>
                     <Select value={audience} onValueChange={(val) => setAudience(val || "all")}>
-                      <SelectTrigger className="bg-white/5 border-white/10 rounded-xl text-white">
+                      <SelectTrigger className="bg-muted/40 border-border rounded-xl text-foreground">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-[#121813] border-white/10 text-white">
+                      <SelectContent className="bg-[#121813] border-border text-foreground">
                         <SelectItem value="all">All Staff</SelectItem>
                         <SelectItem value="department">Specific Department</SelectItem>
                         <SelectItem value="role">Specific Role</SelectItem>
@@ -245,10 +244,10 @@ export default function Announcements() {
                   
                   {audience === "department" && (
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold text-white/60 uppercase">Select Department</Label>
+                      <Label className="text-xs font-bold text-foreground/60 uppercase">Select Department</Label>
                       <Select value={targetValue} onValueChange={(val) => setTargetValue(val || "")}>
-                        <SelectTrigger className="bg-white/5 border-white/10 rounded-xl text-white"><SelectValue placeholder="Choose department" /></SelectTrigger>
-                        <SelectContent className="bg-[#121813] border-white/10 text-white">
+                        <SelectTrigger className="bg-muted/40 border-border rounded-xl text-foreground"><SelectValue placeholder="Choose department" /></SelectTrigger>
+                        <SelectContent className="bg-[#121813] border-border text-foreground">
                           {DEPARTMENTS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                         </SelectContent>
                       </Select>
@@ -257,10 +256,10 @@ export default function Announcements() {
                   
                   {audience === "role" && (
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold text-white/60 uppercase">Select Role</Label>
+                      <Label className="text-xs font-bold text-foreground/60 uppercase">Select Role</Label>
                       <Select value={targetValue} onValueChange={(val) => setTargetValue(val || "")}>
-                        <SelectTrigger className="bg-white/5 border-white/10 rounded-xl text-white"><SelectValue placeholder="Choose role" /></SelectTrigger>
-                        <SelectContent className="bg-[#121813] border-white/10 text-white">
+                        <SelectTrigger className="bg-muted/40 border-border rounded-xl text-foreground"><SelectValue placeholder="Choose role" /></SelectTrigger>
+                        <SelectContent className="bg-[#121813] border-border text-foreground">
                           {Object.entries(ROLE_META).map(([key, meta]) => (
                             <SelectItem key={key} value={key}>{meta.label}</SelectItem>
                           ))}
@@ -270,21 +269,21 @@ export default function Announcements() {
                   )}
                 </div>
                 
-                <div className="flex gap-6 pt-4 border-t border-white/5">
+                <div className="flex gap-6 pt-4 border-t border-border/30">
                   <div className="flex items-center space-x-2">
-                    <Checkbox id="pin" checked={isPinned} onCheckedChange={(c) => setIsPinned(!!c)} className="border-white/20 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
-                    <Label htmlFor="pin" className="cursor-pointer text-xs font-semibold text-white/60 uppercase">Pin to top</Label>
+                    <Checkbox id="pin" checked={isPinned} onCheckedChange={(c) => setIsPinned(!!c)} className="border-border/80 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
+                    <Label htmlFor="pin" className="cursor-pointer text-xs font-semibold text-foreground/60 uppercase">Pin to top</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Checkbox id="email" checked={sendEmail} onCheckedChange={(c) => setSendEmail(!!c)} className="border-white/20 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
-                    <Label htmlFor="email" className="cursor-pointer text-xs font-semibold text-white/60 uppercase">Send Email Notification</Label>
+                    <Checkbox id="email" checked={sendEmail} onCheckedChange={(c) => setSendEmail(!!c)} className="border-border/80 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
+                    <Label htmlFor="email" className="cursor-pointer text-xs font-semibold text-foreground/60 uppercase">Send Email Notification</Label>
                   </div>
                 </div>
               </div>
               
               <DialogFooter className="gap-2 sm:gap-0">
-                <Button variant="outline" onClick={() => setIsPostOpen(false)} className="rounded-xl border-white/10 text-white bg-transparent hover:bg-white/5">Cancel</Button>
-                <Button onClick={handlePost} disabled={isSubmitting || !title} className="bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold">
+                <Button variant="outline" onClick={() => setIsPostOpen(false)} className="rounded-xl border-border text-foreground bg-transparent hover:bg-muted/40">Cancel</Button>
+                <Button onClick={handlePost} disabled={isSubmitting || !title} className="bg-blue-600 hover:bg-blue-700 text-foreground rounded-xl font-semibold">
                   {isSubmitting ? "Posting..." : "Publish Announcement"}
                 </Button>
               </DialogFooter>
@@ -295,34 +294,34 @@ export default function Announcements() {
 
       <div className="space-y-4">
         {loading ? (
-          <div className="text-center py-12 text-white/40">Loading announcements...</div>
+          <div className="text-center py-12 text-foreground/40">Loading announcements...</div>
         ) : announcements.length === 0 ? (
-          <div className="text-center py-16 glass rounded-2xl shadow-xl flex flex-col items-center border-dashed border-white/10 bg-white/[0.01] p-12">
-             <Megaphone className="h-12 w-12 text-white/20 mb-4" />
-             <h3 className="text-lg font-bold text-white">No Announcements</h3>
-             <p className="text-sm text-white/40 mt-1">Check back later for updates from management.</p>
+          <div className="text-center py-16 glass rounded-2xl shadow-xl flex flex-col items-center border-dashed border-border bg-white/[0.01] p-12">
+             <Megaphone className="h-12 w-12 text-foreground/20 mb-4" />
+             <h3 className="text-lg font-bold text-foreground">No Announcements</h3>
+             <p className="text-sm text-foreground/40 mt-1">Check back later for updates from management.</p>
           </div>
         ) : (
           announcements.map((ann) => {
             const isRead = ann.readBy?.includes(user?.uid);
             
             return (
-              <Card key={ann.id} className={`overflow-hidden border-white/10 bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-300 rounded-2xl shadow-sm hover:shadow-md ${ann.isPinned ? 'border-l-4 border-l-blue-500' : ''}`}>
+              <Card key={ann.id} className={`overflow-hidden border-border bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-300 rounded-2xl shadow-sm hover:shadow-md ${ann.isPinned ? 'border-l-4 border-l-blue-500' : ''}`}>
                 <CardHeader className="pb-2 bg-white/[0.01] flex flex-row items-start justify-between">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       {ann.isPinned && <Pin className="h-4 w-4 text-blue-400 fill-blue-400" />}
-                      <CardTitle className="text-xl font-bold text-white">{ann.title}</CardTitle>
+                      <CardTitle className="text-xl font-bold text-foreground">{ann.title}</CardTitle>
                       
                       {ann.audience !== "all" && (
-                        <Badge variant="outline" className="ml-2 bg-white/5 border-white/10 text-white/60 font-medium text-xs rounded-lg">
+                        <Badge variant="outline" className="ml-2 bg-muted/40 border-border text-foreground/60 font-medium text-xs rounded-lg">
                           {ann.audience === "department" ? "Dept: " : "Role: "} 
                           {ann.audience === "role" ? ROLE_META[ann.targetValue]?.label : ann.targetValue}
                         </Badge>
                       )}
                     </div>
-                    <div className="text-sm text-white/40 flex items-center gap-2">
-                      <span>Posted by <strong className="text-white/60">{ann.creatorName || "Management"}</strong></span>
+                    <div className="text-sm text-foreground/40 flex items-center gap-2">
+                      <span>Posted by <strong className="text-foreground/60">{ann.creatorName || "Management"}</strong></span>
                       <span>•</span>
                       <span>{ann.createdAt ? new Date(ann.createdAt.seconds * 1000).toLocaleDateString() : 'Just now'}</span>
                     </div>
@@ -341,7 +340,7 @@ export default function Announcements() {
                   )}
                 </CardHeader>
                 <CardContent className="pt-4">
-                  <div className="prose prose-invert prose-sm max-w-none text-white/80" 
+                  <div className="prose prose-invert prose-sm max-w-none text-foreground/80" 
                        dangerouslySetInnerHTML={{ __html: ann.content }} />
                 </CardContent>
               </Card>

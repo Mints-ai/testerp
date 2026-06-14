@@ -144,19 +144,19 @@ export default function CreateProject() {
   }
 
   return (
-    <RoleGuard permission="CREATE_PROJECT" fallback={<div className="p-8 text-center text-white/40 font-bold uppercase tracking-wider text-xs">Access Denied. Only Senior Employees and above can create projects.</div>}>
-      <div className="space-y-6 max-w-3xl pb-12 text-white">
+    <RoleGuard permission="CREATE_PROJECT" fallback={<div className="p-8 text-center text-foreground/40 font-bold uppercase tracking-wider text-xs">Access Denied. Only Senior Employees and above can create projects.</div>}>
+      <div className="space-y-6 max-w-3xl pb-12 text-foreground">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+          <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <Briefcase className="h-5 w-5 text-blue-500" /> Create New Project
           </h1>
-          <p className="text-xs text-white/40 mt-1">Set up a new client contract or strategic internal initiative.</p>
+          <p className="text-xs text-foreground/40 mt-1">Set up a new client contract or strategic internal initiative.</p>
         </div>
 
         <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
           <CardHeader className="p-6 border-b border-white/[0.06]">
-            <CardTitle className="text-sm font-bold text-white uppercase tracking-wider">Project Scope details</CardTitle>
-            <CardDescription className="text-xs text-white/40 mt-1">
+            <CardTitle className="text-sm font-bold text-foreground uppercase tracking-wider">Project Scope details</CardTitle>
+            <CardDescription className="text-xs text-foreground/40 mt-1">
               Configure initial project specifications, targets, and executive leadership assignment.
             </CardDescription>
           </CardHeader>
@@ -169,11 +169,11 @@ export default function CreateProject() {
                   name="name"
                   render={({ field }) => (
                     <FormItem className="space-y-1.5">
-                      <FormLabel className="text-xs font-bold text-white/60 uppercase tracking-wider">Project Title</FormLabel>
+                      <FormLabel className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Project Title</FormLabel>
                       <FormControl>
                         <Input 
                           placeholder="e.g. E-Commerce Platform Redesign" 
-                          className="glass-input h-10 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full" 
+                          className="glass-input h-10 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full" 
                           {...field} 
                         />
                       </FormControl>
@@ -188,12 +188,12 @@ export default function CreateProject() {
                     name="clientId"
                     render={({ field }) => (
                       <FormItem className="space-y-1.5">
-                        <FormLabel className="text-xs font-bold text-white/60 uppercase tracking-wider">Target Client Account</FormLabel>
+                        <FormLabel className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Target Client Account</FormLabel>
                         <FormControl>
                           <select 
                             onChange={field.onChange} 
                             value={field.value || ""} 
-                            className="w-full h-10 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-white"
+                            className="w-full h-10 border border-border rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-foreground"
                           >
                             <option value="">Select account...</option>
                             {clients.map(c => (
@@ -211,12 +211,12 @@ export default function CreateProject() {
                     name="serviceType"
                     render={({ field }) => (
                       <FormItem className="space-y-1.5">
-                        <FormLabel className="text-xs font-bold text-white/60 uppercase tracking-wider">Core Deliverable Category</FormLabel>
+                        <FormLabel className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Core Deliverable Category</FormLabel>
                         <FormControl>
                           <select 
                             onChange={field.onChange} 
                             value={field.value || ""} 
-                            className="w-full h-10 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-white"
+                            className="w-full h-10 border border-border rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-foreground"
                           >
                             <option value="">Select scope...</option>
                             {SERVICES.map(s => (
@@ -236,12 +236,12 @@ export default function CreateProject() {
                     name="managerId"
                     render={({ field }) => (
                       <FormItem className="space-y-1.5">
-                        <FormLabel className="text-xs font-bold text-white/60 uppercase tracking-wider">Assigned Project Director</FormLabel>
+                        <FormLabel className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Assigned Project Director</FormLabel>
                         <FormControl>
                           <select 
                             onChange={field.onChange} 
                             value={field.value || ""} 
-                            className="w-full h-10 border border-white/10 rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-white"
+                            className="w-full h-10 border border-border rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-foreground"
                           >
                             <option value="">Select director...</option>
                             {managers.map(m => (
@@ -261,14 +261,14 @@ export default function CreateProject() {
                       render={({ field }) => (
                         <FormItem className="space-y-1.5">
                           <div className="flex justify-between items-center">
-                            <FormLabel className="text-xs font-bold text-white/60 uppercase tracking-wider">Approved Budget ({compCurrency})</FormLabel>
-                            <span className="text-[9px] text-white/30 uppercase tracking-wider font-bold">Optional</span>
+                            <FormLabel className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Approved Budget ({compCurrency})</FormLabel>
+                            <span className="text-[9px] text-foreground/30 uppercase tracking-wider font-bold">Optional</span>
                           </div>
                           <FormControl>
                             <Input 
                               type="number" 
                               placeholder="e.g. 150000" 
-                              className="glass-input h-10 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono" 
+                              className="glass-input h-10 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono" 
                               {...field} 
                             />
                           </FormControl>
@@ -285,11 +285,11 @@ export default function CreateProject() {
                     name="startDate"
                     render={({ field }) => (
                       <FormItem className="space-y-1.5">
-                        <FormLabel className="text-xs font-bold text-white/60 uppercase tracking-wider">Kickoff Date</FormLabel>
+                        <FormLabel className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Kickoff Date</FormLabel>
                         <FormControl>
                           <Input 
                             type="date" 
-                            className="glass-input h-10 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full" 
+                            className="glass-input h-10 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full" 
                             {...field} 
                           />
                         </FormControl>
@@ -304,13 +304,13 @@ export default function CreateProject() {
                     render={({ field }) => (
                       <FormItem className="space-y-1.5">
                         <div className="flex justify-between items-center">
-                          <FormLabel className="text-xs font-bold text-white/60 uppercase tracking-wider">Delivery Target Date</FormLabel>
-                          <span className="text-[9px] text-white/30 uppercase tracking-wider font-bold">Optional</span>
+                          <FormLabel className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Delivery Target Date</FormLabel>
+                          <span className="text-[9px] text-foreground/30 uppercase tracking-wider font-bold">Optional</span>
                         </div>
                         <FormControl>
                           <Input 
                             type="date" 
-                            className="glass-input h-10 text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full" 
+                            className="glass-input h-10 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full" 
                             {...field} 
                           />
                         </FormControl>
@@ -325,11 +325,11 @@ export default function CreateProject() {
                   name="description"
                   render={({ field }) => (
                     <FormItem className="space-y-1.5">
-                      <FormLabel className="text-xs font-bold text-white/60 uppercase tracking-wider">Statement of Work & Goals</FormLabel>
+                      <FormLabel className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Statement of Work & Goals</FormLabel>
                       <FormControl>
                         <Textarea 
                           placeholder="Outline specific objectives, milestone deliverable schedules, and overall goals..." 
-                          className="glass-input min-h-[120px] text-xs border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full p-3"
+                          className="glass-input min-h-[120px] text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full p-3"
                           {...field} 
                         />
                       </FormControl>
@@ -343,7 +343,7 @@ export default function CreateProject() {
                     type="button" 
                     onClick={() => router.back()} 
                     disabled={isSubmitting}
-                    className="btn-ghost h-10 py-0 px-5 text-xs font-bold border-white/10 text-white/70 hover:text-white cursor-pointer"
+                    className="btn-ghost h-10 py-0 px-5 text-xs font-bold border-border text-foreground/70 hover:text-foreground cursor-pointer"
                   >
                     Cancel
                   </button>

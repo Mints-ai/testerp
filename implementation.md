@@ -40,11 +40,11 @@ We solved several critical security loopholes and tailored account creation to f
 * **Removed Suffix Blocks**: Deleted standard `@mintsglobal.ae` domain enforcement within Google Sign-in provider parameters inside [AuthContext.tsx](file:///c:/Users/anand/Downloads/Enterprise%20Resource%20Planning/mintsglobal-erp/src/context/AuthContext.tsx). Employees can now log in using standard Gmail (`@gmail.com`) or any custom domain email.
 * **Authorized Profile Matching**: Secured the login listener to compare Google-authenticated emails against registered users in the Firestore `employees` collection. Non-registered Google accounts are immediately rejected with an "Access Denied" window and signed out.
 
-### Self-Healing Super Admin Backdoor (`binuarjunanand@gmail.com`)
-A bulletproof, self-healing override hook was built inside [AuthContext.tsx](file:///c:/Users/anand/Downloads/Enterprise%20Resource%20Planning/mintsglobal-erp/src/context/AuthContext.tsx):
-1. **Auto-Onboarding**: If `binuarjunanand@gmail.com` logs in on a fresh database, the system automatically registers a new profile under the `employees` collection.
-2. **Founder Permissions Lock**: Enforces the absolute highest administrative role: **`Founder`** (`Super Admin`).
-3. **Self-Repair Hook**: If an admin or manager attempts to change your role or deactivate your account in the UI, the auth-state listener detects the change on your next sign-in, instantly re-writes your document data back to `role: "founder"` and `isActive: true`, and grants you complete system access to handle everyone, including the CEO.
+### Dynamic Self-Healing Super Admin Configuration
+A dynamic self-healing override hook was built inside [AuthContext.tsx](file:///c:/Users/anand/Downloads/Enterprise%20Resource%20Planning/mintsglobal-erp/src/context/AuthContext.tsx) powered by the `NEXT_PUBLIC_ADMIN_EMAILS` environment variable (managed locally in `.env.local` to prevent leaks to source control):
+1. **Auto-Onboarding**: If any configured admin email logs in on a fresh database, the system automatically registers a new profile under the `employees` collection.
+2. **Founder/Admin Permissions Lock**: Enforces the absolute highest administrative roles (e.g. `founder` or `system_admin`).
+3. **Self-Repair Hook**: If an admin or manager attempts to change your role or deactivate your account in the UI, the auth-state listener detects the change on your next sign-in, instantly re-writes your document data back to the authorized fallback role and `isActive: true`, and grants you complete system access.
 4. **Visual Indicator**: Renders a locked Shield badge next to your name in [Employee Profiles](file:///c:/Users/anand/Downloads/Enterprise%20Resource%20Planning/mintsglobal-erp/src/app/dashboard/hr/[uid]/page.tsx).
 
 ---

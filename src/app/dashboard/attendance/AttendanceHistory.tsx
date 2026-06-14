@@ -192,7 +192,8 @@ export function AttendanceHistory() {
       const { collection, addDoc } = await import("firebase/firestore");
       await addDoc(collection(db, "auditLog"), {
         actorId: user.uid,
-        action: "TIMECARD_OVERRIDE",
+        actorName: user.fullName || user.email || "Admin",
+        action: "ATTENDANCE_SHIFT_EDIT",
         targetCollection: "attendance",
         targetId: editRecord.id,
         details: `Admin modified shift logs for ${editRecord.employeeName} on ${editRecord.date}. Recalculated work: ${formatElapsed(totalWorkingSeconds)}, break: ${formatElapsed(totalBreakSeconds)}.`,
@@ -333,7 +334,7 @@ export function AttendanceHistory() {
   };
 
   return (
-    <div className="space-y-6 text-white pb-6">
+    <div className="space-y-6 text-foreground pb-6">
       {/* Search & Filter Control Panel */}
       <div className="bg-white/[0.02] border border-white/[0.06] backdrop-blur-[24px] rounded-2xl p-6 space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
@@ -341,13 +342,13 @@ export function AttendanceHistory() {
           {/* Admin Employee Selector Dropdown */}
           {isAdminOrManager && (
             <div className="space-y-1.5 md:col-span-1">
-              <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest pl-1">Employee Scope</label>
+              <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest pl-1">Employee Scope</label>
               <div className="relative">
-                <User className="absolute left-3 top-2.5 h-4 w-4 text-white/30" />
+                <User className="absolute left-3 top-2.5 h-4 w-4 text-foreground/30" />
                 <select
                   value={selectedEmployeeId}
                   onChange={(e) => setSelectedEmployeeId(e.target.value)}
-                  className="w-full h-9 border border-white/10 rounded-xl pl-9 pr-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#0c1322] text-white cursor-pointer"
+                  className="w-full h-9 border border-border rounded-xl pl-9 pr-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#0c1322] text-foreground cursor-pointer"
                 >
                   <option value="all">All Employees (Org-wide)</option>
                   {employees.map(emp => (
@@ -360,12 +361,12 @@ export function AttendanceHistory() {
 
           {/* Start Date */}
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest pl-1">Start Date</label>
+            <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest pl-1">Start Date</label>
             <div className="relative">
-              <CalendarIcon className="absolute left-3 top-2.5 h-4 w-4 text-white/30 pointer-events-none" />
+              <CalendarIcon className="absolute left-3 top-2.5 h-4 w-4 text-foreground/30 pointer-events-none" />
               <Input
                 type="date"
-                className="glass-input h-9 text-xs pl-10 pr-3 border-white/10 text-white focus:border-blue-500/60 focus:ring-0 w-full [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+                className="glass-input h-9 text-xs pl-10 pr-3 border-border text-foreground focus:border-blue-500/60 focus:ring-0 w-full [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 max={endDate}
@@ -375,12 +376,12 @@ export function AttendanceHistory() {
 
           {/* End Date */}
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest pl-1">End Date</label>
+            <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest pl-1">End Date</label>
             <div className="relative">
-              <CalendarIcon className="absolute left-3 top-2.5 h-4 w-4 text-white/30 pointer-events-none" />
+              <CalendarIcon className="absolute left-3 top-2.5 h-4 w-4 text-foreground/30 pointer-events-none" />
               <Input
                 type="date"
-                className="glass-input h-9 text-xs pl-10 pr-3 border-white/10 text-white focus:border-blue-500/60 focus:ring-0 w-full [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+                className="glass-input h-9 text-xs pl-10 pr-3 border-border text-foreground focus:border-blue-500/60 focus:ring-0 w-full [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
                 min={startDate}
@@ -392,12 +393,12 @@ export function AttendanceHistory() {
           {/* Quick Name Search (If Admin & Viewing All) */}
           {isAdminOrManager && selectedEmployeeId === "all" ? (
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-white/40 uppercase tracking-widest pl-1">Search Table</label>
+              <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest pl-1">Search Table</label>
               <div className="relative">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-white/30" />
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-foreground/30" />
                 <Input
                   placeholder="Filter table by name..."
-                  className="glass-input h-9 text-xs pl-10 border-white/10 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0 w-full text-white"
+                  className="glass-input h-9 text-xs pl-10 border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full text-foreground"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -415,22 +416,22 @@ export function AttendanceHistory() {
 
         {/* Quick Date Presets */}
         <div className="flex flex-wrap items-center gap-2 pt-2 text-xs">
-          <span className="text-white/40 font-bold uppercase tracking-wider text-[10px] mr-2">Presets:</span>
+          <span className="text-foreground/40 font-bold uppercase tracking-wider text-[10px] mr-2">Presets:</span>
           <button
             onClick={() => handleQuickRange(7)}
-            className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 hover:text-white font-medium transition-all active:scale-95 cursor-pointer"
+            className="px-3 py-1.5 rounded-lg bg-muted/40 border border-border text-foreground/70 hover:bg-muted/80 hover:text-foreground font-medium transition-all active:scale-95 cursor-pointer"
           >
             Last 7 Days
           </button>
           <button
             onClick={() => handleQuickRange(30)}
-            className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 hover:text-white font-medium transition-all active:scale-95 cursor-pointer"
+            className="px-3 py-1.5 rounded-lg bg-muted/40 border border-border text-foreground/70 hover:bg-muted/80 hover:text-foreground font-medium transition-all active:scale-95 cursor-pointer"
           >
             Last 30 Days
           </button>
           <button
             onClick={handleThisMonth}
-            className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 hover:text-white font-medium transition-all active:scale-95 cursor-pointer"
+            className="px-3 py-1.5 rounded-lg bg-muted/40 border border-border text-foreground/70 hover:bg-muted/80 hover:text-foreground font-medium transition-all active:scale-95 cursor-pointer"
           >
             This Month
           </button>
@@ -442,13 +443,13 @@ export function AttendanceHistory() {
         <CardHeader className="pb-4 border-b border-white/[0.06] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-2">
             <Clock className="w-5 h-5 text-blue-400" />
-            <h3 className="font-bold text-white text-lg">Historical Records Log</h3>
+            <h3 className="font-bold text-foreground text-lg">Historical Records Log</h3>
           </div>
           <div className="flex items-center gap-3">
             <Button
               onClick={handleExportCSV}
               variant="outline"
-              className="h-8 px-3 rounded-lg text-xs bg-white/5 border-white/10 text-white/80 hover:bg-white/10 hover:text-white"
+              className="h-8 px-3 rounded-lg text-xs bg-muted/40 border-border text-foreground/80 hover:bg-muted/80 hover:text-foreground"
             >
               <Download className="mr-1.5 h-3.5 w-3.5 text-emerald-400" />
               Export Timesheets
@@ -462,7 +463,7 @@ export function AttendanceHistory() {
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-              <thead className="bg-white/[0.02] text-white/60 text-xs uppercase font-bold border-b border-white/[0.06]">
+              <thead className="bg-white/[0.02] text-foreground/60 text-xs uppercase font-bold border-b border-white/[0.06]">
                 <tr>
                   <th className="px-6 py-4">Date</th>
                   {isAdminOrManager && selectedEmployeeId === "all" && (
@@ -478,7 +479,7 @@ export function AttendanceHistory() {
               <tbody className="divide-y divide-white/[0.04]">
                 {loading ? (
                   <tr>
-                    <td colSpan={isAdminOrManager && selectedEmployeeId === "all" ? 7 : 6} className="px-6 py-12 text-center text-white/40 font-medium italic">
+                    <td colSpan={isAdminOrManager && selectedEmployeeId === "all" ? 7 : 6} className="px-6 py-12 text-center text-foreground/40 font-medium italic">
                       <div className="flex items-center justify-center gap-2">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
                         <span>Syncing security historical logs...</span>
@@ -487,7 +488,7 @@ export function AttendanceHistory() {
                   </tr>
                 ) : filteredRecords.length === 0 ? (
                   <tr>
-                    <td colSpan={isAdminOrManager && selectedEmployeeId === "all" ? 7 : 6} className="px-6 py-12 text-center text-white/40 font-medium italic">
+                    <td colSpan={isAdminOrManager && selectedEmployeeId === "all" ? 7 : 6} className="px-6 py-12 text-center text-foreground/40 font-medium italic">
                       No attendance records found for the selected scope and dates.
                     </td>
                   </tr>
@@ -503,7 +504,7 @@ export function AttendanceHistory() {
                     return (
                       <tr key={rec.id} className="hover:bg-white/[0.02] transition-colors border-b border-white/[0.04] last:border-b-0">
                         {/* Date */}
-                        <td className="px-6 py-4 font-bold text-white">
+                        <td className="px-6 py-4 font-bold text-foreground">
                           {formattedDateLabel(rec.date)}
                         </td>
 
@@ -511,12 +512,12 @@ export function AttendanceHistory() {
                         {isAdminOrManager && selectedEmployeeId === "all" && (
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2">
-                              <Avatar className="h-7 w-7 border border-white/10 bg-blue-950">
+                              <Avatar className="h-7 w-7 border border-border bg-blue-950">
                                 <AvatarFallback className="bg-blue-800 text-blue-200 font-bold text-[10px]">
                                   {getInitials(rec.employeeName)}
                                 </AvatarFallback>
                               </Avatar>
-                              <span className="font-semibold text-white/95">{rec.employeeName || "Employee"}</span>
+                              <span className="font-semibold text-foreground/95">{rec.employeeName || "Employee"}</span>
                             </div>
                           </td>
                         )}
@@ -528,7 +529,7 @@ export function AttendanceHistory() {
                               {clockInLog.time}
                             </Badge>
                           ) : (
-                            <span className="text-xs text-white/20 italic">N/A</span>
+                            <span className="text-xs text-foreground/20 italic">N/A</span>
                           )}
                         </td>
 
@@ -543,14 +544,14 @@ export function AttendanceHistory() {
                               Active Shift
                             </Badge>
                           ) : (
-                            <span className="text-xs text-white/20 italic">N/A</span>
+                            <span className="text-xs text-foreground/20 italic">N/A</span>
                           )}
                         </td>
 
                         {/* Total Working Hours */}
                         <td className="px-6 py-4 text-center">
                           <div className="flex flex-col items-center">
-                            <span className={cn("font-mono font-bold tabular-nums text-sm text-white")}>
+                            <span className={cn("font-mono font-bold tabular-nums text-sm text-foreground")}>
                               {formatElapsed(workingSec)}
                             </span>
                             {workingSec > 28800 ? (
@@ -558,7 +559,7 @@ export function AttendanceHistory() {
                                 Overtime (+{formatElapsedShort(workingSec - 28800)})
                               </span>
                             ) : workingSec > 0 ? (
-                              <span className="text-[9px] text-white/40 font-bold uppercase mt-0.5">
+                              <span className="text-[9px] text-foreground/40 font-bold uppercase mt-0.5">
                                 Regular Shift
                               </span>
                             ) : null}
@@ -566,7 +567,7 @@ export function AttendanceHistory() {
                         </td>
 
                         {/* Total Break Duration */}
-                        <td className="px-6 py-4 text-center font-mono font-semibold text-white/60">
+                        <td className="px-6 py-4 text-center font-mono font-semibold text-foreground/60">
                           {breakSec > 0 ? formatElapsed(breakSec) : "00:00:00"}
                         </td>
 
@@ -578,37 +579,37 @@ export function AttendanceHistory() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="h-8 px-3 text-white/60 hover:text-white hover:bg-white/5 rounded-lg font-bold text-xs flex items-center justify-center gap-1 cursor-pointer"
+                                  className="h-8 px-3 text-foreground/60 hover:text-foreground hover:bg-muted/40 rounded-lg font-bold text-xs flex items-center justify-center gap-1 cursor-pointer"
                                 >
                                   <Eye className="w-3.5 h-3.5" /> Details
                                 </Button>
                               }/>
-                              <DialogContent className="max-w-md bg-[#0a1628] border border-white/[0.08] text-white backdrop-blur-xl rounded-2xl shadow-2xl">
+                              <DialogContent className="max-w-md bg-[#0a1628] border border-white/[0.08] text-foreground backdrop-blur-xl rounded-2xl shadow-2xl">
                                 <DialogHeader>
-                                  <DialogTitle className="text-xl font-bold flex items-center gap-2 text-white">
+                                  <DialogTitle className="text-xl font-bold flex items-center gap-2 text-foreground">
                                     <Clock className="w-5 h-5 text-blue-400 animate-pulse" />
                                     Shift Activity Timeline
                                   </DialogTitle>
-                                  <DialogDescription className="text-white/40 text-xs mt-1">
-                                    Chronological logs for <span className="text-white font-bold">{rec.employeeName || "Employee"}</span> on <span className="text-blue-400 font-bold">{formattedDateLabel(rec.date)}</span>
+                                  <DialogDescription className="text-foreground/40 text-xs mt-1">
+                                    Chronological logs for <span className="text-foreground font-bold">{rec.employeeName || "Employee"}</span> on <span className="text-blue-400 font-bold">{formattedDateLabel(rec.date)}</span>
                                   </DialogDescription>
                                 </DialogHeader>
 
                                 {/* Stats Overview inside Modal */}
                                 <div className="grid grid-cols-2 gap-4 mt-4 bg-white/[0.02] border border-white/[0.06] rounded-xl p-3 text-center">
                                   <div>
-                                    <p className="text-[9px] text-white/40 uppercase tracking-widest font-bold">Total Work Time</p>
+                                    <p className="text-[9px] text-foreground/40 uppercase tracking-widest font-bold">Total Work Time</p>
                                     <p className="text-lg font-bold text-emerald-400 font-mono mt-1">{formatElapsed(workingSec)}</p>
                                   </div>
                                   <div>
-                                    <p className="text-[9px] text-white/40 uppercase tracking-widest font-bold">Total Break Time</p>
+                                    <p className="text-[9px] text-foreground/40 uppercase tracking-widest font-bold">Total Break Time</p>
                                     <p className="text-lg font-bold text-amber-400 font-mono mt-1">{formatElapsed(breakSec)}</p>
                                   </div>
                                 </div>
 
                                 <div className="mt-6 space-y-4 max-h-[350px] overflow-y-auto pr-1">
                                   {rec.logs && rec.logs.length > 0 ? (
-                                    <div className="relative pl-6 border-l border-white/10 space-y-4 ml-3 py-1">
+                                    <div className="relative pl-6 border-l border-border space-y-4 ml-3 py-1">
                                       {rec.logs.map((log: any, idx: number) => (
                                         <div key={idx} className="relative">
                                           {/* Dot node */}
@@ -620,8 +621,8 @@ export function AttendanceHistory() {
                                           )} />
                                           <div className="flex justify-between items-center bg-white/[0.02] border border-white/[0.06] rounded-xl p-3 hover:bg-white/[0.04] transition-colors">
                                             <div>
-                                              <h4 className="font-bold text-sm text-white">{log.label}</h4>
-                                              <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider mt-0.5">Terminal Action</p>
+                                              <h4 className="font-bold text-sm text-foreground">{log.label}</h4>
+                                              <p className="text-[10px] text-foreground/40 font-bold uppercase tracking-wider mt-0.5">Terminal Action</p>
                                             </div>
                                             <span className="font-bold text-sm text-blue-400 font-mono tabular-nums">{log.time}</span>
                                           </div>
@@ -629,7 +630,7 @@ export function AttendanceHistory() {
                                       ))}
                                     </div>
                                   ) : (
-                                    <div className="text-center py-8 text-white/40 italic">
+                                    <div className="text-center py-8 text-foreground/40 italic">
                                       No activity logs found for this date.
                                     </div>
                                   )}
@@ -665,14 +666,14 @@ export function AttendanceHistory() {
 
       {/* Admin Edit Shift Logs Dialog */}
       <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
-        <DialogContent className="max-w-2xl bg-[#0a1628] border border-white/[0.08] text-white backdrop-blur-xl rounded-2xl shadow-2xl">
+        <DialogContent className="max-w-2xl bg-[#0a1628] border border-white/[0.08] text-foreground backdrop-blur-xl rounded-2xl shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold flex items-center gap-2 text-white">
+            <DialogTitle className="text-xl font-bold flex items-center gap-2 text-foreground">
               <ShieldAlert className="w-5 h-5 text-blue-400 animate-pulse" />
               Override Shift Logs
             </DialogTitle>
-            <DialogDescription className="text-white/40 text-xs mt-1">
-              Directly edit, delete, or append chronological logs for <span className="text-white font-bold">{editRecord?.employeeName}</span> on <span className="text-blue-400 font-bold">{formattedDateLabel(editRecord?.date)}</span>.
+            <DialogDescription className="text-foreground/40 text-xs mt-1">
+              Directly edit, delete, or append chronological logs for <span className="text-foreground font-bold">{editRecord?.employeeName}</span> on <span className="text-blue-400 font-bold">{formattedDateLabel(editRecord?.date)}</span>.
             </DialogDescription>
           </DialogHeader>
 
@@ -693,7 +694,7 @@ export function AttendanceHistory() {
                         };
                         setEditLogs(newLogs);
                       }}
-                      className="w-full h-9 border border-white/10 rounded-xl px-2 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#0c1322] text-white cursor-pointer"
+                      className="w-full h-9 border border-border rounded-xl px-2 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#0c1322] text-foreground cursor-pointer"
                     >
                       <option value="in">Clock In</option>
                       <option value="break">On Break</option>
@@ -715,7 +716,7 @@ export function AttendanceHistory() {
                         };
                         setEditLogs(newLogs);
                       }}
-                      className="glass-input h-9 text-xs border-white/10 text-white focus:border-blue-500/60 focus:ring-0 w-full [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+                      className="glass-input h-9 text-xs border-border text-foreground focus:border-blue-500/60 focus:ring-0 w-full [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
                     />
                   </div>
 
@@ -734,7 +735,7 @@ export function AttendanceHistory() {
               ))}
 
               {editLogs.length === 0 && (
-                <div className="text-center py-8 text-white/40 italic">
+                <div className="text-center py-8 text-foreground/40 italic">
                   No logs in this shift. Click "Add Log Entry" to construct one.
                 </div>
               )}
@@ -754,7 +755,7 @@ export function AttendanceHistory() {
                   };
                   setEditLogs([...editLogs, newLog]);
                 }}
-                className="h-9 px-3 text-xs font-semibold bg-white/5 border-white/10 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded-xl cursor-pointer flex items-center gap-1.5"
+                className="h-9 px-3 text-xs font-semibold bg-muted/40 border-border text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 rounded-xl cursor-pointer flex items-center gap-1.5"
               >
                 <Plus className="w-3.5 h-3.5" /> Add Log Entry
               </Button>
@@ -768,7 +769,7 @@ export function AttendanceHistory() {
                     setEditRecord(null);
                     setEditLogs([]);
                   }}
-                  className="h-9 px-4 text-xs font-semibold text-white/60 hover:text-white hover:bg-white/5 rounded-xl cursor-pointer"
+                  className="h-9 px-4 text-xs font-semibold text-foreground/60 hover:text-foreground hover:bg-muted/40 rounded-xl cursor-pointer"
                 >
                   Cancel
                 </Button>
@@ -776,7 +777,7 @@ export function AttendanceHistory() {
                   type="button"
                   disabled={savingOverride}
                   onClick={handleSaveOverride}
-                  className="h-9 px-4 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white shadow-glow-blue rounded-xl border-0 cursor-pointer flex items-center justify-center gap-1.5"
+                  className="h-9 px-4 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-foreground shadow-glow-blue rounded-xl border-0 cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   {savingOverride ? (
                     <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>

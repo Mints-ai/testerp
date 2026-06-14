@@ -65,7 +65,7 @@ export default function SettingsDashboard() {
 
   const getPasswordStrength = (pass: string) => {
     let score = 0;
-    if (pass.length === 0) return { score, label: "None", color: "bg-white/10" };
+    if (pass.length === 0) return { score, label: "None", color: "bg-muted/80" };
     if (pass.length >= 8) score++;
     if (/[a-z]/.test(pass) && /[A-Z]/.test(pass)) score++;
     if (/\d/.test(pass)) score++;
@@ -82,7 +82,7 @@ export default function SettingsDashboard() {
       case 4:
         return { score, label: "Excellent", color: "bg-emerald-500 shadow-glow-emerald" };
       default:
-        return { score, label: "None", color: "bg-white/10" };
+        return { score, label: "None", color: "bg-muted/80" };
     }
   };
 
@@ -772,7 +772,7 @@ export default function SettingsDashboard() {
                   <Button 
                     type="submit" 
                     disabled={updatingPassword}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl h-10 px-6 shadow-glow-blue flex items-center justify-center gap-2 cursor-pointer"
+                    className="bg-blue-600 hover:bg-blue-700 text-foreground font-bold rounded-xl h-10 px-6 shadow-glow-blue flex items-center justify-center gap-2 cursor-pointer"
                   >
                     {updatingPassword ? (
                       <>
@@ -802,20 +802,20 @@ export default function SettingsDashboard() {
 
           {/* MY PREFERENCES */}
           {activeTab === "preferences" && (
-            <div className="flex flex-col h-full">
-              <div className="p-6 border-b border-olive-100 bg-olive-50/50">
-                <h3 className="font-bold text-lg text-olive-900">Personal Preferences</h3>
-                <p className="text-sm text-olive-600">Manage your profile metadata, background settings, and alert options.</p>
+            <div className="flex flex-col h-full bg-card text-foreground">
+              <div className="p-6 border-b border-border bg-muted/20">
+                <h3 className="font-bold text-lg text-foreground">Personal Preferences</h3>
+                <p className="text-sm text-muted-foreground">Manage your profile metadata, background settings, and alert options.</p>
               </div>
               <div className="p-8 space-y-8">
                 {/* Profile Photo / Avatar Selection */}
-                <div className="p-5 bg-olive-50/20 rounded-2xl border border-olive-100/50 space-y-4">
-                  <Label className="text-olive-900 font-bold text-xs uppercase tracking-wider text-olive-800 block">Profile Avatar</Label>
+                <div className="p-5 bg-muted/10 rounded-2xl border border-border space-y-4">
+                  <Label className="text-foreground font-bold text-xs uppercase tracking-wider block">Profile Avatar</Label>
                   
                   <div className="flex flex-col sm:flex-row gap-5 items-center">
-                    <Avatar className="h-16 w-16 border border-olive-200 shadow-sm bg-olive-100 rounded-xl shrink-0">
+                    <Avatar className="h-16 w-16 border border-border shadow-sm bg-secondary rounded-xl shrink-0">
                       <AvatarImage src={prefPhoto} />
-                      <AvatarFallback className="bg-blue-600 text-white text-lg font-bold">
+                      <AvatarFallback className="bg-blue-600 text-foreground text-lg font-bold">
                         {prefName ? prefName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase() : "U"}
                       </AvatarFallback>
                     </Avatar>
@@ -834,7 +834,7 @@ export default function SettingsDashboard() {
                           onClick={() => document.getElementById('settings-photo-upload')?.click()}
                           disabled={uploadingAvatar}
                           variant="outline"
-                          className="text-xs h-9 border-olive-200 text-olive-700 bg-white hover:bg-olive-50 font-bold"
+                          className="text-xs h-9 border-border text-foreground bg-secondary hover:bg-secondary/80 font-bold"
                         >
                           {uploadingAvatar ? "Uploading..." : "Upload Photo"}
                         </Button>
@@ -843,19 +843,19 @@ export default function SettingsDashboard() {
                             type="button" 
                             onClick={() => setPrefPhoto("")}
                             variant="ghost"
-                            className="text-xs h-9 text-rose-600 hover:text-rose-500 hover:bg-rose-50 font-bold"
+                            className="text-xs h-9 text-rose-505 hover:text-rose-700 dark:hover:text-rose-400 hover:bg-rose-500/10 font-bold"
                           >
                             Remove
                           </Button>
                         )}
                       </div>
-                      <p className="text-[10px] text-olive-500 font-semibold">PNG, JPG or WEBP. Max 2MB.</p>
+                      <p className="text-[10px] text-muted-foreground font-semibold">PNG, JPG or WEBP. Max 2MB.</p>
                     </div>
                   </div>
 
                   {/* Presets Grid */}
                   <div className="space-y-2">
-                    <p className="text-[10px] text-olive-600 uppercase tracking-wider font-bold">Or select a premium preset avatar:</p>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Or select a premium preset avatar:</p>
                     <div className="flex flex-wrap gap-2">
                       {PRESET_AVATARS.map((avatar, idx) => (
                         <button
@@ -864,7 +864,7 @@ export default function SettingsDashboard() {
                           onClick={() => setPrefPhoto(avatar)}
                           className={cn(
                             "h-10 w-10 rounded-lg overflow-hidden border-2 transition-all p-0.5 bg-[#0a0f18]",
-                            prefPhoto === avatar ? "border-blue-600 scale-105 shadow-md" : "border-olive-100 hover:border-olive-300"
+                            prefPhoto === avatar ? "border-blue-600 scale-105 shadow-md" : "border-border hover:border-muted-foreground/30"
                           )}
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -877,37 +877,37 @@ export default function SettingsDashboard() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-2">
-                    <Label className="text-olive-900 font-bold text-xs uppercase tracking-wider text-olive-800">Full Name</Label>
-                    <Input value={prefName} onChange={(e) => setPrefName(e.target.value)} placeholder="Your Full Name" className="border-olive-200 focus-visible:ring-olive-500 bg-olive-50/30 text-olive-950 font-bold" />
+                    <Label className="text-foreground font-bold text-xs uppercase tracking-wider">Full Name</Label>
+                    <Input value={prefName} onChange={(e) => setPrefName(e.target.value)} placeholder="Your Full Name" className="border-border focus-visible:ring-blue-500 bg-background/50 text-foreground font-bold" />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-olive-900 font-bold text-xs uppercase tracking-wider text-olive-800">Phone Number</Label>
-                    <Input value={prefPhone} onChange={(e) => setPrefPhone(e.target.value)} placeholder="+971 50 123 4567" className="border-olive-200 focus-visible:ring-olive-500 bg-olive-50/30 text-olive-950 font-bold font-mono" />
+                    <Label className="text-foreground font-bold text-xs uppercase tracking-wider">Phone Number</Label>
+                    <Input value={prefPhone} onChange={(e) => setPrefPhone(e.target.value)} placeholder="+971 50 123 4567" className="border-border focus-visible:ring-blue-500 bg-background/50 text-foreground font-bold font-mono" />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-olive-900 font-bold text-xs uppercase tracking-wider text-olive-800">Email Address</Label>
-                    <Input value={user?.email || ""} disabled className="border-olive-200 focus-visible:ring-olive-500 bg-olive-50/10 cursor-not-allowed opacity-70 text-olive-950 font-bold" />
-                    <p className="text-[10px] text-olive-500 mt-1 font-semibold">To change your primary email, please raise a ticket with HR.</p>
+                    <Label className="text-foreground font-bold text-xs uppercase tracking-wider">Email Address</Label>
+                    <Input value={user?.email || ""} disabled className="border-border focus-visible:ring-blue-500 bg-background/20 cursor-not-allowed opacity-70 text-foreground font-bold" />
+                    <p className="text-[10px] text-muted-foreground mt-1 font-semibold">To change your primary email, please raise a ticket with HR.</p>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-olive-900 font-bold text-xs uppercase tracking-wider text-olive-800">Corporate Role</Label>
-                    <Input value={ROLE_META[role || "employee"]?.label || role || "employee"} disabled className="border-olive-200 focus-visible:ring-olive-500 bg-olive-50/10 cursor-not-allowed opacity-70 text-olive-950 font-bold capitalize" />
+                    <Label className="text-foreground font-bold text-xs uppercase tracking-wider">Corporate Role</Label>
+                    <Input value={ROLE_META[role || "employee"]?.label || role || "employee"} disabled className="border-border focus-visible:ring-blue-500 bg-background/20 cursor-not-allowed opacity-70 text-foreground font-bold capitalize" />
                   </div>
                   <div className="space-y-2 flex flex-col justify-end pt-2">
-                    <Label className="text-olive-900 font-bold text-xs uppercase tracking-wider text-olive-800 mb-2">Security</Label>
-                    <Button onClick={handlePasswordReset} variant="outline" className="border-olive-200 text-olive-700 hover:bg-olive-50 shadow-sm w-full md:w-auto self-start font-bold">
+                    <Label className="text-foreground font-bold text-xs uppercase tracking-wider mb-2">Security</Label>
+                    <Button onClick={handlePasswordReset} variant="outline" className="border-border text-foreground hover:bg-secondary shadow-sm w-full md:w-auto self-start font-bold">
                       Reset Password via Email
                     </Button>
                   </div>
                 </div>
 
-                <div className="pt-6 border-t border-olive-100 space-y-4">
-                  <h4 className="font-bold text-olive-900 text-sm">ERP Preferences & Viewports</h4>
+                <div className="pt-6 border-t border-border space-y-4">
+                  <h4 className="font-bold text-foreground text-sm">ERP Preferences & Viewports</h4>
                   
-                  <div className="flex items-center justify-between py-2 border-b border-olive-50">
+                  <div className="flex items-center justify-between py-2 border-b border-border/50">
                     <div>
-                      <p className="text-sm font-semibold text-olive-800">Display Blueprint Grid Overlay</p>
-                      <p className="text-xs text-olive-500">Enable the technical grid overlay pattern in the background.</p>
+                      <p className="text-sm font-semibold text-foreground">Display Blueprint Grid Overlay</p>
+                      <p className="text-xs text-muted-foreground">Enable the technical grid overlay pattern in the background.</p>
                     </div>
                     <Switch 
                       checked={prefGrid} 
@@ -916,10 +916,10 @@ export default function SettingsDashboard() {
                     />
                   </div>
 
-                  <div className="flex items-center justify-between py-2 border-b border-olive-50">
+                  <div className="flex items-center justify-between py-2 border-b border-border/50">
                     <div>
-                      <p className="text-sm font-semibold text-olive-800">Light Theme Mode</p>
-                      <p className="text-xs text-olive-500">Enable light theme mode across all dashboard screens.</p>
+                      <p className="text-sm font-semibold text-foreground">Light Theme Mode</p>
+                      <p className="text-xs text-muted-foreground">Enable light theme mode across all dashboard screens.</p>
                     </div>
                     <Switch 
                       checked={theme === "light"} 
@@ -928,10 +928,10 @@ export default function SettingsDashboard() {
                     />
                   </div>
 
-                  <div className="flex items-center justify-between py-2 border-b border-olive-50">
+                  <div className="flex items-center justify-between py-2 border-b border-border/50">
                     <div>
-                      <p className="text-sm font-semibold text-olive-800">Email Notifications</p>
-                      <p className="text-xs text-olive-500">Receive automated daily notifications and notices in your email.</p>
+                      <p className="text-sm font-semibold text-foreground">Email Notifications</p>
+                      <p className="text-xs text-muted-foreground">Receive automated daily notifications and notices in your email.</p>
                     </div>
                     <Switch 
                       checked={prefNotifs.email} 
@@ -942,8 +942,8 @@ export default function SettingsDashboard() {
 
                   <div className="flex items-center justify-between py-2">
                     <div>
-                      <p className="text-sm font-semibold text-olive-800">In-App Alerts</p>
-                      <p className="text-xs text-olive-500">Show floating toast notifications for chats and system logs.</p>
+                      <p className="text-sm font-semibold text-foreground">In-App Alerts</p>
+                      <p className="text-xs text-muted-foreground">Show floating toast notifications for chats and system logs.</p>
                     </div>
                     <Switch 
                       checked={prefNotifs.app} 
@@ -953,28 +953,28 @@ export default function SettingsDashboard() {
                   </div>
                 </div>
 
-                <div className="pt-6 border-t border-olive-100 flex justify-end">
-                  <Button onClick={handleSavePreferences} className="bg-blue-600 hover:bg-blue-700 text-white shadow-md px-8 font-bold rounded-xl h-11">Save Preferences</Button>
+                <div className="pt-6 border-t border-border flex justify-end">
+                  <Button onClick={handleSavePreferences} className="bg-blue-600 hover:bg-blue-700 text-foreground shadow-md px-8 font-bold rounded-xl h-11">Save Preferences</Button>
                 </div>
               </div>
             </div>
           )}
 
-          {/* USER MANAGEMENT */}
+           {/* USER MANAGEMENT */}
           {activeTab === "users" && isCSuiteOrAbove && (
-            <div className="flex flex-col h-full">
-              <div className="p-6 border-b border-olive-100 flex justify-between items-center bg-olive-50/50">
+            <div className="flex flex-col h-full bg-card text-foreground">
+              <div className="p-6 border-b border-border flex justify-between items-center bg-muted/20">
                 <div>
-                  <h3 className="font-bold text-lg text-olive-900">Team Accounts</h3>
-                  <p className="text-sm text-olive-600">Manage roles and access for all staff.</p>
+                  <h3 className="font-bold text-lg text-foreground">Team Accounts</h3>
+                  <p className="text-sm text-muted-foreground">Manage roles and access for all staff.</p>
                 </div>
-                <Link href="/dashboard/hr/new" className="inline-flex items-center justify-center rounded-lg text-sm font-bold h-10 px-4 py-2 bg-olive-600 hover:bg-olive-700 text-white shadow-md transition-colors">
+                <Link href="/dashboard/hr/new" className="inline-flex items-center justify-center rounded-lg text-sm font-bold h-10 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-foreground shadow-md transition-colors">
                   <Plus className="mr-2 h-4 w-4" /> Create Account
                 </Link>
               </div>
-              <div className="overflow-x-auto p-0">
+              <div className="overflow-x-auto p-0 bg-card">
                 <table className="w-full text-sm text-left">
-                  <thead className="bg-olive-100/50 text-olive-700 text-xs uppercase font-bold border-b border-olive-200">
+                  <thead className="bg-muted/30 text-muted-foreground text-xs uppercase font-bold border-b border-border">
                     <tr>
                       <th className="px-6 py-4">Employee Name</th>
                       <th className="px-6 py-4">Email</th>
@@ -983,28 +983,28 @@ export default function SettingsDashboard() {
                       <th className="px-6 py-4 text-center">Active Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-olive-100">
+                  <tbody className="divide-y divide-border">
                     {employees.map((emp) => (
-                      <tr key={emp.id} className="hover:bg-olive-50/50 transition-colors">
-                        <td className="px-6 py-4 font-bold text-olive-900">{emp.fullName}</td>
-                        <td className="px-6 py-4 text-olive-600 font-medium">{emp.email}</td>
+                      <tr key={emp.id} className="hover:bg-muted/10 transition-colors">
+                        <td className="px-6 py-4 font-bold text-foreground">{emp.fullName}</td>
+                        <td className="px-6 py-4 text-muted-foreground font-medium">{emp.email}</td>
                         <td className="px-6 py-4">
                           <Select 
                             defaultValue={emp.role} 
                             onValueChange={(val) => handleRoleChange(emp.id, val)}
                             disabled={emp.id === user?.uid}
                           >
-                            <SelectTrigger className="w-[180px] h-9 bg-white border-olive-200 focus:ring-olive-500 text-olive-950 font-semibold">
+                            <SelectTrigger className="w-[180px] h-9 bg-background border-border focus:ring-blue-500 text-foreground font-semibold">
                               <SelectValue />
                             </SelectTrigger>
-                            <SelectContent className="bg-white text-olive-950 font-semibold border-olive-150">
+                            <SelectContent className="bg-popover text-popover-foreground font-semibold border-border">
                               {Object.entries(ROLE_META).map(([key, meta]) => (
-                                <SelectItem key={key} value={key} className="focus:bg-olive-50 hover:bg-olive-50 cursor-pointer">{meta.label}</SelectItem>
+                                <SelectItem key={key} value={key} className="focus:bg-muted hover:bg-muted cursor-pointer">{meta.label}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
                         </td>
-                        <td className="px-6 py-4 font-mono text-xs text-slate-500 font-semibold">{emp.lastLoginIP || "N/A"}</td>
+                        <td className="px-6 py-4 font-mono text-xs text-muted-foreground font-semibold">{emp.lastLoginIP || "N/A"}</td>
                         <td className="px-6 py-4 text-center">
                           <div className="flex items-center justify-center gap-4">
                             <Switch 
@@ -1017,7 +1017,7 @@ export default function SettingsDashboard() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg cursor-pointer flex items-center justify-center shrink-0 border border-transparent hover:border-red-200"
+                                className="h-8 w-8 text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg cursor-pointer flex items-center justify-center shrink-0 border border-transparent hover:border-rose-500/25"
                                 onClick={() => handleDeleteEmployee(emp.id, emp.fullName || emp.name)}
                                 title="Permanently Delete Account"
                               >
@@ -1036,41 +1036,38 @@ export default function SettingsDashboard() {
 
           {/* ROLES & PERMISSIONS */}
           {activeTab === "roles" && isCSuiteOrAbove && (
-            <div className="flex flex-col h-full bg-[#fafdfa]">
-              <div className="p-6 border-b border-olive-100 bg-olive-50/50">
-                <h3 className="font-bold text-lg text-olive-900">Roles & Permissions Matrix</h3>
-                <p className="text-sm text-olive-600">Audit system roles, view which employees are assigned to each role, and inspect their active permission scopes.</p>
+            <div className="flex flex-col h-full bg-card text-foreground">
+              <div className="p-6 border-b border-border bg-muted/20">
+                <h3 className="font-bold text-lg text-foreground">Roles & Permissions Matrix</h3>
+                <p className="text-sm text-muted-foreground">Audit system roles, view which employees are assigned to each role, and inspect their active permission scopes.</p>
               </div>
               <div className="p-8 flex flex-col lg:flex-row gap-8 items-start">
                 
-                {/* Left panel: list of roles */}
-                <div className="w-full lg:w-80 shrink-0 space-y-3">
-                  <h4 className="text-xs uppercase tracking-wider font-bold text-olive-700">Select System Role</h4>
+                {/* Left List of Roles */}
+                <div className="w-full lg:w-72 shrink-0 space-y-3">
+                  <h4 className="text-xs uppercase tracking-wider font-bold text-muted-foreground">Select System Role</h4>
                   <div className="space-y-2">
                     {Object.entries(ROLE_META).map(([key, meta]) => {
-                      const count = getEmployeesWithRole(key).length;
+                      const count = employees.filter(e => e.role === key).length;
                       return (
                         <button
                           key={key}
                           onClick={() => setSelectedRole(key)}
                           className={cn("w-full flex items-center justify-between p-4 rounded-xl text-left border transition-all",
-                            selectedRole === key
-                              ? "bg-blue-600/10 border-blue-500/25 text-blue-950 font-bold shadow-sm"
-                              : "border-olive-200 hover:bg-olive-50/50 text-olive-800"
+                            selectedRole === key 
+                              ? "bg-blue-600/15 border-blue-500/30 text-blue-400 dark:text-blue-300 font-bold shadow-sm" 
+                              : "border-border hover:bg-secondary/40 text-foreground"
                           )}
                         >
-                          <div className="flex items-center gap-3">
-                            <div className={cn("w-2.5 h-2.5 rounded-full shrink-0", 
-                              key === "founder" ? "bg-blue-500" :
-                              key === "system_admin" ? "bg-red-500" :
-                              key === "c_suite" ? "bg-purple-500" :
-                              key === "manager" ? "bg-indigo-500" :
-                              key === "senior_employee" ? "bg-cyan-500" :
-                              key === "employee" ? "bg-emerald-500" : "bg-slate-400"
-                            )} />
-                            <span>{meta.label}</span>
+                          <div>
+                            <span className="text-xs uppercase tracking-wider font-extrabold font-mono block text-blue-500 dark:text-blue-400">{key}</span>
+                            <span className="text-sm font-semibold">{meta.label}</span>
                           </div>
-                          <span className="text-xs font-bold bg-white border border-olive-200 text-olive-700 px-2 py-0.5 rounded-full shadow-sm">
+                          <span className={cn("text-xs font-bold px-2 py-0.5 rounded-full",
+                            selectedRole === key 
+                              ? "bg-blue-600 text-foreground" 
+                              : "bg-muted text-muted-foreground border border-border"
+                          )}>
                             {count} {count === 1 ? "user" : "users"}
                           </span>
                         </button>
@@ -1083,33 +1080,33 @@ export default function SettingsDashboard() {
                 <div className="flex-1 w-full space-y-8">
                   
                   {/* Scope Matrix */}
-                  <div className="border border-olive-200 rounded-xl overflow-hidden shadow-sm bg-white">
-                    <div className="p-5 bg-olive-50 border-b border-olive-200 flex justify-between items-center">
+                  <div className="border border-border rounded-xl overflow-hidden shadow-sm bg-card">
+                    <div className="p-5 bg-muted/20 border-b border-border flex justify-between items-center">
                       <div>
-                        <h4 className="font-bold text-olive-955 flex items-center gap-2">
-                          <Shield className="h-4.5 w-4.5 text-blue-600" />
+                        <h4 className="font-bold text-foreground flex items-center gap-2">
+                          <Shield className="h-4.5 w-4.5 text-blue-500 dark:text-blue-400" />
                           Permission Scope: {ROLE_META[selectedRole]?.label || selectedRole}
                         </h4>
-                        <p className="text-xs text-olive-600 mt-0.5">Permissions defined inside system security models.</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">Permissions defined inside system security models.</p>
                       </div>
-                      <Badge className={cn("text-xs font-bold px-3 py-1 uppercase rounded-full shadow-sm border", ROLE_META[selectedRole]?.color || "bg-olive-100 text-olive-800")}>
+                      <Badge className={cn("text-xs font-bold px-3 py-1 uppercase rounded-full shadow-sm border", ROLE_META[selectedRole]?.color || "bg-muted text-muted-foreground border-border")}>
                         {selectedRole}
                       </Badge>
                     </div>
 
-                    <div className="divide-y divide-olive-100">
+                    <div className="divide-y divide-border">
                       {Object.entries(PERMISSION_LABELS).map(([permKey, permLabel]) => {
                         // Check if the selected role has this permission
                         const hasAccess = (PERMISSIONS[permKey as keyof typeof PERMISSIONS] as readonly string[]).includes(selectedRole);
                         return (
-                          <div key={permKey} className="flex items-center justify-between p-4 hover:bg-olive-50/20 transition-colors">
+                          <div key={permKey} className="flex items-center justify-between p-4 hover:bg-muted/10 transition-colors">
                             <div>
-                              <p className="text-sm font-semibold text-olive-900">{permLabel}</p>
-                              <p className="text-[11px] font-mono text-olive-500 uppercase">{permKey}</p>
+                              <p className="text-sm font-semibold text-foreground">{permLabel}</p>
+                              <p className="text-[11px] font-mono text-muted-foreground uppercase">{permKey}</p>
                             </div>
                             <div>
                               {hasAccess ? (
-                                <Badge className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 border border-emerald-500/20 font-bold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+                                <Badge className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-bold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
                                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                                   Granted
                                 </Badge>
@@ -1127,30 +1124,30 @@ export default function SettingsDashboard() {
                   </div>
 
                   {/* Assigned Staff */}
-                  <div className="border border-olive-200 rounded-xl overflow-hidden shadow-sm bg-white">
-                    <div className="p-5 bg-olive-50 border-b border-olive-200">
-                      <h4 className="font-bold text-olive-950">
+                  <div className="border border-border rounded-xl overflow-hidden shadow-sm bg-card">
+                    <div className="p-5 bg-muted/20 border-b border-border">
+                      <h4 className="font-bold text-foreground">
                         Assigned Team Members ({getEmployeesWithRole(selectedRole).length})
                       </h4>
-                      <p className="text-xs text-olive-600 mt-0.5">Staff members currently holding {ROLE_META[selectedRole]?.label || selectedRole} authority.</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Staff members currently holding {ROLE_META[selectedRole]?.label || selectedRole} authority.</p>
                     </div>
 
-                    <div className="divide-y divide-olive-100">
+                    <div className="divide-y divide-border">
                       {getEmployeesWithRole(selectedRole).length === 0 ? (
-                        <div className="p-8 text-center text-olive-500 font-medium italic bg-white">
+                        <div className="p-8 text-center text-muted-foreground font-medium italic bg-card">
                           No team members are currently assigned to the {ROLE_META[selectedRole]?.label || selectedRole} role.
                         </div>
                       ) : (
                         getEmployeesWithRole(selectedRole).map((emp) => (
-                          <div key={emp.id} className="p-4 flex items-center justify-between hover:bg-olive-50/20 transition-colors bg-white">
+                          <div key={emp.id} className="p-4 flex items-center justify-between hover:bg-muted/10 transition-colors bg-card">
                             <div>
-                              <p className="text-sm font-bold text-olive-900">{emp.fullName}</p>
-                              <p className="text-xs text-olive-500 font-medium mt-0.5">{emp.email}</p>
+                              <p className="text-sm font-bold text-foreground">{emp.fullName}</p>
+                              <p className="text-xs text-muted-foreground font-medium mt-0.5">{emp.email}</p>
                               {emp.lastLoginIP && (
-                                <p className="text-[10px] text-slate-450 font-mono mt-1 font-semibold">IP Address: {emp.lastLoginIP}</p>
+                                <p className="text-[10px] text-muted-foreground font-mono mt-1 font-semibold">IP Address: {emp.lastLoginIP}</p>
                               )}
                             </div>
-                            <Badge className="bg-olive-100 text-olive-800 font-bold text-[10px] uppercase border border-olive-200 shadow-sm">
+                            <Badge className="bg-muted text-foreground font-bold text-[10px] uppercase border border-border shadow-sm">
                               {emp.isActive ? "Active Account" : "Suspended"}
                             </Badge>
                           </div>
@@ -1158,48 +1155,47 @@ export default function SettingsDashboard() {
                       )}
                     </div>
                   </div>
-
                 </div>
               </div>
             </div>
           )}
 
-          {/* COMPANY INFO */}
+           {/* COMPANY INFO */}
           {activeTab === "company" && isCSuiteOrAbove && (
-            <div className="flex flex-col h-full">
-              <div className="p-6 border-b border-olive-100 bg-olive-50/50">
-                <h3 className="font-bold text-lg text-olive-900">Company Profile</h3>
-                <p className="text-sm text-olive-600">Details used across the ERP, including generated PDFs and Invoices.</p>
+            <div className="flex flex-col h-full bg-card text-foreground">
+              <div className="p-6 border-b border-border bg-muted/20">
+                <h3 className="font-bold text-lg text-foreground">Company Profile</h3>
+                <p className="text-sm text-muted-foreground">Details used across the ERP, including generated PDFs and Invoices.</p>
               </div>
               <div className="p-8 space-y-8">
-                <div className="flex items-center gap-6 pb-8 border-b border-olive-100">
-                  <div className="w-24 h-24 bg-olive-50 rounded-xl flex items-center justify-center border-2 border-dashed border-olive-300">
+                <div className="flex items-center gap-6 pb-8 border-b border-border">
+                  <div className="w-24 h-24 bg-secondary rounded-xl flex items-center justify-center border-2 border-dashed border-border">
                     {companySettings.logoURL ? (
                       <img src={companySettings.logoURL} alt="Company Logo" className="max-w-full max-h-full object-contain" />
                     ) : (
-                      <Building2 className="h-8 w-8 text-olive-400 opacity-50" />
+                      <Building2 className="h-8 w-8 text-muted-foreground opacity-50" />
                     )}
                   </div>
                   <div>
-                    <Button variant="outline" className="mb-2 border-olive-200 text-olive-700 hover:bg-olive-50 shadow-sm"><UploadCloud className="mr-2 h-4 w-4" /> Upload New Logo</Button>
-                    <p className="text-xs text-olive-500 font-medium">Recommended size: 256x256px. Max 2MB.</p>
+                    <Button variant="outline" className="mb-2 border-border text-foreground bg-secondary hover:bg-secondary/80 shadow-sm"><UploadCloud className="mr-2 h-4 w-4" /> Upload New Logo</Button>
+                    <p className="text-xs text-muted-foreground font-medium">Recommended size: 256x256px. Max 2MB.</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-2">
-                    <Label className="text-olive-900 font-bold">Company Name</Label>
-                    <Input value={compName} onChange={e => setCompName(e.target.value)} className="border-olive-200 focus-visible:ring-olive-500 bg-olive-50/50 text-olive-950 font-bold" />
+                    <Label className="text-foreground font-bold">Company Name</Label>
+                    <Input value={compName} onChange={e => setCompName(e.target.value)} className="border-border focus-visible:ring-blue-500 bg-background/50 text-foreground font-bold" />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-olive-900 font-bold">VAT / Tax Number</Label>
-                    <Input value={compVat} onChange={e => setCompVat(e.target.value)} className="border-olive-200 focus-visible:ring-olive-500 bg-olive-50/50 text-olive-950 font-bold" />
+                    <Label className="text-foreground font-bold">VAT / Tax Number</Label>
+                    <Input value={compVat} onChange={e => setCompVat(e.target.value)} className="border-border focus-visible:ring-blue-500 bg-background/50 text-foreground font-bold" />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-olive-900 font-bold">Default Currency</Label>
+                    <Label className="text-foreground font-bold">Default Currency</Label>
                     <Select value={compCurrency} onValueChange={(val) => setCompCurrency(val || "AED")}>
-                      <SelectTrigger className="border-olive-200 focus:ring-olive-500 bg-olive-50/50 text-olive-950 font-bold"><SelectValue /></SelectTrigger>
-                      <SelectContent className="bg-white text-olive-950 font-semibold">
+                      <SelectTrigger className="border-border focus:ring-blue-500 bg-background/50 text-foreground font-bold"><SelectValue /></SelectTrigger>
+                      <SelectContent className="bg-popover text-foreground font-semibold">
                         <SelectItem value="AED">AED - Global Currency</SelectItem>
                         <SelectItem value="USD">USD - US Dollar</SelectItem>
                         <SelectItem value="EUR">EUR - Euro</SelectItem>
@@ -1208,13 +1204,13 @@ export default function SettingsDashboard() {
                     </Select>
                   </div>
                   <div className="space-y-2 md:col-span-2">
-                    <Label className="text-olive-900 font-bold">Headquarters Address</Label>
-                    <Input value={compAddress} onChange={e => setCompAddress(e.target.value)} className="border-olive-200 focus-visible:ring-olive-500 bg-olive-50/50 text-olive-950 font-bold" />
+                    <Label className="text-foreground font-bold">Headquarters Address</Label>
+                    <Input value={compAddress} onChange={e => setCompAddress(e.target.value)} className="border-border focus-visible:ring-blue-500 bg-background/50 text-foreground font-bold" />
                   </div>
                 </div>
 
                 <div className="pt-6 flex justify-end">
-                  <Button onClick={handleSaveCompanySettings} disabled={savingCompany} className="bg-olive-600 hover:bg-olive-700 text-white shadow-md px-8 font-bold rounded-xl h-11">
+                  <Button onClick={handleSaveCompanySettings} disabled={savingCompany} className="bg-blue-600 hover:bg-blue-700 text-foreground shadow-md px-8 font-bold rounded-xl h-11">
                     {savingCompany ? "Saving Changes..." : "Save Changes"}
                   </Button>
                 </div>
@@ -1224,59 +1220,59 @@ export default function SettingsDashboard() {
 
           {/* HOLIDAYS */}
           {activeTab === "holidays" && isCSuiteOrAbove && (
-            <div className="flex flex-col h-full">
-              <div className="p-6 border-b border-olive-100 bg-olive-50/50">
-                <h3 className="font-bold text-lg text-olive-900">Public Holidays</h3>
-                <p className="text-sm text-olive-600">These dates are automatically excluded when calculating working days for Leave Requests.</p>
+            <div className="flex flex-col h-full bg-card text-foreground">
+              <div className="p-6 border-b border-border bg-muted/20">
+                <h3 className="font-bold text-lg text-foreground">Public Holidays</h3>
+                <p className="text-sm text-muted-foreground">These dates are automatically excluded when calculating working days for Leave Requests.</p>
               </div>
               <div className="p-8 space-y-8">
-                <div className="flex flex-col sm:flex-row gap-4 items-end bg-olive-50/50 p-6 rounded-xl border border-olive-200 shadow-sm">
+                <div className="flex flex-col sm:flex-row gap-4 items-end bg-muted/20 p-6 rounded-xl border border-border shadow-sm">
                   <div className="space-y-2 flex-1">
-                    <Label className="text-olive-900 font-bold">Holiday Name</Label>
+                    <Label className="text-foreground font-bold">Holiday Name</Label>
                     <Input 
                       placeholder="e.g. Eid Al Fitr" 
                       value={newHoliday.name}
                       onChange={e => setNewHoliday({...newHoliday, name: e.target.value})}
-                      className="bg-white text-olive-950 font-bold"
+                      className="bg-background text-foreground border-border font-bold"
                     />
                   </div>
                   <div className="space-y-2 flex-1">
-                    <Label className="text-olive-900 font-bold">Date</Label>
+                    <Label className="text-foreground font-bold">Date</Label>
                     <Input 
                       type="date" 
                       value={newHoliday.date}
                       onChange={e => setNewHoliday({...newHoliday, date: e.target.value})}
-                      className="bg-white text-olive-950 font-bold"
+                      className="bg-background text-foreground border-border font-bold"
                     />
                   </div>
-                  <Button className="bg-olive-600 hover:bg-olive-700 text-white shadow-md font-bold rounded-xl h-11 px-6" onClick={handleAddHoliday} disabled={!newHoliday.name || !newHoliday.date}>
+                  <Button className="bg-blue-600 hover:bg-blue-700 text-foreground shadow-md font-bold rounded-xl h-11 px-6" onClick={handleAddHoliday} disabled={!newHoliday.name || !newHoliday.date}>
                     <Plus className="h-4 w-4 mr-2" /> Add Date
                   </Button>
                 </div>
 
-                <div className="border border-olive-200 rounded-xl overflow-hidden shadow-sm">
+                <div className="border border-border rounded-xl overflow-hidden shadow-sm">
                   <table className="w-full text-sm text-left">
-                    <thead className="bg-olive-100/50 text-olive-700 text-xs uppercase font-bold border-b border-olive-200">
+                    <thead className="bg-muted/30 text-muted-foreground text-xs uppercase font-bold border-b border-border">
                       <tr>
                         <th className="px-6 py-4">Holiday Date</th>
                         <th className="px-6 py-4">Description</th>
                         <th className="px-6 py-4 text-right">Action</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-olive-100">
+                    <tbody className="divide-y divide-border">
                       {!companySettings.holidays || companySettings.holidays.length === 0 ? (
                         <tr>
-                          <td colSpan={3} className="px-6 py-12 text-center text-olive-500 font-medium italic bg-olive-50/30">
+                          <td colSpan={3} className="px-6 py-12 text-center text-muted-foreground font-medium italic bg-muted/10">
                             No holidays configured.
                           </td>
                         </tr>
                       ) : (
                         companySettings.holidays.map((h: any, i: number) => (
-                          <tr key={i} className="hover:bg-olive-50/50 transition-colors">
-                            <td className="px-6 py-4 font-bold text-olive-900">{new Date(h.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</td>
-                            <td className="px-6 py-4 text-olive-600 font-medium">{h.name}</td>
+                          <tr key={i} className="hover:bg-muted/10 transition-colors">
+                            <td className="px-6 py-4 font-bold text-foreground">{new Date(h.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</td>
+                            <td className="px-6 py-4 text-muted-foreground font-medium">{h.name}</td>
                             <td className="px-6 py-4 text-right">
-                              <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => handleDeleteHoliday(i)}>
+                              <Button variant="ghost" size="sm" className="text-rose-505 hover:text-rose-700 dark:hover:text-rose-400 hover:bg-rose-500/10" onClick={() => handleDeleteHoliday(i)}>
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </td>
@@ -1306,16 +1302,16 @@ export default function SettingsDashboard() {
             const onlineEmployees = employees.filter(emp => emp.isActive && isOnline(emp.lastSeenAt));
 
             return (
-              <div className="flex flex-col h-full bg-[#f8fafc] text-slate-800">
+              <div className="flex flex-col h-full bg-card text-foreground">
                 
                 {/* Visual Header */}
-                <div className="p-6 border-b border-slate-200 bg-white flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="p-6 border-b border-border bg-muted/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
-                    <h3 className="font-extrabold text-xl text-slate-900 flex items-center gap-2">
-                      <Activity className="h-5 w-5 text-indigo-600 animate-pulse" />
+                    <h3 className="font-extrabold text-xl text-foreground flex items-center gap-2">
+                      <Activity className="h-5 w-5 text-blue-500 dark:text-blue-400 animate-pulse" />
                       Live Telemetry & Audit Logs
                     </h3>
-                    <p className="text-xs text-slate-500 mt-1">Foundational dashboard monitoring team activities and active sessions in real-time.</p>
+                    <p className="text-xs text-muted-foreground mt-1">Foundational dashboard monitoring team activities and active sessions in real-time.</p>
                   </div>
                   
                   {/* Status Indicator Counters */}
@@ -1323,50 +1319,50 @@ export default function SettingsDashboard() {
                     <Button
                       onClick={() => handleExportAuditLogs(filteredAuditLogs)}
                       variant="outline"
-                      className="bg-white border-slate-200 text-slate-750 hover:bg-slate-50 text-xs font-bold flex items-center gap-2 h-9 py-0 px-4 shrink-0 shadow-sm cursor-pointer"
+                      className="bg-secondary border-border text-foreground hover:bg-secondary/80 text-xs font-bold flex items-center gap-2 h-9 py-0 px-4 shrink-0 shadow-sm cursor-pointer"
                     >
-                      <UploadCloud className="h-4 w-4 rotate-180 text-indigo-600" />
+                      <UploadCloud className="h-4 w-4 rotate-180 text-blue-500 dark:text-blue-400" />
                       Export CSV
                     </Button>
 
-                    <div className="bg-emerald-50 border border-emerald-200 px-4 py-2 rounded-xl flex items-center gap-3">
+                    <div className="bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-xl flex items-center gap-3">
                       <span className="relative flex h-3 w-3 shrink-0">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                       </span>
                       <div>
-                        <p className="text-[10px] uppercase font-bold text-emerald-800">Active Staff</p>
-                        <p className="text-sm font-extrabold text-emerald-950 font-mono">{onlineEmployees.length} Online</p>
+                        <p className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-405">Active Staff</p>
+                        <p className="text-sm font-extrabold text-foreground font-mono">{onlineEmployees.length} Online</p>
                       </div>
                     </div>
 
-                    <div className="bg-indigo-50 border border-indigo-200 px-4 py-2 rounded-xl flex items-center gap-3">
-                      <Clock className="h-4.5 w-4.5 text-indigo-600" />
+                    <div className="bg-blue-500/10 border border-blue-500/20 px-4 py-2 rounded-xl flex items-center gap-3">
+                      <Clock className="h-4.5 w-4.5 text-blue-500 dark:text-blue-400" />
                       <div>
-                        <p className="text-[10px] uppercase font-bold text-indigo-800">Logged Events</p>
-                        <p className="text-sm font-extrabold text-indigo-950 font-mono">{auditLogs.length} Total</p>
+                        <p className="text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400">Logged Events</p>
+                        <p className="text-sm font-extrabold text-foreground font-mono">{auditLogs.length} Total</p>
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* Filter and Search Bar */}
-                <div className="p-4 bg-white border-b border-slate-200 grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="p-4 bg-card border-b border-border grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div className="relative">
-                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input 
                       placeholder="Search live events..." 
                       value={auditSearchQuery}
                       onChange={e => setAuditSearchQuery(e.target.value)}
-                      className="pl-9 bg-slate-50 border-slate-200 focus-visible:ring-indigo-500 text-slate-900 rounded-lg text-xs"
+                      className="pl-9 bg-background border-border text-foreground focus-visible:ring-blue-500 rounded-lg text-xs"
                     />
                   </div>
 
                   <Select value={selectedAuditAction} onValueChange={(val) => setSelectedAuditAction(val || "ALL")}>
-                    <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900 rounded-lg text-xs font-semibold">
+                    <SelectTrigger className="bg-background border-border text-foreground rounded-lg text-xs font-semibold">
                       <SelectValue placeholder="Filter Action" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white text-slate-900 font-semibold border-slate-150">
+                    <SelectContent className="bg-popover text-popover-foreground font-semibold border-border">
                       <SelectItem value="ALL">All Actions</SelectItem>
                       <SelectItem value="LOGIN">User Logins</SelectItem>
                       <SelectItem value="START_DM">Direct Messages</SelectItem>
@@ -1375,10 +1371,10 @@ export default function SettingsDashboard() {
                   </Select>
 
                   <Select value={selectedAuditActor} onValueChange={(val) => setSelectedAuditActor(val || "ALL")}>
-                    <SelectTrigger className="bg-slate-50 border-slate-200 text-slate-900 rounded-lg text-xs font-semibold">
+                    <SelectTrigger className="bg-background border-border text-foreground rounded-lg text-xs font-semibold">
                       <SelectValue placeholder="Filter Employee" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white text-slate-900 font-semibold border-slate-150">
+                    <SelectContent className="bg-popover text-popover-foreground font-semibold border-border">
                       <SelectItem value="ALL">All Colleagues</SelectItem>
                       {employees.map(emp => (
                         <SelectItem key={emp.id} value={emp.id}>{emp.fullName || emp.name}</SelectItem>
@@ -1392,11 +1388,11 @@ export default function SettingsDashboard() {
                   
                   {/* Left Column (65%): Feed timeline */}
                   <div className="flex-1 space-y-4">
-                    <h4 className="text-xs uppercase tracking-wider font-extrabold text-slate-400">Activity Logs Timeline</h4>
+                    <h4 className="text-xs uppercase tracking-wider font-extrabold text-muted-foreground">Activity Logs Timeline</h4>
                     <div className="space-y-3">
                       {filteredAuditLogs.length === 0 ? (
-                        <div className="bg-white border border-slate-200 rounded-xl p-12 text-center text-slate-400">
-                          <ShieldAlert className="h-10 w-10 mx-auto mb-2 opacity-30 text-indigo-500" />
+                        <div className="bg-card border border-border rounded-xl p-12 text-center text-muted-foreground">
+                          <ShieldAlert className="h-10 w-10 mx-auto mb-2 opacity-30 text-blue-550 dark:text-blue-400" />
                           <p className="font-bold text-sm">No activity events found</p>
                           <p className="text-xs mt-1">Refine your search tags or filters.</p>
                         </div>
@@ -1411,25 +1407,25 @@ export default function SettingsDashboard() {
                             : 'Just now';
 
                           return (
-                            <div key={log.id} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-start gap-4">
-                              <Avatar className="h-10 w-10 shrink-0 border border-slate-200">
+                            <div key={log.id} className="bg-card border border-border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-start gap-4">
+                              <Avatar className="h-10 w-10 shrink-0 border border-border">
                                 <AvatarImage src={actor.avatar} />
-                                <AvatarFallback className="bg-indigo-600 text-white font-bold text-sm">{actor.initials}</AvatarFallback>
+                                <AvatarFallback className="bg-blue-600 text-foreground font-bold text-sm">{actor.initials}</AvatarFallback>
                               </Avatar>
                               
                               <div className="flex-1 min-w-0">
                                 <div className="flex flex-wrap items-center justify-between gap-2">
                                   <div>
-                                    <span className="font-bold text-slate-900 text-sm block md:inline mr-2">{actor.name}</span>
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-tight bg-slate-50 border border-slate-150 px-2 py-0.5 rounded-full">{actor.role}</span>
+                                    <span className="font-bold text-foreground text-sm block md:inline mr-2">{actor.name}</span>
+                                    <span className="text-[10px] font-bold text-muted-foreground uppercase font-mono tracking-tight bg-background border border-border px-2 py-0.5 rounded-full">{actor.role}</span>
                                   </div>
                                   <Badge className={cn("text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border shadow-none", getActionBadgeColor(log.action))}>
                                     {log.action}
                                   </Badge>
                                 </div>
-                                <p className="text-xs font-semibold text-slate-700 mt-2 leading-relaxed">{description}</p>
+                                <p className="text-xs font-semibold text-foreground/80 mt-2 leading-relaxed">{description}</p>
                                 
-                                <div className="flex items-center gap-4 mt-3 pt-3 border-t border-slate-100 text-[10px] text-slate-400 font-semibold font-mono">
+                                <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border text-[10px] text-muted-foreground font-semibold font-mono">
                                   <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> {dateString}</span>
                                   <span>ID: {log.id.substring(0, 8)}...</span>
                                 </div>
@@ -1443,31 +1439,31 @@ export default function SettingsDashboard() {
 
                   {/* Right Column (35%): Online Staff live metrics */}
                   <div className="w-full lg:w-80 shrink-0 space-y-4">
-                    <h4 className="text-xs uppercase tracking-wider font-extrabold text-slate-400">Live Online Staff ({onlineEmployees.length})</h4>
-                    <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-4">
+                    <h4 className="text-xs uppercase tracking-wider font-extrabold text-muted-foreground">Live Online Staff ({onlineEmployees.length})</h4>
+                    <div className="bg-card border border-border rounded-xl p-4 shadow-sm space-y-4">
                       {onlineEmployees.length === 0 ? (
-                        <div className="text-center py-8 text-slate-400 text-xs italic">
+                        <div className="text-center py-8 text-muted-foreground text-xs italic">
                           No team members are active currently.
                         </div>
                       ) : (
-                        <div className="space-y-3.5 divide-y divide-slate-100">
+                        <div className="space-y-3.5 divide-y divide-border">
                           {onlineEmployees.map((emp, idx) => {
                             const initials = emp.fullName.split(" ").map((n: any) => n[0]).join("").substring(0,2).toUpperCase();
                             return (
                               <div key={emp.id} className={cn("flex items-center gap-3", idx > 0 ? "pt-3.5" : "")}>
                                 <div className="relative">
-                                  <Avatar className="h-9 w-9 border border-slate-200">
+                                  <Avatar className="h-9 w-9 border border-border">
                                     <AvatarImage src={emp.profilePhotoURL} />
-                                    <AvatarFallback className="bg-indigo-600 text-white font-bold text-xs">{initials}</AvatarFallback>
+                                    <AvatarFallback className="bg-blue-600 text-foreground font-bold text-xs">{initials}</AvatarFallback>
                                   </Avatar>
                                   <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white animate-pulse" />
                                 </div>
                                 
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-xs font-extrabold text-slate-900 truncate">{emp.fullName || emp.name}</p>
-                                  <p className="text-[10px] text-slate-400 font-semibold truncate">{emp.jobTitle || "Employee"}</p>
+                                  <p className="text-xs font-extrabold text-foreground truncate">{emp.fullName || emp.name}</p>
+                                  <p className="text-[10px] text-muted-foreground font-semibold truncate">{emp.jobTitle || "Employee"}</p>
                                   {emp.lastLoginIP && (
-                                    <p className="text-[9px] text-slate-400 font-mono mt-1 font-semibold flex items-center gap-1"><Wifi className="h-3 w-3 shrink-0" /> {emp.lastLoginIP}</p>
+                                    <p className="text-[9px] text-muted-foreground font-mono mt-1 font-semibold flex items-center gap-1"><Wifi className="h-3 w-3 shrink-0" /> {emp.lastLoginIP}</p>
                                   )}
                                 </div>
                               </div>
@@ -1485,30 +1481,30 @@ export default function SettingsDashboard() {
 
           {/* EXECUTIVE INTEGRATIONS CENTER */}
           {isFounder && activeTab === "integrations" && (
-            <div className="flex flex-col h-full bg-[#f8fafc] text-slate-800">
-              <div className="p-6 border-b border-slate-200 bg-white">
-                <h3 className="font-extrabold text-xl text-slate-900 flex items-center gap-2">
-                  <Wifi className="h-5 w-5 text-indigo-600 animate-pulse" />
+            <div className="flex flex-col h-full bg-card text-foreground">
+              <div className="p-6 border-b border-border bg-muted/20">
+                <h3 className="font-extrabold text-xl text-foreground flex items-center gap-2">
+                  <Wifi className="h-5 w-5 text-blue-500 dark:text-blue-400 animate-pulse" />
                   Discord Webhook Integration Center
                 </h3>
-                <p className="text-xs text-slate-500 mt-1">Configure real-time automated system event routing directly to your Discord server channels.</p>
+                <p className="text-xs text-muted-foreground mt-1">Configure real-time automated system event routing directly to your Discord server channels.</p>
               </div>
 
               <div className="p-8 space-y-6 max-w-3xl">
-                <Card className="border border-slate-200 shadow-sm bg-white rounded-xl">
-                  <CardHeader className="border-b border-slate-100 p-5 bg-slate-50/50">
-                    <CardTitle className="text-sm font-bold text-slate-900">Active Webhook Configurations</CardTitle>
-                    <CardDescription className="text-xs text-slate-500">Specify the targeting URL of your Discord webhook channel integration.</CardDescription>
+                <Card className="border border-border shadow-sm bg-card rounded-xl">
+                  <CardHeader className="border-b border-border p-5 bg-muted/20">
+                    <CardTitle className="text-sm font-bold text-foreground">Active Webhook Configurations</CardTitle>
+                    <CardDescription className="text-xs text-muted-foreground">Specify the targeting URL of your Discord webhook channel integration.</CardDescription>
                   </CardHeader>
                   <CardContent className="p-6 space-y-4">
                     <div className="space-y-2">
-                      <Label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Discord Webhook Destination URL</Label>
+                      <Label className="text-xs font-bold text-foreground uppercase tracking-wider">Discord Webhook Destination URL</Label>
                       <div className="flex gap-3">
                         <Input
                           value={discordWebhookUrl}
                           onChange={(e) => setDiscordWebhookUrl(e.target.value)}
                           placeholder="https://discord.com/api/webhooks/..."
-                          className="bg-slate-50/50 border-slate-200 text-slate-900 font-medium"
+                          className="bg-background border-border text-foreground font-medium"
                         />
                         <Button 
                           onClick={async () => {
@@ -1536,16 +1532,16 @@ export default function SettingsDashboard() {
                           }}
                           disabled={testingWebhook || !discordWebhookUrl}
                           variant="outline"
-                          className="font-bold shrink-0 text-slate-700 border-slate-200 hover:bg-slate-50 cursor-pointer"
+                          className="font-bold shrink-0 text-foreground border-border bg-secondary hover:bg-secondary/80 cursor-pointer"
                         >
                           {testingWebhook ? "Testing..." : "Test Connection"}
                         </Button>
                       </div>
                     </div>
 
-                    <div className="border-t border-slate-100 pt-5 space-y-4">
-                      <h4 className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">Configure Automated Event Triggers</h4>
-                      <p className="text-[10px] text-slate-400 font-semibold mt-0.5">Toggle which high-impact business activities route real-time telemetry updates to Discord.</p>
+                    <div className="border-t border-border pt-5 space-y-4">
+                      <h4 className="text-xs font-extrabold text-foreground uppercase tracking-wider">Configure Automated Event Triggers</h4>
+                      <p className="text-[10px] text-muted-foreground font-semibold mt-0.5">Toggle which high-impact business activities route real-time telemetry updates to Discord.</p>
                       
                       <div className="space-y-3.5 mt-4">
                         {[
@@ -1555,11 +1551,11 @@ export default function SettingsDashboard() {
                           { key: "security", label: "Security Breach Alerts & Audit Logs", desc: "Monitors blocked credentials, active role changes, and account suspensions." },
                           { key: "ocr", label: "Document Processing & OCR Scans", desc: "Monitors vaulted receipts, parsed invoices, and cognitive extraction alerts." }
                         ].map(item => (
-                          <div key={item.key} className="p-4 rounded-xl border border-slate-100 bg-slate-50/30 hover:bg-slate-50/60 transition-all space-y-3">
+                          <div key={item.key} className="p-4 rounded-xl border border-border bg-muted/10 hover:bg-muted/20 transition-all space-y-3">
                             <div className="flex items-center justify-between">
                               <div>
-                                <h5 className="text-xs font-bold text-slate-900">{item.label}</h5>
-                                <p className="text-[10px] text-slate-500 font-semibold mt-0.5">{item.desc}</p>
+                                <h5 className="text-xs font-bold text-foreground">{item.label}</h5>
+                                <p className="text-[10px] text-muted-foreground font-semibold mt-0.5">{item.desc}</p>
                               </div>
                               <Switch
                                 checked={(webhookEvents as any)[item.key]}
@@ -1567,13 +1563,13 @@ export default function SettingsDashboard() {
                               />
                             </div>
                             {(webhookEvents as any)[item.key] && (
-                              <div className="pt-2 border-t border-slate-100/50 space-y-1.5 animate-in fade-in duration-200">
-                                <Label className="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Specific Channel Webhook URL (Optional)</Label>
+                              <div className="pt-2 border-t border-border/50 space-y-1.5 animate-in fade-in duration-200">
+                                <Label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wide">Specific Channel Webhook URL (Optional)</Label>
                                 <Input
                                   value={(webhookUrls as any)[item.key] || ""}
                                   onChange={(e) => setWebhookUrls(prev => ({ ...prev, [item.key]: e.target.value }))}
                                   placeholder="Defaults to main global webhook destination above if left empty..."
-                                  className="bg-white border-slate-200 text-xs font-medium text-slate-800 placeholder:text-slate-400"
+                                  className="bg-background border-border text-xs font-medium text-foreground placeholder:text-muted-foreground/45"
                                 />
                               </div>
                             )}
@@ -1582,7 +1578,7 @@ export default function SettingsDashboard() {
                       </div>
                     </div>
 
-                    <div className="border-t border-slate-100 pt-6 flex justify-end">
+                    <div className="border-t border-border pt-6 flex justify-end">
                       <Button
                         onClick={async () => {
                           setSavingWebhook(true);
@@ -1603,7 +1599,7 @@ export default function SettingsDashboard() {
                           }
                         }}
                         disabled={savingWebhook}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold cursor-pointer"
+                        className="bg-blue-600 hover:bg-blue-700 text-foreground font-bold cursor-pointer"
                       >
                         {savingWebhook ? "Saving..." : "Save Webhook Settings"}
                       </Button>
