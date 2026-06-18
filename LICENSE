@@ -1,30 +1,128 @@
 PROPRIETARY AND CONFIDENTIAL SOFTWARE LICENSE AGREEMENT
 
-Copyright (c) 2026 Mints Global. All Rights Reserved.
-Website: https://mintsglobal.tech/
+Copyright (c) 2026 Mints Global.
+Website: https://www.mintsglobal.ae/
 
-1. OWNERSHIP & INTELLECTUAL PROPERTY
-This software, including all associated source code, documentation, assets, and binaries (collectively, the "Software"), is the exclusive property of Mints Global. The Software is protected by copyright laws and international intellectual property treaties. This is NOT an open-source project. No ownership rights are transferred to you under any circumstances.
+IMPORTANT NOTICE:
+This Software is proprietary and confidential. By accessing, using, copying, or reviewing any part of the Software, you agree to be bound by this Agreement. If you do not agree, do not use the Software and immediately cease access.
 
-2. GRANT OF LICENSE (INTERNAL USE ONLY)
-Mints Global grants authorized employees, interns, and contractors a revocable, non-exclusive, non-transferable, limited right to access and use the Software solely for the internal business operations of Mints Global. This access is strictly conditional upon maintaining active employment or an active contractual relationship with Mints Global.
+1. DEFINITIONS
 
-3. RESTRICTIONS
-Under no circumstances may you, directly or indirectly:
-  a) Copy, modify, alter, translate, or create derivative works of the Software.
-  b) Reverse engineer, decompile, disassemble, or attempt to derive the source code.
-  c) Distribute, sell, lease, rent, sublicense, assign, or publicly display the Software.
-  d) Remove, alter, or obscure any copyright, trademark, or other proprietary rights notices.
-  e) Use the Software to develop a competing product or service.
+1.1 "Software" means all source code, object code, compiled code, scripts, libraries, databases, schemas, workflows, configurations, designs, documentation, diagrams, user interfaces, trade secrets, business logic, specifications, assets, images, audio, video, data models, and any derivative or related materials provided by or on behalf of Mints Global.
 
-4. CONFIDENTIALITY
-The Software, its source code, architecture, algorithms, and associated business processes are classified as strictly confidential trade secrets of Mints Global. You agree to maintain the confidentiality of the Software and shall not disclose, share, or upload any part of the Software to public repositories, forums, AI models, or third parties without explicit written authorization from Mints Global executives.
+1.2 "Authorized User" means an employee, intern, consultant, or contractor of Mints Global who has been expressly granted access in writing by Mints Global.
 
-5. TERMINATION
-This license is effective until terminated. Mints Global reserves the right to terminate your access to the Software at any time, without notice, for any reason, including violation of these terms. Upon termination, you must cease all use of the Software and destroy all local copies in your possession.
+1.3 "Internal Use" means use solely for the internal business operations, development, testing, deployment, support, maintenance, and improvement of systems owned or controlled by Mints Global.
 
-6. DISCLAIMER OF WARRANTY
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. MINTS GLOBAL DOES NOT WARRANT THAT THE SOFTWARE WILL OPERATE UNINTERRUPTED OR ERROR-FREE.
+2. OWNERSHIP AND INTELLECTUAL PROPERTY
 
-7. LIMITATION OF LIABILITY
-IN NO EVENT SHALL MINTS GLOBAL, ITS FOUNDERS, DIRECTORS, OR EMPLOYEES BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+2.1 The Software is and shall remain the exclusive property of Mints Global.
+
+2.2 All rights, title, and interest in and to the Software, including all intellectual property rights, trade secret rights, copyright rights, patent rights, moral rights, database rights, and all derivative works, improvements, enhancements, and modifications, are reserved by and vest solely in Mints Global.
+
+2.3 No license, ownership right, assignment, transfer, or other interest is granted or implied except as expressly stated in this Agreement.
+
+2.4 To the extent any contribution, modification, enhancement, bug fix, design, documentation, or other work product is created by an Authorized User within the scope of work for Mints Global, such work product shall be deemed owned by Mints Global to the fullest extent permitted by applicable law.
+
+3. GRANT OF LICENSE
+
+3.1 Subject to full compliance with this Agreement, Mints Global grants Authorized Users a limited, revocable, non-exclusive, non-transferable, non-sublicensable license to access and use the Software solely for Internal Use.
+
+3.2 This license is personal to the Authorized User and may be withdrawn at any time at the sole discretion of Mints Global.
+
+3.3 No rights are granted to any third party, affiliate, customer, vendor, or the public unless Mints Global expressly authorizes such rights in writing.
+
+4. RESTRICTIONS
+
+Except as expressly authorized in writing by Mints Global, you shall not, directly or indirectly:
+
+a) copy, reproduce, duplicate, modify, translate, adapt, or create derivative works of the Software;
+b) publish, distribute, disclose, transmit, sell, lease, license, sublicense, assign, transfer, or otherwise make available the Software;
+c) reverse engineer, decompile, disassemble, decode, or otherwise attempt to derive source code, algorithms, architecture, or underlying ideas from the Software;
+d) remove, alter, obscure, or tamper with any copyright notice, trademark, confidentiality notice, watermark, or proprietary legend;
+e) benchmark, test, or analyze the Software for the purpose of competing with Mints Global or building a competing product or service;
+f) use the Software to create, train, fine-tune, or improve any model, system, or dataset without prior written approval;
+g) upload, mirror, index, expose, or publish the Software in any public repository, package registry, forum, paste site, or third-party service;
+h) use the Software in violation of applicable law, export control restrictions, or sanctions requirements;
+i) circumvent or attempt to circumvent any access controls, authentication mechanisms, license controls, logging, or security measures;
+j) sublicense, resell, rent, timeshare, outsource, or operate the Software as a service for third parties without written authorization.
+
+5. CONFIDENTIALITY
+
+5.1 The Software and all related materials are confidential information and trade secrets of Mints Global.
+
+5.2 Authorized Users shall use the same degree of care to protect the confidentiality of the Software as they use to protect their own most confidential information, and in no event less than reasonable care.
+
+5.3 Authorized Users shall not disclose the Software or any related confidential information to any third party without prior written consent from Mints Global.
+
+5.4 If disclosure is required by law, the Authorized User shall provide prompt written notice to Mints Global where legally permitted and shall disclose only the minimum required portion.
+
+5.5 All copies, extracts, notes, summaries, screenshots, backups, and derivative materials remain confidential and are subject to this Agreement.
+
+6. CONTRIBUTIONS AND WORK PRODUCT
+
+6.1 Any code, documentation, design, testing output, process improvement, issue resolution, or other material created for Mints Global in connection with the Software is considered work made for Mints Global to the maximum extent permitted by law.
+
+6.2 If any such ownership does not automatically vest in Mints Global under applicable law, the contributor hereby irrevocably assigns all rights, title, and interest in such work product to Mints Global.
+
+6.3 Each contributor represents that their contributions are original, do not infringe third-party rights, and do not contain any material subject to conflicting licenses or obligations unless approved in writing by Mints Global.
+
+7. SECURITY AND ACCESS CONTROL
+
+7.1 Authorized Users must protect all credentials, keys, tokens, passwords, certificates, API secrets, and access links associated with the Software.
+
+7.2 Authorized Users must promptly report any suspected loss, compromise, unauthorized access, or security incident involving the Software or related credentials.
+
+7.3 Mints Global may monitor access, usage, and security events for operational, legal, and security purposes.
+
+8. BACKUP AND COPY LIMITATIONS
+
+8.1 No copies may be made except as expressly authorized in writing by Mints Global.
+
+8.2 If backup copies are permitted, all copyright, confidentiality, and proprietary notices must be preserved intact on every copy.
+
+9. TERMINATION
+
+9.1 This Agreement is effective until terminated.
+
+9.2 Mints Global may terminate this Agreement, any access, or any authorization at any time, with or without cause, and with or without notice, to the maximum extent permitted by law.
+
+9.3 Upon termination, the Authorized User shall immediately stop using the Software, delete or return all copies, and certify in writing upon request that all copies have been destroyed or returned.
+
+9.4 Sections relating to ownership, confidentiality, restrictions, liability, governing law, and any other provisions that by their nature should survive shall survive termination.
+
+10. DISCLAIMER OF WARRANTY
+
+THE SOFTWARE IS PROVIDED "AS IS" AND "AS AVAILABLE," WITHOUT WARRANTY OF ANY KIND, WHETHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, NON-INFRINGEMENT, ACCURACY, OR QUIET ENJOYMENT. MINTS GLOBAL DOES NOT WARRANT THAT THE SOFTWARE WILL BE ERROR-FREE, SECURE, OR UNINTERRUPTED.
+
+11. LIMITATION OF LIABILITY
+
+TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL MINTS GLOBAL, ITS AFFILIATES, FOUNDERS, DIRECTORS, OFFICERS, EMPLOYEES, CONTRACTORS, OR AGENTS BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, EXEMPLARY, OR PUNITIVE DAMAGES, OR FOR ANY LOSS OF PROFITS, REVENUE, DATA, GOODWILL, BUSINESS OPPORTUNITY, OR BUSINESS INTERRUPTION, ARISING OUT OF OR RELATED TO THE SOFTWARE OR THIS AGREEMENT.
+
+12. INDEMNITY
+
+To the maximum extent permitted by law, the Authorized User agrees to indemnify, defend, and hold harmless Mints Global and its affiliates from and against any claims, damages, liabilities, losses, costs, and expenses arising from the Authorized User’s breach of this Agreement, unauthorized use of the Software, or violation of law or third-party rights.
+
+13. GOVERNING LAW AND JURISDICTION
+
+This Agreement shall be governed by and construed in accordance with the laws of the United Arab Emirates, and, where applicable, the laws and competent courts of Dubai, unless Mints Global specifies otherwise in writing.
+
+14. EXPORT AND SANCTIONS COMPLIANCE
+
+The Authorized User shall comply with all applicable export control, sanctions, anti-corruption, and import/export laws and regulations when using the Software.
+
+15. ENTIRE AGREEMENT
+
+This Agreement constitutes the entire agreement regarding the Software and supersedes any prior oral or written understandings relating to the same subject matter.
+
+16. SEVERABILITY
+
+If any provision of this Agreement is held invalid or unenforceable, the remaining provisions shall remain in full force and effect.
+
+17. RESERVATION OF RIGHTS
+
+All rights not expressly granted in this Agreement are reserved by Mints Global.
+
+18. CONTACT
+
+For permissions, licensing questions, or written authorization, contact Mints Global at its official business channels.
