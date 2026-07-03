@@ -110,24 +110,24 @@ export function TopNav() {
 
   return (
     <>
-      <header className="h-16 border-b border-border bg-blue-900/30 backdrop-blur-xl flex items-center justify-between pl-16 lg:pl-8 pr-4 lg:pr-8 z-40 sticky top-0 text-foreground">
+      <header className="h-16 border-b border-border bg-card flex items-center justify-between pl-16 lg:pl-8 pr-4 lg:pr-8 z-40 sticky top-0 text-foreground transition-colors">
         <div className="flex items-center flex-1 gap-4 lg:gap-8">
           
           <div className="hidden lg:block">
             <h2 className="text-sm font-semibold text-foreground tracking-tight">
               {greeting}, {user?.fullName ? user.fullName.split(' ')[0] : (user?.displayName ? user.displayName.split(' ')[0] : 'there')}
             </h2>
-            <p className="text-[10px] text-muted-foreground font-medium mt-0.5">{today}</p>
+            <p className="text-xs text-muted-foreground font-medium mt-0.5">{today}</p>
           </div>
 
           <button 
             onClick={() => setCmdOpen(true)}
-            className="hidden md:flex relative w-full max-w-sm items-center gap-2 rounded-xl glass border border-border px-4 py-2 text-xs text-muted-foreground/60 hover:text-foreground hover:border-border transition-all cursor-text group"
+            className="hidden md:flex relative w-full max-w-sm items-center gap-2 rounded-xl bg-card border border-border shadow-sm border border-border px-4 py-2 text-xs text-muted-foreground/80 hover:text-foreground hover:border-border transition-all cursor-text group"
           >
             <Search className="h-3.5 w-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
             <span>Search workspace...</span>
-            <kbd className="pointer-events-none absolute right-3 hidden h-5 select-none items-center gap-1 rounded border border-border bg-secondary px-1.5 font-mono text-[9px] font-medium text-muted-foreground sm:flex">
-              <span className="text-[10px]">⌘</span>K
+            <kbd className="pointer-events-none absolute right-3 hidden h-5 select-none items-center gap-1 rounded border border-border bg-secondary px-1.5 font-mono text-xs font-medium text-muted-foreground sm:flex">
+              <span className="text-xs">⌘</span>K
             </kbd>
           </button>
         </div>
@@ -136,7 +136,7 @@ export function TopNav() {
           {/* Dynamic Role Switcher for Founders / Admins */}
           {(user?.role === "founder" || user?.role === "system_admin") && (
             <div className="flex items-center gap-1.5 bg-secondary hover:bg-secondary/80 border border-border rounded-xl px-2.5 py-1.5 transition-all text-foreground shadow-sm">
-              <span className="text-[9px] uppercase font-bold text-blue-550 dark:text-blue-400 tracking-wider">Simulate:</span>
+              <span className="text-xs uppercase font-bold text-primary dark:text-primary tracking-wider">Simulate:</span>
               <select
                 value={simulatedRole || user?.role || "founder"}
                 onChange={(e) => {
@@ -182,10 +182,10 @@ export function TopNav() {
                 <SheetTitle className="flex justify-between items-center text-foreground">
                   <span className="text-base font-bold">Notifications</span>
                   <div className="flex gap-3">
-                    <button onClick={markAllRead} className="text-[10px] text-blue-550 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 font-medium flex items-center gap-1 cursor-pointer uppercase tracking-wider">
+                    <button onClick={markAllRead} className="text-xs text-primary dark:text-primary hover:text-primary dark:hover:text-primary/80 font-medium flex items-center gap-1 cursor-pointer uppercase tracking-wider">
                       <Check className="h-3.5 w-3.5" /> Read All
                     </button>
-                    <button onClick={clearAllNotifications} className="text-[10px] text-rose-500 hover:text-rose-600 font-medium flex items-center gap-1 cursor-pointer uppercase tracking-wider">
+                    <button onClick={clearAllNotifications} className="text-xs text-rose-500 hover:text-rose-600 font-medium flex items-center gap-1 cursor-pointer uppercase tracking-wider">
                       <Trash2 className="h-3.5 w-3.5" /> Clear All
                     </button>
                   </div>
@@ -200,7 +200,7 @@ export function TopNav() {
                       {notif.read ? (
                         <div className="h-2 w-2 mt-1.5 rounded-full bg-transparent shrink-0" />
                       ) : (
-                        <div className="h-2 w-2 mt-1.5 rounded-full bg-blue-500 shadow-glow-blue shrink-0 animate-pulse" />
+                        <div className="h-2 w-2 mt-1.5 rounded-full bg-primary shadow-sm shrink-0 animate-pulse" />
                       )}
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start gap-2">
@@ -209,9 +209,9 @@ export function TopNav() {
                             <Trash2 className="h-3 w-3" />
                           </button>
                         </div>
-                        <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">{notif.message}</p>
-                        <p className="text-[9px] font-mono text-blue-500/80 dark:text-blue-400/80 mt-2.5 uppercase tracking-wider">
-                          {notif.createdAt?.toDate().toLocaleString() || 'Just now'}
+                        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{notif.message}</p>
+                        <p className="text-xs font-mono text-primary/80 dark:text-primary/80 mt-2.5 uppercase tracking-wider">
+                          {notif.createdAt ? (typeof notif.createdAt.toDate === 'function' ? notif.createdAt.toDate().toLocaleString() : new Date(notif.createdAt).toLocaleString()) : 'Just now'}
                         </p>
                       </div>
                     </div>
@@ -225,16 +225,16 @@ export function TopNav() {
             <DropdownMenuTrigger 
               render={
                 <button className="flex items-center space-x-2 focus:outline-none hover:bg-secondary p-1 pr-3 rounded-full transition-colors cursor-pointer border border-transparent hover:border-border">
-                  <Avatar className="h-7 w-7 border border-border ring-2 ring-blue-500/20 ring-offset-2 ring-offset-transparent shadow-sm">
+                  <Avatar className="h-7 w-7 border border-border ring-2 ring-primary/20 ring-offset-2 ring-offset-transparent shadow-sm">
                     <AvatarImage src={user?.photoURL || undefined} alt={user?.fullName || user?.displayName || "User"} />
-                    <AvatarFallback className="bg-blue-800 text-blue-200 font-bold text-[10px]">
+                    <AvatarFallback className="bg-primary/20 text-primary/70 font-bold text-xs">
                       {getInitials(user?.fullName || user?.displayName || "User")}
                     </AvatarFallback>
                   </Avatar>
                   <div className="hidden md:block text-left">
                     <p className="text-xs font-bold text-foreground leading-none">{(user?.fullName || user?.displayName || "User").split(" ")[0]}</p>
-                    <p className="text-[9px] text-blue-550 dark:text-blue-400/80 font-medium capitalize mt-1 leading-none">
-                      {user?.jobTitle || roleMeta?.label || role} {user?.role !== role && <span className="text-[8px] text-amber-500 dark:text-amber-400 font-bold ml-0.5 animate-pulse">(Sim)</span>}
+                    <p className="text-xs text-primary dark:text-primary/80 font-medium capitalize mt-1 leading-none">
+                      {user?.jobTitle || roleMeta?.label || role} {user?.role !== role && <span className="text-xs text-amber-500 dark:text-amber-400 font-bold ml-0.5 animate-pulse">(Sim)</span>}
                     </p>
                   </div>
                 </button>

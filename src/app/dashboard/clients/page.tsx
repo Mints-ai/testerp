@@ -77,9 +77,9 @@ export default function ClientsCRM() {
   );
 
   const getHealthBadge = (score: number) => {
-    if (score >= 4) return <Badge className="bg-emerald-500/10 text-emerald-300 border-emerald-500/20 hover:bg-[#0a1628] shadow-none font-bold">Excellent</Badge>;
-    if (score === 3) return <Badge className="bg-amber-500/10 text-amber-300 border-amber-500/20 hover:bg-[#0a1628] shadow-none font-bold">Good</Badge>;
-    return <Badge className="bg-rose-500/10 text-rose-300 border-rose-500/20 hover:bg-[#0a1628] shadow-none animate-pulse font-bold">At Risk</Badge>;
+    if (score >= 4) return <Badge className="bg-emerald-500/10 text-emerald-300 border-emerald-500/20 hover:bg-card shadow-none font-bold">Excellent</Badge>;
+    if (score === 3) return <Badge className="bg-amber-500/10 text-amber-300 border-amber-500/20 hover:bg-card shadow-none font-bold">Good</Badge>;
+    return <Badge className="bg-rose-500/10 text-rose-300 border-rose-500/20 hover:bg-card shadow-none animate-pulse font-bold">At Risk</Badge>;
   };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -154,8 +154,8 @@ export default function ClientsCRM() {
                   </Button>
                 }
               />
-              <DialogContent className="max-w-2xl bg-[#0a1628] border border-white/[0.08] text-foreground rounded-2xl shadow-xl overflow-hidden p-0 backdrop-blur-xl">
-                <DialogHeader className="p-6 bg-white/[0.02] border-b border-white/[0.06] text-foreground">
+              <DialogContent className="max-w-2xl bg-card border border-border text-foreground rounded-2xl shadow-xl overflow-hidden p-0">
+                <DialogHeader className="p-6 border-b border-border text-foreground">
                   <DialogTitle className="text-xl font-bold">Onboard New Corporate Client</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleAddClientSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
@@ -167,7 +167,7 @@ export default function ClientsCRM() {
                         value={companyName}
                         onChange={(e) => setCompanyName(e.target.value)}
                         required
-                        className="rounded-xl border-border focus:border-blue-500 focus:ring-blue-500 text-foreground bg-white/[0.03] placeholder:text-foreground/20"
+                        className="rounded-xl border-border focus:border-primary focus:ring-primary text-foreground placeholder:text-foreground/20"
                       />
                     </div>
                     <div className="space-y-2">
@@ -176,7 +176,7 @@ export default function ClientsCRM() {
                         placeholder="e.g., Tariq Ahmad" 
                         value={contactPerson}
                         onChange={(e) => setContactPerson(e.target.value)}
-                        className="rounded-xl border-border focus:border-blue-500 focus:ring-blue-500 text-foreground bg-white/[0.03] placeholder:text-foreground/20"
+                        className="rounded-xl border-border focus:border-primary focus:ring-primary text-foreground placeholder:text-foreground/20"
                       />
                     </div>
                   </div>
@@ -189,7 +189,7 @@ export default function ClientsCRM() {
                         placeholder="partner@futtaim.ae" 
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="rounded-xl border-border focus:border-blue-500 focus:ring-blue-500 text-foreground bg-white/[0.03] placeholder:text-foreground/20"
+                        className="rounded-xl border-border focus:border-primary focus:ring-primary text-foreground placeholder:text-foreground/20"
                       />
                     </div>
                     <div className="space-y-2">
@@ -198,7 +198,7 @@ export default function ClientsCRM() {
                         placeholder="+971 4 123 4567" 
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
-                        className="rounded-xl border-border focus:border-blue-500 focus:ring-blue-500 text-foreground bg-white/[0.03] placeholder:text-foreground/20"
+                        className="rounded-xl border-border focus:border-primary focus:ring-primary text-foreground placeholder:text-foreground/20"
                       />
                     </div>
                   </div>
@@ -210,7 +210,7 @@ export default function ClientsCRM() {
                         placeholder="Global" 
                         value={country}
                         onChange={(e) => setCountry(e.target.value)}
-                        className="rounded-xl border-border focus:border-blue-500 focus:ring-blue-500 text-foreground bg-white/[0.03] placeholder:text-foreground/20"
+                        className="rounded-xl border-border focus:border-primary focus:ring-primary text-foreground placeholder:text-foreground/20"
                       />
                     </div>
                     <div className="space-y-2">
@@ -219,7 +219,7 @@ export default function ClientsCRM() {
                         placeholder="GST (GMT+4)" 
                         value={timezone}
                         onChange={(e) => setTimezone(e.target.value)}
-                        className="rounded-xl border-border focus:border-blue-500 focus:ring-blue-500 text-foreground bg-white/[0.03] placeholder:text-foreground/20"
+                        className="rounded-xl border-border focus:border-primary focus:ring-primary text-foreground placeholder:text-foreground/20"
                       />
                     </div>
                     <div className="space-y-2">
@@ -227,7 +227,7 @@ export default function ClientsCRM() {
                       <select 
                         value={healthScore}
                         onChange={(e) => setHealthScore(Number(e.target.value))}
-                        className="w-full h-10 px-3 border border-border rounded-xl text-sm focus:border-blue-500 focus:ring-blue-500 bg-[#0d1f37] text-foreground"
+                        className="w-full h-10 px-3 border border-border rounded-xl text-sm focus:border-primary focus:ring-primary bg-[#0d1f37] text-foreground"
                       >
                         <option value={5}>5 - Excellent Relationship</option>
                         <option value={4}>4 - Good Standing</option>
@@ -240,13 +240,13 @@ export default function ClientsCRM() {
 
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-foreground/60 uppercase">Company Logo / Brand Badge</label>
-                    <div className="flex items-center gap-4 p-3 border border-dashed border-border rounded-xl bg-white/[0.01]">
+                    <div className="flex items-center gap-4 p-3 border border-dashed border-border rounded-xl">
                       <ImageIcon className="h-8 w-8 text-foreground/20 shrink-0" />
                       <input 
                         type="file" 
                         accept="image/*" 
                         onChange={handleLogoChange}
-                        className="text-xs text-foreground/60 file:mr-4 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-500/10 file:text-blue-300 hover:file:bg-blue-500/20 cursor-pointer"
+                        className="text-xs text-foreground/60 file:mr-4 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary/80 hover:file:bg-primary/20 cursor-pointer"
                       />
                       {logoBase64 && (
                         <img src={logoBase64} alt="Preview" className="h-10 w-10 object-contain rounded border border-border bg-white ml-auto" />
@@ -264,11 +264,7 @@ export default function ClientsCRM() {
                             key={svc}
                             type="button"
                             onClick={() => toggleService(svc)}
-                            className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-                              active 
-                                ? "bg-[#2563eb] text-foreground border-[#2563eb] shadow-[0_0_15px_rgba(37,99,235,0.25)]" 
-                                : "bg-white/[0.02] text-foreground/60 border-border hover:bg-muted/40 hover:text-foreground"
-                            }`}
+                            className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${ active ? "bg-[#2563eb] text-foreground border-[#2563eb] shadow-[0_0_15px_rgba(37,99,235,0.25)]" : " text-foreground/60 border-border hover: hover:text-foreground" }`}
                           >
                             {svc}
                           </button>
@@ -277,13 +273,13 @@ export default function ClientsCRM() {
                     </div>
                   </div>
 
-                  <DialogFooter className="pt-4 border-t border-white/[0.06] gap-2 sm:gap-0">
+                  <DialogFooter className="pt-4 border-t border-border gap-2 sm:gap-0">
                     <Button 
                       type="button" 
                       variant="outline" 
                       onClick={() => setIsAddOpen(false)}
                       disabled={saving}
-                      className="rounded-xl border-border text-foreground/60 hover:text-foreground hover:bg-muted/40"
+                      className="rounded-xl border-border text-foreground/60 hover:text-foreground hover:"
                     >
                       Cancel
                     </Button>
@@ -301,12 +297,12 @@ export default function ClientsCRM() {
           </RoleGuard>
         </div>
 
-        <div className="border border-white/[0.08] bg-white/[0.02] p-4 rounded-xl shadow-card backdrop-blur-xl flex flex-col sm:flex-row gap-4">
+        <div className="border border-border p-4 rounded-xl shadow-card flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-foreground/40" />
             <Input
               placeholder="Search clients by company or contact name..."
-              className="pl-9 bg-white/[0.03] text-foreground placeholder:text-foreground/20 rounded-xl border-border focus:border-blue-500 focus:ring-blue-500"
+              className="pl-9 text-foreground placeholder:text-foreground/20 rounded-xl border-border focus:border-primary focus:ring-primary"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -314,9 +310,9 @@ export default function ClientsCRM() {
         </div>
 
         {!mounted || loading ? (
-          <div className="text-center py-12 text-blue-400 font-bold">Querying secure CRM records...</div>
+          <div className="text-center py-12 text-primary font-bold">Querying secure CRM records...</div>
         ) : filteredClients.length === 0 ? (
-          <div className="text-center py-16 bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl rounded-2xl flex flex-col items-center p-8">
+          <div className="text-center py-16 border border-border rounded-2xl flex flex-col items-center p-8">
             <Building2 className="h-12 w-12 text-foreground/20 mb-4" />
             <h3 className="text-lg font-bold text-foreground/80">No Clients Discovered</h3>
             <p className="text-sm text-foreground/40 mt-1">Try adjusting search parameters or add a new brand profile.</p>
@@ -326,10 +322,10 @@ export default function ClientsCRM() {
             {filteredClients.map((client) => (
               <div 
                 key={client.id} 
-                className="border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.04] hover:shadow-card transition-all overflow-hidden group rounded-2xl flex flex-col justify-between"
+                className="border border-border hover: hover:shadow-card transition-all overflow-hidden group rounded-2xl flex flex-col justify-between"
               >
                 <div>
-                  <div className="h-1.5 bg-white/[0.04] group-hover:bg-blue-600 transition-colors"></div>
+                  <div className="h-1.5 group-hover:bg-primary transition-colors"></div>
                   <div className="p-5 pb-3">
                     <div className="flex justify-between items-start gap-4">
                       <div 
@@ -339,12 +335,12 @@ export default function ClientsCRM() {
                         {client.logo ? (
                           <img src={client.logo} alt="" className="h-12 w-12 object-contain rounded-xl border border-border bg-white shrink-0 p-1" />
                         ) : (
-                          <div className="h-12 w-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-300 font-bold text-lg shrink-0 border border-blue-500/20">
+                          <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary/80 font-bold text-lg shrink-0 border border-primary/20">
                             {client.companyName?.substring(0, 2).toUpperCase()}
                           </div>
                         )}
                         <div>
-                          <h3 className="text-lg font-bold text-foreground group-hover:text-blue-400 transition-colors">
+                          <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
                             {client.companyName}
                           </h3>
                           <div className="flex items-center flex-wrap gap-1.5 mt-1 text-foreground/40 font-semibold text-xs min-w-0">
@@ -370,7 +366,7 @@ export default function ClientsCRM() {
                                 }
                               }
                             }}
-                            className="p-1.5 text-foreground/40 hover:text-rose-400 rounded-lg hover:bg-muted/40 transition-colors border border-transparent hover:border-border"
+                            className="p-1.5 text-foreground/40 hover:text-rose-400 rounded-lg hover: transition-colors border border-transparent hover:border-border"
                             title="Delete Client"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -398,16 +394,16 @@ export default function ClientsCRM() {
                       </div>
                     </div>
                     
-                    <div className="pt-3 border-t border-white/[0.06]">
-                      <p className="text-[9px] font-bold text-foreground/40 uppercase tracking-wider mb-2">Services Subscribed</p>
+                    <div className="pt-3 border-t border-border">
+                      <p className="text-xs font-bold text-foreground/40 uppercase tracking-wider mb-2">Services Subscribed</p>
                       <div className="flex flex-wrap gap-1.5">
                         {client.servicesSubscribed?.slice(0, 3).map((svc: string) => (
-                          <Badge key={svc} variant="secondary" className="font-bold text-[10px] bg-white/[0.02] text-foreground/80 border border-border shadow-none rounded-lg">
+                          <Badge key={svc} variant="secondary" className="font-bold text-xs text-foreground/80 border border-border shadow-none rounded-lg">
                             {svc}
                           </Badge>
                         ))}
                         {client.servicesSubscribed?.length > 3 && (
-                          <Badge variant="secondary" className="font-bold text-[10px] bg-blue-500/10 text-blue-300 border border-blue-500/20 shadow-none rounded-lg">
+                          <Badge variant="secondary" className="font-bold text-xs bg-primary/10 text-primary/80 border border-primary/20 shadow-none rounded-lg">
                             +{client.servicesSubscribed.length - 3} more
                           </Badge>
                         )}
@@ -420,10 +416,10 @@ export default function ClientsCRM() {
                 </div>
                 
                 <div className="p-5 pt-0 pb-5">
-                  <div className="pt-4 border-t border-white/[0.06] flex gap-2 relative z-10">
+                  <div className="pt-4 border-t border-border flex gap-2 relative z-10">
                     <Button 
                       variant="outline" 
-                      className="w-full text-xs h-9 rounded-xl border-border text-foreground/60 hover:text-foreground hover:bg-muted/40 font-semibold cursor-pointer"
+                      className="w-full text-xs h-9 rounded-xl border-border text-foreground/60 hover:text-foreground hover: font-semibold cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation();
                         router.push(`/dashboard/projects?client=${encodeURIComponent(client.companyName)}`);
@@ -433,7 +429,7 @@ export default function ClientsCRM() {
                     </Button>
                     <Button 
                       variant="outline" 
-                      className="w-full text-xs h-9 rounded-xl border-border text-foreground/60 hover:text-foreground hover:bg-muted/40 font-semibold cursor-pointer"
+                      className="w-full text-xs h-9 rounded-xl border-border text-foreground/60 hover:text-foreground hover: font-semibold cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation();
                         router.push(`/dashboard/clients/${client.id}`);

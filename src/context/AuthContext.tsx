@@ -152,6 +152,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } else {
         setDelegatedRole(null);
       }
+    }, (err) => {
+      console.warn("Delegations snapshot listener error:", err);
     });
 
     return () => {

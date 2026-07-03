@@ -318,6 +318,8 @@ export default function SettingsDashboard() {
             setWebhookUrls(prev => ({ ...prev, ...data.urls }));
           }
         }
+      }, (error) => {
+        console.warn("Firestore onSnapshot error (settings discordWebhook):", error);
       });
     }
 
@@ -493,7 +495,7 @@ export default function SettingsDashboard() {
       case "LOGIN": return "bg-emerald-100 text-emerald-800 border-emerald-250";
       case "LOGOUT": return "bg-amber-100 text-amber-800 border-amber-250";
       case "START_DM": return "bg-cyan-100 text-cyan-800 border-cyan-250";
-      case "CREATE_GROUP": return "bg-indigo-100 text-indigo-800 border-indigo-250";
+      case "CREATE_GROUP": return "bg-primary text-primary border-primary";
       case "SYSTEM_SETTINGS": return "bg-rose-100 text-rose-800 border-rose-250";
       default: return "bg-slate-100 text-slate-800 border-slate-250";
     }
@@ -550,7 +552,7 @@ export default function SettingsDashboard() {
     <div className="space-y-6 pb-12 h-full flex flex-col text-foreground">
       <div className="shrink-0 mb-6">
         <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-          <Settings className="h-8 w-8 text-blue-550 dark:text-blue-400" />
+          <Settings className="h-8 w-8 text-primary dark:text-primary" />
           {isCSuiteOrAbove ? "System Settings" : "My Settings"}
         </h1>
         <p className="text-muted-foreground mt-1">
@@ -568,7 +570,7 @@ export default function SettingsDashboard() {
             onClick={() => setActiveTab("preferences")}
             className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-left border", 
               activeTab === "preferences" 
-                ? "bg-blue-600/20 text-blue-350 dark:text-blue-300 border-blue-500/25 shadow-sm" 
+                ? "bg-primary/20 text-primary/90 dark:text-primary/80 border-primary/25 shadow-sm" 
                 : "text-muted-foreground border-transparent hover:text-foreground hover:bg-secondary/40"
             )}
           >
@@ -580,7 +582,7 @@ export default function SettingsDashboard() {
             onClick={() => setActiveTab("security")}
             className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-left border", 
               activeTab === "security" 
-                ? "bg-blue-600/20 text-blue-350 dark:text-blue-300 border-blue-500/25 shadow-sm" 
+                ? "bg-primary/20 text-primary/90 dark:text-primary/80 border-primary/25 shadow-sm" 
                 : "text-muted-foreground border-transparent hover:text-foreground hover:bg-secondary/40"
             )}
           >
@@ -594,7 +596,7 @@ export default function SettingsDashboard() {
                 onClick={() => setActiveTab("users")}
                 className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-left border", 
                   activeTab === "users" 
-                    ? "bg-blue-600/20 text-blue-350 dark:text-blue-300 border-blue-500/25 shadow-sm" 
+                    ? "bg-primary/20 text-primary/90 dark:text-primary/80 border-primary/25 shadow-sm" 
                     : "text-muted-foreground border-transparent hover:text-foreground hover:bg-secondary/40"
                 )}
               >
@@ -605,7 +607,7 @@ export default function SettingsDashboard() {
                 onClick={() => setActiveTab("roles")}
                 className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-left border", 
                   activeTab === "roles" 
-                    ? "bg-blue-600/20 text-blue-350 dark:text-blue-300 border-blue-500/25 shadow-sm" 
+                    ? "bg-primary/20 text-primary/90 dark:text-primary/80 border-primary/25 shadow-sm" 
                     : "text-muted-foreground border-transparent hover:text-foreground hover:bg-secondary/40"
                 )}
               >
@@ -616,7 +618,7 @@ export default function SettingsDashboard() {
                 onClick={() => setActiveTab("company")}
                 className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-left border", 
                   activeTab === "company" 
-                    ? "bg-blue-600/20 text-blue-350 dark:text-blue-300 border-blue-500/25 shadow-sm" 
+                    ? "bg-primary/20 text-primary/90 dark:text-primary/80 border-primary/25 shadow-sm" 
                     : "text-muted-foreground border-transparent hover:text-foreground hover:bg-secondary/40"
                 )}
               >
@@ -627,7 +629,7 @@ export default function SettingsDashboard() {
                 onClick={() => setActiveTab("holidays")}
                 className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-left border", 
                   activeTab === "holidays" 
-                    ? "bg-blue-600/20 text-blue-350 dark:text-blue-300 border-blue-500/25 shadow-sm" 
+                    ? "bg-primary/20 text-primary/90 dark:text-primary/80 border-primary/25 shadow-sm" 
                     : "text-muted-foreground border-transparent hover:text-foreground hover:bg-secondary/40"
                 )}
               >
@@ -643,7 +645,7 @@ export default function SettingsDashboard() {
                 onClick={() => setActiveTab("audit")}
                 className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-left border", 
                   activeTab === "audit" 
-                    ? "bg-blue-600/20 text-blue-350 dark:text-blue-300 border-blue-500/25 shadow-sm" 
+                    ? "bg-primary/20 text-primary/90 dark:text-primary/80 border-primary/25 shadow-sm" 
                     : "text-muted-foreground border-transparent hover:text-foreground hover:bg-secondary/40"
                 )}
               >
@@ -654,7 +656,7 @@ export default function SettingsDashboard() {
                 onClick={() => setActiveTab("integrations")}
                 className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all text-left border", 
                   activeTab === "integrations" 
-                    ? "bg-blue-600/20 text-blue-350 dark:text-blue-300 border-blue-500/25 shadow-sm" 
+                    ? "bg-primary/20 text-primary/90 dark:text-primary/80 border-primary/25 shadow-sm" 
                     : "text-muted-foreground border-transparent hover:text-foreground hover:bg-secondary/40"
                 )}
               >
@@ -671,7 +673,7 @@ export default function SettingsDashboard() {
           {/* SECURITY & CREDENTIALS */}
           {activeTab === "security" && (
             <div className="flex flex-col h-full bg-card text-foreground">
-              <div className="p-6 border-b border-border bg-muted/20">
+              <div className="p-6 border-b border-border">
                 <h3 className="font-bold text-lg text-foreground">Account Security & Credentials</h3>
                 <p className="text-xs text-muted-foreground mt-1">Strengthen your security posture by maintaining strong passwords.</p>
               </div>
@@ -687,7 +689,7 @@ export default function SettingsDashboard() {
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="glass-input h-10 border-border text-foreground placeholder:text-muted-foreground/40 focus:border-blue-500 focus:ring-0 bg-background/50"
+                    className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-10 border-border text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:ring-0 bg-background/50"
                   />
                 </div>
 
@@ -700,13 +702,13 @@ export default function SettingsDashboard() {
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="glass-input h-10 border-border text-foreground placeholder:text-muted-foreground/40 focus:border-blue-500 focus:ring-0 bg-background/50"
+                    className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-10 border-border text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:ring-0 bg-background/50"
                   />
                   
                   {/* Real-time Password Strength Meter */}
                   {newPassword.length > 0 && (
                     <div className="space-y-1.5 pt-1">
-                      <div className="flex justify-between items-center text-[10px]">
+                      <div className="flex justify-between items-center text-xs">
                         <span className="text-muted-foreground font-bold uppercase tracking-wider">Password Strength:</span>
                         <span className="font-bold text-foreground">{getPasswordStrength(newPassword).label}</span>
                       </div>
@@ -723,20 +725,20 @@ export default function SettingsDashboard() {
                       </div>
 
                       {/* Criteria feedback list */}
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 pt-1.5 text-[9px] font-semibold text-muted-foreground">
-                        <div className={cn("flex items-center gap-1", newPassword.length >= 8 ? "text-emerald-400" : "opacity-40")}>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 pt-1.5 text-xs font-semibold text-muted-foreground">
+                        <div className={cn("flex items-center gap-1", newPassword.length >= 8 ? "text-accent" : "opacity-40")}>
                           <div className={cn("w-1.5 h-1.5 rounded-full", newPassword.length >= 8 ? "bg-emerald-400" : "bg-muted-foreground/20")} />
                           At least 8 characters
                         </div>
-                        <div className={cn("flex items-center gap-1", /[a-z]/.test(newPassword) && /[A-Z]/.test(newPassword) ? "text-emerald-400" : "opacity-40")}>
+                        <div className={cn("flex items-center gap-1", /[a-z]/.test(newPassword) && /[A-Z]/.test(newPassword) ? "text-accent" : "opacity-40")}>
                           <div className={cn("w-1.5 h-1.5 rounded-full", /[a-z]/.test(newPassword) && /[A-Z]/.test(newPassword) ? "bg-emerald-400" : "bg-muted-foreground/20")} />
                           Case mix (aA)
                         </div>
-                        <div className={cn("flex items-center gap-1", /\d/.test(newPassword) ? "text-emerald-400" : "opacity-40")}>
+                        <div className={cn("flex items-center gap-1", /\d/.test(newPassword) ? "text-accent" : "opacity-40")}>
                           <div className={cn("w-1.5 h-1.5 rounded-full", /\d/.test(newPassword) ? "bg-emerald-400" : "bg-muted-foreground/20")} />
                           Contains number (0-9)
                         </div>
-                        <div className={cn("flex items-center gap-1", /[^A-Za-z0-9]/.test(newPassword) ? "text-emerald-400" : "opacity-40")}>
+                        <div className={cn("flex items-center gap-1", /[^A-Za-z0-9]/.test(newPassword) ? "text-accent" : "opacity-40")}>
                           <div className={cn("w-1.5 h-1.5 rounded-full", /[^A-Za-z0-9]/.test(newPassword) ? "bg-emerald-400" : "bg-muted-foreground/20")} />
                           Special symbol (!@#)
                         </div>
@@ -754,12 +756,12 @@ export default function SettingsDashboard() {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="••••••••••••"
-                    className="glass-input h-10 border-border text-foreground placeholder:text-muted-foreground/40 focus:border-blue-500 focus:ring-0 bg-background/50"
+                    className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-10 border-border text-foreground placeholder:text-muted-foreground/40 focus:border-primary focus:ring-0 bg-background/50"
                   />
                   {confirmPassword.length > 0 && (
-                    <div className="flex items-center gap-1 text-[9px] font-bold">
+                    <div className="flex items-center gap-1 text-xs font-bold">
                       {newPassword === confirmPassword ? (
-                        <span className="text-emerald-400 shadow-glow-emerald">✓ Passwords match</span>
+                        <span className="text-accent shadow-glow-emerald">✓ Passwords match</span>
                       ) : (
                         <span className="text-rose-400">✗ Passwords do not match</span>
                       )}
@@ -772,7 +774,7 @@ export default function SettingsDashboard() {
                   <Button 
                     type="submit" 
                     disabled={updatingPassword}
-                    className="bg-blue-600 hover:bg-blue-700 text-foreground font-bold rounded-xl h-10 px-6 shadow-glow-blue flex items-center justify-center gap-2 cursor-pointer"
+                    className="bg-primary hover:bg-blue-700 text-foreground font-bold rounded-xl h-10 px-6 shadow-sm flex items-center justify-center gap-2 cursor-pointer"
                   >
                     {updatingPassword ? (
                       <>
@@ -803,19 +805,19 @@ export default function SettingsDashboard() {
           {/* MY PREFERENCES */}
           {activeTab === "preferences" && (
             <div className="flex flex-col h-full bg-card text-foreground">
-              <div className="p-6 border-b border-border bg-muted/20">
+              <div className="p-6 border-b border-border">
                 <h3 className="font-bold text-lg text-foreground">Personal Preferences</h3>
                 <p className="text-sm text-muted-foreground">Manage your profile metadata, background settings, and alert options.</p>
               </div>
               <div className="p-8 space-y-8">
                 {/* Profile Photo / Avatar Selection */}
-                <div className="p-5 bg-muted/10 rounded-2xl border border-border space-y-4">
+                <div className="p-5 rounded-2xl border border-border space-y-4">
                   <Label className="text-foreground font-bold text-xs uppercase tracking-wider block">Profile Avatar</Label>
                   
                   <div className="flex flex-col sm:flex-row gap-5 items-center">
                     <Avatar className="h-16 w-16 border border-border shadow-sm bg-secondary rounded-xl shrink-0">
                       <AvatarImage src={prefPhoto} />
-                      <AvatarFallback className="bg-blue-600 text-foreground text-lg font-bold">
+                      <AvatarFallback className="bg-primary text-foreground text-lg font-bold">
                         {prefName ? prefName.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase() : "U"}
                       </AvatarFallback>
                     </Avatar>
@@ -843,27 +845,26 @@ export default function SettingsDashboard() {
                             type="button" 
                             onClick={() => setPrefPhoto("")}
                             variant="ghost"
-                            className="text-xs h-9 text-rose-505 hover:text-rose-700 dark:hover:text-rose-400 hover:bg-rose-500/10 font-bold"
+                            className="text-xs h-9 text-rose-500 hover:text-rose-700 dark:hover:text-rose-400 hover:bg-rose-500/10 font-bold"
                           >
                             Remove
                           </Button>
                         )}
                       </div>
-                      <p className="text-[10px] text-muted-foreground font-semibold">PNG, JPG or WEBP. Max 2MB.</p>
+                      <p className="text-xs text-muted-foreground font-semibold">PNG, JPG or WEBP. Max 2MB.</p>
                     </div>
                   </div>
 
                   {/* Presets Grid */}
                   <div className="space-y-2">
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Or select a premium preset avatar:</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Or select a premium preset avatar:</p>
                     <div className="flex flex-wrap gap-2">
                       {PRESET_AVATARS.map((avatar, idx) => (
                         <button
                           key={idx}
                           type="button"
                           onClick={() => setPrefPhoto(avatar)}
-                          className={cn(
-                            "h-10 w-10 rounded-lg overflow-hidden border-2 transition-all p-0.5 bg-[#0a0f18]",
+                          className={cn("h-10 w-10 rounded-lg overflow-hidden border-2 transition-all p-0.5 bg-[#0a0f18]",
                             prefPhoto === avatar ? "border-blue-600 scale-105 shadow-md" : "border-border hover:border-muted-foreground/30"
                           )}
                         >
@@ -878,20 +879,20 @@ export default function SettingsDashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-2">
                     <Label className="text-foreground font-bold text-xs uppercase tracking-wider">Full Name</Label>
-                    <Input value={prefName} onChange={(e) => setPrefName(e.target.value)} placeholder="Your Full Name" className="border-border focus-visible:ring-blue-500 bg-background/50 text-foreground font-bold" />
+                    <Input value={prefName} onChange={(e) => setPrefName(e.target.value)} placeholder="Your Full Name" className="border-border focus-visible:ring-primary bg-background/50 text-foreground font-bold" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-foreground font-bold text-xs uppercase tracking-wider">Phone Number</Label>
-                    <Input value={prefPhone} onChange={(e) => setPrefPhone(e.target.value)} placeholder="+971 50 123 4567" className="border-border focus-visible:ring-blue-500 bg-background/50 text-foreground font-bold font-mono" />
+                    <Input value={prefPhone} onChange={(e) => setPrefPhone(e.target.value)} placeholder="+971 50 123 4567" className="border-border focus-visible:ring-primary bg-background/50 text-foreground font-bold font-mono" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-foreground font-bold text-xs uppercase tracking-wider">Email Address</Label>
-                    <Input value={user?.email || ""} disabled className="border-border focus-visible:ring-blue-500 bg-background/20 cursor-not-allowed opacity-70 text-foreground font-bold" />
-                    <p className="text-[10px] text-muted-foreground mt-1 font-semibold">To change your primary email, please raise a ticket with HR.</p>
+                    <Input value={user?.email || ""} disabled className="border-border focus-visible:ring-primary bg-background/20 cursor-not-allowed opacity-70 text-foreground font-bold" />
+                    <p className="text-xs text-muted-foreground mt-1 font-semibold">To change your primary email, please raise a ticket with HR.</p>
                   </div>
                   <div className="space-y-2">
                     <Label className="text-foreground font-bold text-xs uppercase tracking-wider">Corporate Role</Label>
-                    <Input value={ROLE_META[role || "employee"]?.label || role || "employee"} disabled className="border-border focus-visible:ring-blue-500 bg-background/20 cursor-not-allowed opacity-70 text-foreground font-bold capitalize" />
+                    <Input value={ROLE_META[role || "employee"]?.label || role || "employee"} disabled className="border-border focus-visible:ring-primary bg-background/20 cursor-not-allowed opacity-70 text-foreground font-bold capitalize" />
                   </div>
                   <div className="space-y-2 flex flex-col justify-end pt-2">
                     <Label className="text-foreground font-bold text-xs uppercase tracking-wider mb-2">Security</Label>
@@ -912,7 +913,7 @@ export default function SettingsDashboard() {
                     <Switch 
                       checked={prefGrid} 
                       onCheckedChange={setPrefGrid}
-                      className="data-[state=checked]:bg-blue-600"
+                      className="data-[state=checked]:bg-primary"
                     />
                   </div>
 
@@ -924,7 +925,7 @@ export default function SettingsDashboard() {
                     <Switch 
                       checked={theme === "light"} 
                       onCheckedChange={(val) => setThemeMode(val ? "light" : "dark")}
-                      className="data-[state=checked]:bg-blue-600"
+                      className="data-[state=checked]:bg-primary"
                     />
                   </div>
 
@@ -936,7 +937,7 @@ export default function SettingsDashboard() {
                     <Switch 
                       checked={prefNotifs.email} 
                       onCheckedChange={(val) => setPrefNotifs({...prefNotifs, email: val})}
-                      className="data-[state=checked]:bg-blue-600"
+                      className="data-[state=checked]:bg-primary"
                     />
                   </div>
 
@@ -948,13 +949,13 @@ export default function SettingsDashboard() {
                     <Switch 
                       checked={prefNotifs.app} 
                       onCheckedChange={(val) => setPrefNotifs({...prefNotifs, app: val})}
-                      className="data-[state=checked]:bg-blue-600"
+                      className="data-[state=checked]:bg-primary"
                     />
                   </div>
                 </div>
 
                 <div className="pt-6 border-t border-border flex justify-end">
-                  <Button onClick={handleSavePreferences} className="bg-blue-600 hover:bg-blue-700 text-foreground shadow-md px-8 font-bold rounded-xl h-11">Save Preferences</Button>
+                  <Button onClick={handleSavePreferences} className="bg-primary hover:bg-blue-700 text-foreground shadow-md px-8 font-bold rounded-xl h-11">Save Preferences</Button>
                 </div>
               </div>
             </div>
@@ -963,18 +964,18 @@ export default function SettingsDashboard() {
            {/* USER MANAGEMENT */}
           {activeTab === "users" && isCSuiteOrAbove && (
             <div className="flex flex-col h-full bg-card text-foreground">
-              <div className="p-6 border-b border-border flex justify-between items-center bg-muted/20">
+              <div className="p-6 border-b border-border flex justify-between items-center">
                 <div>
                   <h3 className="font-bold text-lg text-foreground">Team Accounts</h3>
                   <p className="text-sm text-muted-foreground">Manage roles and access for all staff.</p>
                 </div>
-                <Link href="/dashboard/hr/new" className="inline-flex items-center justify-center rounded-lg text-sm font-bold h-10 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-foreground shadow-md transition-colors">
+                <Link href="/dashboard/hr/new" className="inline-flex items-center justify-center rounded-lg text-sm font-bold h-10 px-4 py-2 bg-primary hover:bg-blue-700 text-foreground shadow-md transition-colors">
                   <Plus className="mr-2 h-4 w-4" /> Create Account
                 </Link>
               </div>
               <div className="overflow-x-auto p-0 bg-card">
                 <table className="w-full text-sm text-left">
-                  <thead className="bg-muted/30 text-muted-foreground text-xs uppercase font-bold border-b border-border">
+                  <thead className="text-muted-foreground text-xs uppercase font-bold border-b border-border">
                     <tr>
                       <th className="px-6 py-4">Employee Name</th>
                       <th className="px-6 py-4">Email</th>
@@ -985,7 +986,7 @@ export default function SettingsDashboard() {
                   </thead>
                   <tbody className="divide-y divide-border">
                     {employees.map((emp) => (
-                      <tr key={emp.id} className="hover:bg-muted/10 transition-colors">
+                      <tr key={emp.id} className="hover: transition-colors">
                         <td className="px-6 py-4 font-bold text-foreground">{emp.fullName}</td>
                         <td className="px-6 py-4 text-muted-foreground font-medium">{emp.email}</td>
                         <td className="px-6 py-4">
@@ -994,7 +995,7 @@ export default function SettingsDashboard() {
                             onValueChange={(val) => handleRoleChange(emp.id, val)}
                             disabled={emp.id === user?.uid}
                           >
-                            <SelectTrigger className="w-[180px] h-9 bg-background border-border focus:ring-blue-500 text-foreground font-semibold">
+                            <SelectTrigger className="w-[180px] h-9 bg-background border-border focus:ring-primary text-foreground font-semibold">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="bg-popover text-popover-foreground font-semibold border-border">
@@ -1037,7 +1038,7 @@ export default function SettingsDashboard() {
           {/* ROLES & PERMISSIONS */}
           {activeTab === "roles" && isCSuiteOrAbove && (
             <div className="flex flex-col h-full bg-card text-foreground">
-              <div className="p-6 border-b border-border bg-muted/20">
+              <div className="p-6 border-b border-border">
                 <h3 className="font-bold text-lg text-foreground">Roles & Permissions Matrix</h3>
                 <p className="text-sm text-muted-foreground">Audit system roles, view which employees are assigned to each role, and inspect their active permission scopes.</p>
               </div>
@@ -1055,17 +1056,17 @@ export default function SettingsDashboard() {
                           onClick={() => setSelectedRole(key)}
                           className={cn("w-full flex items-center justify-between p-4 rounded-xl text-left border transition-all",
                             selectedRole === key 
-                              ? "bg-blue-600/15 border-blue-500/30 text-blue-400 dark:text-blue-300 font-bold shadow-sm" 
+                              ? "bg-primary/15 border-primary/30 text-primary dark:text-primary/80 font-bold shadow-sm" 
                               : "border-border hover:bg-secondary/40 text-foreground"
                           )}
                         >
                           <div>
-                            <span className="text-xs uppercase tracking-wider font-extrabold font-mono block text-blue-500 dark:text-blue-400">{key}</span>
+                            <span className="text-xs uppercase tracking-wider font-extrabold font-mono block text-primary dark:text-primary">{key}</span>
                             <span className="text-sm font-semibold">{meta.label}</span>
                           </div>
                           <span className={cn("text-xs font-bold px-2 py-0.5 rounded-full",
                             selectedRole === key 
-                              ? "bg-blue-600 text-foreground" 
+                              ? "bg-primary text-foreground" 
                               : "bg-muted text-muted-foreground border border-border"
                           )}>
                             {count} {count === 1 ? "user" : "users"}
@@ -1081,10 +1082,10 @@ export default function SettingsDashboard() {
                   
                   {/* Scope Matrix */}
                   <div className="border border-border rounded-xl overflow-hidden shadow-sm bg-card">
-                    <div className="p-5 bg-muted/20 border-b border-border flex justify-between items-center">
+                    <div className="p-5 border-b border-border flex justify-between items-center">
                       <div>
                         <h4 className="font-bold text-foreground flex items-center gap-2">
-                          <Shield className="h-4.5 w-4.5 text-blue-500 dark:text-blue-400" />
+                          <Shield className="h-4.5 w-4.5 text-primary dark:text-primary" />
                           Permission Scope: {ROLE_META[selectedRole]?.label || selectedRole}
                         </h4>
                         <p className="text-xs text-muted-foreground mt-0.5">Permissions defined inside system security models.</p>
@@ -1099,14 +1100,14 @@ export default function SettingsDashboard() {
                         // Check if the selected role has this permission
                         const hasAccess = (PERMISSIONS[permKey as keyof typeof PERMISSIONS] as readonly string[]).includes(selectedRole);
                         return (
-                          <div key={permKey} className="flex items-center justify-between p-4 hover:bg-muted/10 transition-colors">
+                          <div key={permKey} className="flex items-center justify-between p-4 hover: transition-colors">
                             <div>
                               <p className="text-sm font-semibold text-foreground">{permLabel}</p>
-                              <p className="text-[11px] font-mono text-muted-foreground uppercase">{permKey}</p>
+                              <p className="text-xs font-mono text-muted-foreground uppercase">{permKey}</p>
                             </div>
                             <div>
                               {hasAccess ? (
-                                <Badge className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 font-bold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
+                                <Badge className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-accent border border-emerald-500/20 font-bold text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-sm">
                                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                                   Granted
                                 </Badge>
@@ -1125,7 +1126,7 @@ export default function SettingsDashboard() {
 
                   {/* Assigned Staff */}
                   <div className="border border-border rounded-xl overflow-hidden shadow-sm bg-card">
-                    <div className="p-5 bg-muted/20 border-b border-border">
+                    <div className="p-5 border-b border-border">
                       <h4 className="font-bold text-foreground">
                         Assigned Team Members ({getEmployeesWithRole(selectedRole).length})
                       </h4>
@@ -1139,15 +1140,15 @@ export default function SettingsDashboard() {
                         </div>
                       ) : (
                         getEmployeesWithRole(selectedRole).map((emp) => (
-                          <div key={emp.id} className="p-4 flex items-center justify-between hover:bg-muted/10 transition-colors bg-card">
+                          <div key={emp.id} className="p-4 flex items-center justify-between hover: transition-colors bg-card">
                             <div>
                               <p className="text-sm font-bold text-foreground">{emp.fullName}</p>
                               <p className="text-xs text-muted-foreground font-medium mt-0.5">{emp.email}</p>
                               {emp.lastLoginIP && (
-                                <p className="text-[10px] text-muted-foreground font-mono mt-1 font-semibold">IP Address: {emp.lastLoginIP}</p>
+                                <p className="text-xs text-muted-foreground font-mono mt-1 font-semibold">IP Address: {emp.lastLoginIP}</p>
                               )}
                             </div>
-                            <Badge className="bg-muted text-foreground font-bold text-[10px] uppercase border border-border shadow-sm">
+                            <Badge className="bg-muted text-foreground font-bold text-xs uppercase border border-border shadow-sm">
                               {emp.isActive ? "Active Account" : "Suspended"}
                             </Badge>
                           </div>
@@ -1163,7 +1164,7 @@ export default function SettingsDashboard() {
            {/* COMPANY INFO */}
           {activeTab === "company" && isCSuiteOrAbove && (
             <div className="flex flex-col h-full bg-card text-foreground">
-              <div className="p-6 border-b border-border bg-muted/20">
+              <div className="p-6 border-b border-border">
                 <h3 className="font-bold text-lg text-foreground">Company Profile</h3>
                 <p className="text-sm text-muted-foreground">Details used across the ERP, including generated PDFs and Invoices.</p>
               </div>
@@ -1185,16 +1186,16 @@ export default function SettingsDashboard() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-2">
                     <Label className="text-foreground font-bold">Company Name</Label>
-                    <Input value={compName} onChange={e => setCompName(e.target.value)} className="border-border focus-visible:ring-blue-500 bg-background/50 text-foreground font-bold" />
+                    <Input value={compName} onChange={e => setCompName(e.target.value)} className="border-border focus-visible:ring-primary bg-background/50 text-foreground font-bold" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-foreground font-bold">VAT / Tax Number</Label>
-                    <Input value={compVat} onChange={e => setCompVat(e.target.value)} className="border-border focus-visible:ring-blue-500 bg-background/50 text-foreground font-bold" />
+                    <Input value={compVat} onChange={e => setCompVat(e.target.value)} className="border-border focus-visible:ring-primary bg-background/50 text-foreground font-bold" />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-foreground font-bold">Default Currency</Label>
                     <Select value={compCurrency} onValueChange={(val) => setCompCurrency(val || "AED")}>
-                      <SelectTrigger className="border-border focus:ring-blue-500 bg-background/50 text-foreground font-bold"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="border-border focus:ring-primary bg-background/50 text-foreground font-bold"><SelectValue /></SelectTrigger>
                       <SelectContent className="bg-popover text-foreground font-semibold">
                         <SelectItem value="AED">AED - Global Currency</SelectItem>
                         <SelectItem value="USD">USD - US Dollar</SelectItem>
@@ -1205,12 +1206,12 @@ export default function SettingsDashboard() {
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <Label className="text-foreground font-bold">Headquarters Address</Label>
-                    <Input value={compAddress} onChange={e => setCompAddress(e.target.value)} className="border-border focus-visible:ring-blue-500 bg-background/50 text-foreground font-bold" />
+                    <Input value={compAddress} onChange={e => setCompAddress(e.target.value)} className="border-border focus-visible:ring-primary bg-background/50 text-foreground font-bold" />
                   </div>
                 </div>
 
                 <div className="pt-6 flex justify-end">
-                  <Button onClick={handleSaveCompanySettings} disabled={savingCompany} className="bg-blue-600 hover:bg-blue-700 text-foreground shadow-md px-8 font-bold rounded-xl h-11">
+                  <Button onClick={handleSaveCompanySettings} disabled={savingCompany} className="bg-primary hover:bg-blue-700 text-foreground shadow-md px-8 font-bold rounded-xl h-11">
                     {savingCompany ? "Saving Changes..." : "Save Changes"}
                   </Button>
                 </div>
@@ -1221,12 +1222,12 @@ export default function SettingsDashboard() {
           {/* HOLIDAYS */}
           {activeTab === "holidays" && isCSuiteOrAbove && (
             <div className="flex flex-col h-full bg-card text-foreground">
-              <div className="p-6 border-b border-border bg-muted/20">
+              <div className="p-6 border-b border-border">
                 <h3 className="font-bold text-lg text-foreground">Public Holidays</h3>
                 <p className="text-sm text-muted-foreground">These dates are automatically excluded when calculating working days for Leave Requests.</p>
               </div>
               <div className="p-8 space-y-8">
-                <div className="flex flex-col sm:flex-row gap-4 items-end bg-muted/20 p-6 rounded-xl border border-border shadow-sm">
+                <div className="flex flex-col sm:flex-row gap-4 items-end p-6 rounded-xl border border-border shadow-sm">
                   <div className="space-y-2 flex-1">
                     <Label className="text-foreground font-bold">Holiday Name</Label>
                     <Input 
@@ -1245,14 +1246,14 @@ export default function SettingsDashboard() {
                       className="bg-background text-foreground border-border font-bold"
                     />
                   </div>
-                  <Button className="bg-blue-600 hover:bg-blue-700 text-foreground shadow-md font-bold rounded-xl h-11 px-6" onClick={handleAddHoliday} disabled={!newHoliday.name || !newHoliday.date}>
+                  <Button className="bg-primary hover:bg-blue-700 text-foreground shadow-md font-bold rounded-xl h-11 px-6" onClick={handleAddHoliday} disabled={!newHoliday.name || !newHoliday.date}>
                     <Plus className="h-4 w-4 mr-2" /> Add Date
                   </Button>
                 </div>
 
                 <div className="border border-border rounded-xl overflow-hidden shadow-sm">
                   <table className="w-full text-sm text-left">
-                    <thead className="bg-muted/30 text-muted-foreground text-xs uppercase font-bold border-b border-border">
+                    <thead className="text-muted-foreground text-xs uppercase font-bold border-b border-border">
                       <tr>
                         <th className="px-6 py-4">Holiday Date</th>
                         <th className="px-6 py-4">Description</th>
@@ -1262,17 +1263,17 @@ export default function SettingsDashboard() {
                     <tbody className="divide-y divide-border">
                       {!companySettings.holidays || companySettings.holidays.length === 0 ? (
                         <tr>
-                          <td colSpan={3} className="px-6 py-12 text-center text-muted-foreground font-medium italic bg-muted/10">
+                          <td colSpan={3} className="px-6 py-12 text-center text-muted-foreground font-medium italic">
                             No holidays configured.
                           </td>
                         </tr>
                       ) : (
                         companySettings.holidays.map((h: any, i: number) => (
-                          <tr key={i} className="hover:bg-muted/10 transition-colors">
+                          <tr key={i} className="hover: transition-colors">
                             <td className="px-6 py-4 font-bold text-foreground">{new Date(h.date).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</td>
                             <td className="px-6 py-4 text-muted-foreground font-medium">{h.name}</td>
                             <td className="px-6 py-4 text-right">
-                              <Button variant="ghost" size="sm" className="text-rose-505 hover:text-rose-700 dark:hover:text-rose-400 hover:bg-rose-500/10" onClick={() => handleDeleteHoliday(i)}>
+                              <Button variant="ghost" size="sm" className="text-rose-500 hover:text-rose-700 dark:hover:text-rose-400 hover:bg-rose-500/10" onClick={() => handleDeleteHoliday(i)}>
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </td>
@@ -1305,10 +1306,10 @@ export default function SettingsDashboard() {
               <div className="flex flex-col h-full bg-card text-foreground">
                 
                 {/* Visual Header */}
-                <div className="p-6 border-b border-border bg-muted/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="p-6 border-b border-border flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
                     <h3 className="font-extrabold text-xl text-foreground flex items-center gap-2">
-                      <Activity className="h-5 w-5 text-blue-500 dark:text-blue-400 animate-pulse" />
+                      <Activity className="h-5 w-5 text-primary dark:text-primary animate-pulse" />
                       Live Telemetry & Audit Logs
                     </h3>
                     <p className="text-xs text-muted-foreground mt-1">Foundational dashboard monitoring team activities and active sessions in real-time.</p>
@@ -1321,7 +1322,7 @@ export default function SettingsDashboard() {
                       variant="outline"
                       className="bg-secondary border-border text-foreground hover:bg-secondary/80 text-xs font-bold flex items-center gap-2 h-9 py-0 px-4 shrink-0 shadow-sm cursor-pointer"
                     >
-                      <UploadCloud className="h-4 w-4 rotate-180 text-blue-500 dark:text-blue-400" />
+                      <UploadCloud className="h-4 w-4 rotate-180 text-primary dark:text-primary" />
                       Export CSV
                     </Button>
 
@@ -1331,15 +1332,15 @@ export default function SettingsDashboard() {
                         <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                       </span>
                       <div>
-                        <p className="text-[10px] uppercase font-bold text-emerald-600 dark:text-emerald-405">Active Staff</p>
+                        <p className="text-xs uppercase font-bold text-primary dark:text-accent">Active Staff</p>
                         <p className="text-sm font-extrabold text-foreground font-mono">{onlineEmployees.length} Online</p>
                       </div>
                     </div>
 
-                    <div className="bg-blue-500/10 border border-blue-500/20 px-4 py-2 rounded-xl flex items-center gap-3">
-                      <Clock className="h-4.5 w-4.5 text-blue-500 dark:text-blue-400" />
+                    <div className="bg-primary/10 border border-primary/20 px-4 py-2 rounded-xl flex items-center gap-3">
+                      <Clock className="h-4.5 w-4.5 text-primary dark:text-primary" />
                       <div>
-                        <p className="text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400">Logged Events</p>
+                        <p className="text-xs uppercase font-bold text-primary dark:text-primary">Logged Events</p>
                         <p className="text-sm font-extrabold text-foreground font-mono">{auditLogs.length} Total</p>
                       </div>
                     </div>
@@ -1354,7 +1355,7 @@ export default function SettingsDashboard() {
                       placeholder="Search live events..." 
                       value={auditSearchQuery}
                       onChange={e => setAuditSearchQuery(e.target.value)}
-                      className="pl-9 bg-background border-border text-foreground focus-visible:ring-blue-500 rounded-lg text-xs"
+                      className="pl-9 bg-background border-border text-foreground focus-visible:ring-primary rounded-lg text-xs"
                     />
                   </div>
 
@@ -1392,7 +1393,7 @@ export default function SettingsDashboard() {
                     <div className="space-y-3">
                       {filteredAuditLogs.length === 0 ? (
                         <div className="bg-card border border-border rounded-xl p-12 text-center text-muted-foreground">
-                          <ShieldAlert className="h-10 w-10 mx-auto mb-2 opacity-30 text-blue-550 dark:text-blue-400" />
+                          <ShieldAlert className="h-10 w-10 mx-auto mb-2 opacity-30 text-primary dark:text-primary" />
                           <p className="font-bold text-sm">No activity events found</p>
                           <p className="text-xs mt-1">Refine your search tags or filters.</p>
                         </div>
@@ -1410,22 +1411,22 @@ export default function SettingsDashboard() {
                             <div key={log.id} className="bg-card border border-border rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow flex items-start gap-4">
                               <Avatar className="h-10 w-10 shrink-0 border border-border">
                                 <AvatarImage src={actor.avatar} />
-                                <AvatarFallback className="bg-blue-600 text-foreground font-bold text-sm">{actor.initials}</AvatarFallback>
+                                <AvatarFallback className="bg-primary text-foreground font-bold text-sm">{actor.initials}</AvatarFallback>
                               </Avatar>
                               
                               <div className="flex-1 min-w-0">
                                 <div className="flex flex-wrap items-center justify-between gap-2">
                                   <div>
                                     <span className="font-bold text-foreground text-sm block md:inline mr-2">{actor.name}</span>
-                                    <span className="text-[10px] font-bold text-muted-foreground uppercase font-mono tracking-tight bg-background border border-border px-2 py-0.5 rounded-full">{actor.role}</span>
+                                    <span className="text-xs font-bold text-muted-foreground uppercase font-mono tracking-tight bg-background border border-border px-2 py-0.5 rounded-full">{actor.role}</span>
                                   </div>
-                                  <Badge className={cn("text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border shadow-none", getActionBadgeColor(log.action))}>
+                                  <Badge className={cn("text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border shadow-none", getActionBadgeColor(log.action))}>
                                     {log.action}
                                   </Badge>
                                 </div>
                                 <p className="text-xs font-semibold text-foreground/80 mt-2 leading-relaxed">{description}</p>
                                 
-                                <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border text-[10px] text-muted-foreground font-semibold font-mono">
+                                <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border text-xs text-muted-foreground font-semibold font-mono">
                                   <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> {dateString}</span>
                                   <span>ID: {log.id.substring(0, 8)}...</span>
                                 </div>
@@ -1454,16 +1455,16 @@ export default function SettingsDashboard() {
                                 <div className="relative">
                                   <Avatar className="h-9 w-9 border border-border">
                                     <AvatarImage src={emp.profilePhotoURL} />
-                                    <AvatarFallback className="bg-blue-600 text-foreground font-bold text-xs">{initials}</AvatarFallback>
+                                    <AvatarFallback className="bg-primary text-foreground font-bold text-xs">{initials}</AvatarFallback>
                                   </Avatar>
                                   <span className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white animate-pulse" />
                                 </div>
                                 
                                 <div className="flex-1 min-w-0">
                                   <p className="text-xs font-extrabold text-foreground truncate">{emp.fullName || emp.name}</p>
-                                  <p className="text-[10px] text-muted-foreground font-semibold truncate">{emp.jobTitle || "Employee"}</p>
+                                  <p className="text-xs text-muted-foreground font-semibold truncate">{emp.jobTitle || "Employee"}</p>
                                   {emp.lastLoginIP && (
-                                    <p className="text-[9px] text-muted-foreground font-mono mt-1 font-semibold flex items-center gap-1"><Wifi className="h-3 w-3 shrink-0" /> {emp.lastLoginIP}</p>
+                                    <p className="text-xs text-muted-foreground font-mono mt-1 font-semibold flex items-center gap-1"><Wifi className="h-3 w-3 shrink-0" /> {emp.lastLoginIP}</p>
                                   )}
                                 </div>
                               </div>
@@ -1482,9 +1483,9 @@ export default function SettingsDashboard() {
           {/* EXECUTIVE INTEGRATIONS CENTER */}
           {isFounder && activeTab === "integrations" && (
             <div className="flex flex-col h-full bg-card text-foreground">
-              <div className="p-6 border-b border-border bg-muted/20">
+              <div className="p-6 border-b border-border">
                 <h3 className="font-extrabold text-xl text-foreground flex items-center gap-2">
-                  <Wifi className="h-5 w-5 text-blue-500 dark:text-blue-400 animate-pulse" />
+                  <Wifi className="h-5 w-5 text-primary dark:text-primary animate-pulse" />
                   Discord Webhook Integration Center
                 </h3>
                 <p className="text-xs text-muted-foreground mt-1">Configure real-time automated system event routing directly to your Discord server channels.</p>
@@ -1492,7 +1493,7 @@ export default function SettingsDashboard() {
 
               <div className="p-8 space-y-6 max-w-3xl">
                 <Card className="border border-border shadow-sm bg-card rounded-xl">
-                  <CardHeader className="border-b border-border p-5 bg-muted/20">
+                  <CardHeader className="border-b border-border p-5">
                     <CardTitle className="text-sm font-bold text-foreground">Active Webhook Configurations</CardTitle>
                     <CardDescription className="text-xs text-muted-foreground">Specify the targeting URL of your Discord webhook channel integration.</CardDescription>
                   </CardHeader>
@@ -1541,7 +1542,7 @@ export default function SettingsDashboard() {
 
                     <div className="border-t border-border pt-5 space-y-4">
                       <h4 className="text-xs font-extrabold text-foreground uppercase tracking-wider">Configure Automated Event Triggers</h4>
-                      <p className="text-[10px] text-muted-foreground font-semibold mt-0.5">Toggle which high-impact business activities route real-time telemetry updates to Discord.</p>
+                      <p className="text-xs text-muted-foreground font-semibold mt-0.5">Toggle which high-impact business activities route real-time telemetry updates to Discord.</p>
                       
                       <div className="space-y-3.5 mt-4">
                         {[
@@ -1551,11 +1552,11 @@ export default function SettingsDashboard() {
                           { key: "security", label: "Security Breach Alerts & Audit Logs", desc: "Monitors blocked credentials, active role changes, and account suspensions." },
                           { key: "ocr", label: "Document Processing & OCR Scans", desc: "Monitors vaulted receipts, parsed invoices, and cognitive extraction alerts." }
                         ].map(item => (
-                          <div key={item.key} className="p-4 rounded-xl border border-border bg-muted/10 hover:bg-muted/20 transition-all space-y-3">
+                          <div key={item.key} className="p-4 rounded-xl border border-border hover: transition-all space-y-3">
                             <div className="flex items-center justify-between">
                               <div>
                                 <h5 className="text-xs font-bold text-foreground">{item.label}</h5>
-                                <p className="text-[10px] text-muted-foreground font-semibold mt-0.5">{item.desc}</p>
+                                <p className="text-xs text-muted-foreground font-semibold mt-0.5">{item.desc}</p>
                               </div>
                               <Switch
                                 checked={(webhookEvents as any)[item.key]}
@@ -1564,7 +1565,7 @@ export default function SettingsDashboard() {
                             </div>
                             {(webhookEvents as any)[item.key] && (
                               <div className="pt-2 border-t border-border/50 space-y-1.5 animate-in fade-in duration-200">
-                                <Label className="text-[9px] font-bold text-muted-foreground uppercase tracking-wide">Specific Channel Webhook URL (Optional)</Label>
+                                <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wide">Specific Channel Webhook URL (Optional)</Label>
                                 <Input
                                   value={(webhookUrls as any)[item.key] || ""}
                                   onChange={(e) => setWebhookUrls(prev => ({ ...prev, [item.key]: e.target.value }))}
@@ -1599,7 +1600,7 @@ export default function SettingsDashboard() {
                           }
                         }}
                         disabled={savingWebhook}
-                        className="bg-blue-600 hover:bg-blue-700 text-foreground font-bold cursor-pointer"
+                        className="bg-primary hover:bg-blue-700 text-foreground font-bold cursor-pointer"
                       >
                         {savingWebhook ? "Saving..." : "Save Webhook Settings"}
                       </Button>

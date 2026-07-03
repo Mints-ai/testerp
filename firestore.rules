@@ -233,5 +233,11 @@ service cloud.firestore {
     match /employeeDocuments/{docId} {
       allow read, write: if isAuth() && isManagerOrAbove();
     }
+
+    // Role Delegations Collection Rules
+    match /delegations/{delegationId} {
+      allow read: if isAuth() && (resource.data.toUid == request.auth.uid || resource.data.fromUid == request.auth.uid || isManagerOrAbove());
+      allow write: if isAuth() && isManagerOrAbove();
+    }
   }
 }

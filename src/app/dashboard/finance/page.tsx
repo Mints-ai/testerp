@@ -22,26 +22,11 @@ import { CHART_COLORS, CHART_STYLE } from "@/lib/chartTheme";
 import { cn } from "@/lib/utils";
 import { downloadCSV } from "@/lib/exportUtils";
 
-const mockFinancialData: any[] = [
-  { name: "Jan", revenue: 45000, profit: 12000 },
-  { name: "Feb", revenue: 52000, profit: 15000 },
-  { name: "Mar", revenue: 61000, profit: 19000 },
-  { name: "Apr", revenue: 58000, profit: 17500 },
-  { name: "May", revenue: 73000, profit: 24000 },
-  { name: "Jun", revenue: 85000, profit: 29000 },
-];
 
-const mockExpenseData: any[] = [
-  { name: "Software", value: 12400 },
-  { name: "Marketing", value: 8500 },
-  { name: "Salaries", value: 32000 },
-  { name: "Operations", value: 4300 },
-  { name: "Travel", value: 1800 },
-];
 
 const STATUS_COLORS: Record<string, string> = {
-  draft: "bg-muted/40 text-foreground/50 border-border",
-  sent: "bg-blue-600/15 text-blue-300 border-blue-500/20",
+  draft: " text-foreground/50 border-border",
+  sent: "bg-primary/15 text-primary/80 border-primary/20",
   paid: "bg-emerald-600/15 text-emerald-300 border-emerald-500/20",
   overdue: "bg-rose-600/15 text-rose-300 border-rose-500/20",
 };
@@ -460,7 +445,7 @@ export default function FinanceDashboard() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
-              <Wallet className="h-5 w-5 text-blue-500" /> Finance Hub
+              <Wallet className="h-5 w-5 text-primary" /> Finance Hub
             </h1>
             <p className="text-xs text-foreground/40 mt-1">Manage agency revenue, cash flow, invoices, and expenses.</p>
           </div>
@@ -469,68 +454,68 @@ export default function FinanceDashboard() {
               onClick={handleExportCSV}
               className="btn-ghost py-0 px-4 h-9 text-xs font-bold border-border text-foreground/70 hover:text-foreground flex items-center justify-center cursor-pointer gap-1.5"
             >
-              <FileDown className="w-4 h-4 text-emerald-400" /> Export CSV
+              <FileDown className="w-4 h-4 text-accent" /> Export CSV
             </button>
           </div>
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="mb-6 bg-white/[0.02] border border-white/[0.08] shadow-inner p-1 rounded-xl">
-            <TabsTrigger value="overview" className="text-xs py-1.5 px-4 font-bold rounded-lg text-foreground/40 data-[state=active]:bg-blue-600 data-[state=active]:text-foreground data-[state=active]:shadow-glow-blue transition-all cursor-pointer">Executive Summary</TabsTrigger>
-            <TabsTrigger value="invoices" className="text-xs py-1.5 px-4 font-bold rounded-lg text-foreground/40 data-[state=active]:bg-blue-600 data-[state=active]:text-foreground data-[state=active]:shadow-glow-blue transition-all cursor-pointer">Invoices</TabsTrigger>
-            <TabsTrigger value="expenses" className="text-xs py-1.5 px-4 font-bold rounded-lg text-foreground/40 data-[state=active]:bg-blue-600 data-[state=active]:text-foreground data-[state=active]:shadow-glow-blue transition-all cursor-pointer">Expenses</TabsTrigger>
-            <TabsTrigger value="payroll" className="text-xs py-1.5 px-4 font-bold rounded-lg text-foreground/40 data-[state=active]:bg-blue-600 data-[state=active]:text-foreground data-[state=active]:shadow-glow-blue transition-all cursor-pointer">Payroll & Payslips</TabsTrigger>
+          <TabsList className="mb-6 border border-border shadow-inner p-1 rounded-xl">
+            <TabsTrigger value="overview" className="text-xs py-1.5 px-4 font-bold rounded-lg text-foreground/40 data-[state=active]:bg-primary data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all cursor-pointer">Executive Summary</TabsTrigger>
+            <TabsTrigger value="invoices" className="text-xs py-1.5 px-4 font-bold rounded-lg text-foreground/40 data-[state=active]:bg-primary data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all cursor-pointer">Invoices</TabsTrigger>
+            <TabsTrigger value="expenses" className="text-xs py-1.5 px-4 font-bold rounded-lg text-foreground/40 data-[state=active]:bg-primary data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all cursor-pointer">Expenses</TabsTrigger>
+            <TabsTrigger value="payroll" className="text-xs py-1.5 px-4 font-bold rounded-lg text-foreground/40 data-[state=active]:bg-primary data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all cursor-pointer">Payroll & Payslips</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
+              <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border">
                 <CardContent className="p-5">
                   <div className="flex justify-between items-start mb-2">
-                    <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Gross Revenue</p>
-                    <div className="p-1.5 bg-blue-500/10 text-blue-400 rounded-lg border border-blue-500/20"><DollarSign className="w-4 h-4" /></div>
+                    <p className="text-xs font-bold text-foreground/40 uppercase tracking-wider">Gross Revenue</p>
+                    <div className="p-1.5 bg-primary/10 text-primary rounded-lg border border-primary/20"><DollarSign className="w-4 h-4" /></div>
                   </div>
-                  <h3 className="text-xl font-bold text-foreground tracking-tight font-mono">{formatCompact(dynamicGrossRevenue)} <span className="text-[10px] text-foreground/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
-                  <div className="flex items-center gap-1 mt-2 text-[10px] font-bold text-emerald-400">
+                  <h3 className="text-xl font-bold text-foreground tracking-tight font-mono">{formatCompact(dynamicGrossRevenue)} <span className="text-xs text-foreground/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
+                  <div className="flex items-center gap-1 mt-2 text-xs font-bold text-accent">
                     <ArrowUpRight className="w-3.5 h-3.5" /> Billed Receivables
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
+              <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border">
                 <CardContent className="p-5">
                   <div className="flex justify-between items-start mb-2">
-                    <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Net Profit</p>
-                    <div className="p-1.5 bg-emerald-500/10 text-emerald-400 rounded-lg border border-emerald-500/20"><TrendingUp className="w-4 h-4" /></div>
+                    <p className="text-xs font-bold text-foreground/40 uppercase tracking-wider">Net Profit</p>
+                    <div className="p-1.5 bg-emerald-500/10 text-accent rounded-lg border border-emerald-500/20"><TrendingUp className="w-4 h-4" /></div>
                   </div>
-                  <h3 className="text-xl font-bold text-foreground tracking-tight font-mono">{formatCompact(dynamicNetProfit)} <span className="text-[10px] text-foreground/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
-                  <div className="flex items-center gap-1 mt-2 text-[10px] font-bold text-emerald-400">
+                  <h3 className="text-xl font-bold text-foreground tracking-tight font-mono">{formatCompact(dynamicNetProfit)} <span className="text-xs text-foreground/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
+                  <div className="flex items-center gap-1 mt-2 text-xs font-bold text-accent">
                     <ArrowUpRight className="w-3.5 h-3.5" /> Net surplus
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
+              <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border">
                 <CardContent className="p-5">
                   <div className="flex justify-between items-start mb-2">
-                    <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">AR (Outstanding)</p>
+                    <p className="text-xs font-bold text-foreground/40 uppercase tracking-wider">AR (Outstanding)</p>
                     <div className="p-1.5 bg-amber-500/10 text-amber-400 rounded-lg border border-amber-500/20"><Banknote className="w-4 h-4" /></div>
                   </div>
-                  <h3 className="text-xl font-bold text-foreground tracking-tight font-mono">{formatCompact(dynamicAR)} <span className="text-[10px] text-foreground/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
-                  <div className={cn("flex items-center gap-1 mt-2 text-[10px] font-bold", outstandingCount > 0 ? "text-amber-400" : "text-emerald-400")}>
+                  <h3 className="text-xl font-bold text-foreground tracking-tight font-mono">{formatCompact(dynamicAR)} <span className="text-xs text-foreground/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
+                  <div className={cn("flex items-center gap-1 mt-2 text-xs font-bold", outstandingCount > 0 ? "text-amber-400" : "text-accent")}>
                     <AlertCircle className="w-3.5 h-3.5" /> {outstandingCount} Unpaid
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
+              <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border">
                 <CardContent className="p-5">
                   <div className="flex justify-between items-start mb-2">
-                    <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Run Rate</p>
+                    <p className="text-xs font-bold text-foreground/40 uppercase tracking-wider">Run Rate</p>
                     <div className="p-1.5 bg-violet-500/10 text-violet-400 rounded-lg border border-violet-500/20"><ArrowUpRight className="w-4 h-4" /></div>
                   </div>
-                  <h3 className="text-xl font-bold text-foreground tracking-tight font-mono">{formatCompact(dynamicRunRate)} <span className="text-[10px] text-foreground/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
-                  <div className="text-[10px] font-semibold text-foreground/30 mt-2">
+                  <h3 className="text-xl font-bold text-foreground tracking-tight font-mono">{formatCompact(dynamicRunRate)} <span className="text-xs text-foreground/30 uppercase tracking-wider font-sans font-bold ml-1">{compCurrency}</span></h3>
+                  <div className="text-xs font-semibold text-foreground/30 mt-2">
                     Projected annual revenue
                   </div>
                 </CardContent>
@@ -539,10 +524,10 @@ export default function FinanceDashboard() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Stacked Area Chart */}
-              <Card className="lg:col-span-2 glass-card overflow-hidden border-white/[0.08] bg-white/[0.02] p-5">
+              <Card className="lg:col-span-2 bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border p-5">
                 <CardHeader className="p-0 mb-6">
                   <CardTitle className="text-sm font-bold text-foreground">Cash Flow (H1 2026)</CardTitle>
-                  <CardDescription className="text-[11px] text-foreground/40 mt-1">Revenue vs Expenses vs Net Profit over the last 6 months.</CardDescription>
+                  <CardDescription className="text-xs text-foreground/40 mt-1">Revenue vs Expenses vs Net Profit over the last 6 months.</CardDescription>
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="h-[300px] w-full min-w-0">
@@ -574,10 +559,10 @@ export default function FinanceDashboard() {
                           </AreaChart>
                         </ResponsiveContainer>
                       ) : (
-                        <div className="h-full w-full flex flex-col items-center justify-center text-xs text-foreground/30 gap-2 border border-white/[0.04] bg-white/[0.01] rounded-2xl p-6">
+                        <div className="h-full w-full flex flex-col items-center justify-center text-xs text-foreground/30 gap-2 border border-border rounded-2xl p-6">
                           <TrendingUp className="h-8 w-8 text-foreground/20 animate-pulse" />
-                          <span className="font-bold uppercase tracking-wider text-[10px]">No Transaction Data Found</span>
-                          <span className="text-[9px] text-foreground/20 text-center px-6">Generate client invoices or log business expenses to compile live cash flow graphs.</span>
+                          <span className="font-bold uppercase tracking-wider text-xs">No Transaction Data Found</span>
+                          <span className="text-xs text-foreground/20 text-center px-6">Generate client invoices or log business expenses to compile live cash flow graphs.</span>
                         </div>
                       )
                     ) : (
@@ -588,10 +573,10 @@ export default function FinanceDashboard() {
               </Card>
 
               {/* Expenses Donut */}
-              <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02] p-5 flex flex-col">
+              <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border p-5 flex flex-col">
                 <CardHeader className="p-0 mb-4">
                   <CardTitle className="text-sm font-bold text-foreground">Expense Distribution</CardTitle>
-                  <CardDescription className="text-[11px] text-foreground/40 mt-1">Breakdown by category (Current Month)</CardDescription>
+                  <CardDescription className="text-xs text-foreground/40 mt-1">Breakdown by category (Current Month)</CardDescription>
                 </CardHeader>
                 <CardContent className="p-0 flex-1 flex flex-col justify-between min-w-0">
                   <div className="h-[180px] w-full flex flex-col justify-center relative my-2 min-w-0">
@@ -623,14 +608,14 @@ export default function FinanceDashboard() {
                           {/* Inner Text for Donut */}
                           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-1">
                             <span className="text-lg font-black text-foreground font-mono leading-none">{totalExpSum.toLocaleString()}</span>
-                            <span className="text-[8px] uppercase font-bold text-foreground/30 tracking-widest mt-1">Total Exp</span>
+                            <span className="text-xs uppercase font-bold text-foreground/30 tracking-widest mt-1">Total Exp</span>
                           </div>
                         </>
                       ) : (
-                        <div className="h-full w-full flex flex-col items-center justify-center text-xs text-foreground/30 gap-1.5 border border-white/[0.04] bg-white/[0.01] rounded-2xl py-6 p-4">
+                        <div className="h-full w-full flex flex-col items-center justify-center text-xs text-foreground/30 gap-1.5 border border-border rounded-2xl py-6 p-4">
                           <Sparkles className="h-6 w-6 text-foreground/20 animate-pulse" />
-                          <span className="font-bold uppercase tracking-wider text-[10px]">No Expenses Logged</span>
-                          <span className="text-[8px] text-foreground/20 text-center px-4">AI Scan or Manual entries generate category breakdown.</span>
+                          <span className="font-bold uppercase tracking-wider text-xs">No Expenses Logged</span>
+                          <span className="text-xs text-foreground/20 text-center px-4">AI Scan or Manual entries generate category breakdown.</span>
                         </div>
                       )
                     ) : (
@@ -644,7 +629,7 @@ export default function FinanceDashboard() {
                           <div className="w-2.5 h-2.5 rounded-sm mr-2" style={{backgroundColor: CHART_COLORS[index % CHART_COLORS.length]}}></div>
                           {entry.name}
                         </div>
-                        <span className="text-foreground font-mono text-[11px]">{entry.value.toLocaleString()} {compCurrency}</span>
+                        <span className="text-foreground font-mono text-xs">{entry.value.toLocaleString()} {compCurrency}</span>
                       </div>
                     ))}
                   </div>
@@ -666,7 +651,7 @@ export default function FinanceDashboard() {
                       </button>
                     }
                   />
-                  <DialogContent className="sm:max-w-[500px] bg-[#121813] border border-white/[0.08] text-foreground p-6 rounded-2xl shadow-xl max-h-[85vh] overflow-y-auto">
+                  <DialogContent className="sm:max-w-[500px] bg-background border border-border text-foreground p-6 rounded-2xl shadow-xl max-h-[85vh] overflow-y-auto">
                     <DialogHeader>
                       <DialogTitle className="text-base font-bold text-foreground">Create Client Invoice</DialogTitle>
                     </DialogHeader>
@@ -678,7 +663,7 @@ export default function FinanceDashboard() {
                             required 
                             value={invoiceNumber} 
                             onChange={(e) => setInvoiceNumber(e.target.value)} 
-                            className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full bg-[#121813]"
+                            className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-9 text-xs border-border placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 w-full bg-background"
                           />
                         </div>
                         <div className="grid gap-2">
@@ -688,7 +673,7 @@ export default function FinanceDashboard() {
                             type="date" 
                             value={invoiceDueDate} 
                             onChange={(e) => setInvoiceDueDate(e.target.value)} 
-                            className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full bg-[#121813]"
+                            className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-9 text-xs border-border placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 w-full bg-background"
                           />
                         </div>
                       </div>
@@ -699,7 +684,7 @@ export default function FinanceDashboard() {
                           required
                           value={invoiceClientName} 
                           onChange={(e) => setInvoiceClientName(e.target.value)} 
-                          className="w-full h-9 border border-border rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-foreground font-semibold"
+                          className="w-full h-9 border border-border rounded-xl px-3 text-xs focus:border-primary/60 focus:ring-0 bg-background text-foreground font-semibold"
                         >
                           <option value="">-- Select Client --</option>
                           {clientsList.map(c => (
@@ -709,10 +694,10 @@ export default function FinanceDashboard() {
                         </select>
                       </div>
 
-                      <div className="space-y-2 border-t border-white/[0.06] pt-3">
+                      <div className="space-y-2 border-t border-border pt-3">
                         <div className="flex justify-between items-center">
                           <Label className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Invoice Items</Label>
-                          <button type="button" onClick={addInvoiceItem} className="text-[10px] text-blue-400 font-bold hover:underline">+ Add Item</button>
+                          <button type="button" onClick={addInvoiceItem} className="text-xs text-primary font-bold hover:underline">+ Add Item</button>
                         </div>
                         
                         <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
@@ -723,7 +708,7 @@ export default function FinanceDashboard() {
                                 placeholder="Item description" 
                                 value={item.description}
                                 onChange={(e) => updateInvoiceItem(idx, 'description', e.target.value)}
-                                className="glass-input h-8 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 flex-1 bg-[#121813]"
+                                className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-8 text-xs border-border placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 flex-1 bg-background"
                               />
                               <Input 
                                 required 
@@ -731,7 +716,7 @@ export default function FinanceDashboard() {
                                 placeholder="Amount" 
                                 value={item.amount || ""}
                                 onChange={(e) => updateInvoiceItem(idx, 'amount', Number(e.target.value))}
-                                className="glass-input h-8 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-24 font-mono text-right bg-[#121813]"
+                                className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-8 text-xs border-border placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 w-24 font-mono text-right bg-background"
                               />
                               {invoiceItems.length > 1 && (
                                 <button type="button" onClick={() => removeInvoiceItem(idx)} className="text-rose-400 hover:text-rose-300 font-bold text-xs p-1">✕</button>
@@ -741,14 +726,14 @@ export default function FinanceDashboard() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4 border-t border-white/[0.06] pt-3">
+                      <div className="grid grid-cols-2 gap-4 border-t border-border pt-3">
                         <div className="grid gap-2">
                           <Label className="text-xs font-bold text-foreground/50 uppercase tracking-wider">Tax Rate (%)</Label>
                           <Input 
                             type="number" 
                             value={invoiceTax} 
                             onChange={(e) => setInvoiceTax(e.target.value)} 
-                            className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono bg-[#121813]"
+                            className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-9 text-xs border-border placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 w-full font-mono bg-background"
                           />
                         </div>
                         <div className="grid gap-2">
@@ -757,13 +742,13 @@ export default function FinanceDashboard() {
                             type="number" 
                             value={invoiceDiscount} 
                             onChange={(e) => setInvoiceDiscount(e.target.value)} 
-                            className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono bg-[#121813]"
+                            className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-9 text-xs border-border placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 w-full font-mono bg-background"
                           />
                         </div>
                       </div>
 
                       {/* Total Calculations Preview */}
-                      <div className="bg-white/[0.02] border border-white/[0.08] p-3 rounded-xl space-y-1.5 text-xs text-foreground/60">
+                      <div className="border border-border p-3 rounded-xl space-y-1.5 text-xs text-foreground/60">
                         <div className="flex justify-between">
                           <span>Subtotal:</span>
                           <span className="font-mono text-foreground">{invoiceItems.reduce((acc, item) => acc + Number(item.amount), 0).toLocaleString()} {compCurrency}</span>
@@ -776,9 +761,9 @@ export default function FinanceDashboard() {
                           <span>Discount ({invoiceDiscount}%):</span>
                           <span className="font-mono text-foreground">{(invoiceItems.reduce((acc, item) => acc + Number(item.amount), 0) * (Number(invoiceDiscount) / 100)).toLocaleString()} {compCurrency}</span>
                         </div>
-                        <div className="flex justify-between border-t border-white/[0.06] pt-1.5 font-bold text-foreground">
+                        <div className="flex justify-between border-t border-border pt-1.5 font-bold text-foreground">
                           <span>Grand Total:</span>
-                          <span className="font-mono text-blue-400">
+                          <span className="font-mono text-primary">
                             {(
                               invoiceItems.reduce((acc, item) => acc + Number(item.amount), 0) * (1 + Number(invoiceTax) / 100 - Number(invoiceDiscount) / 100)
                             ).toLocaleString()} {compCurrency}
@@ -786,7 +771,7 @@ export default function FinanceDashboard() {
                         </div>
                       </div>
 
-                      <DialogFooter className="pt-4 border-t border-white/[0.06] gap-2 sm:gap-0 mt-4">
+                      <DialogFooter className="pt-4 border-t border-border gap-2 sm:gap-0 mt-4">
                         <button type="button" onClick={() => setIsInvoiceModalOpen(false)} className="btn-ghost h-9 py-0 px-4 text-xs font-semibold border-border text-foreground/70 hover:text-foreground cursor-pointer">Cancel</button>
                         <button type="submit" disabled={savingInvoice} className="btn-primary h-9 py-0 px-4 text-xs font-bold flex items-center justify-center cursor-pointer">
                           {savingInvoice ? "Saving..." : "Create & Issue"}
@@ -797,16 +782,16 @@ export default function FinanceDashboard() {
                 </Dialog>
               </RoleGuard>
             </div>
-            <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
+            <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border">
               <CardContent className="p-0">
                 {invoices.length === 0 ? (
-                  <div className="text-center py-16 text-foreground/30 bg-white/[0.01]">
+                  <div className="text-center py-16 text-foreground/30">
                     <Banknote className="h-10 w-10 mx-auto mb-3 opacity-20" />
                     <p className="text-xs font-bold uppercase tracking-wider text-foreground/40">No invoices generated yet.</p>
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
-                    <table className="glass-table">
+                    <table className="w-full text-sm text-left">
                       <thead>
                         <tr>
                           <th>Invoice #</th>
@@ -819,13 +804,13 @@ export default function FinanceDashboard() {
                       </thead>
                       <tbody>
                         {invoices.map((inv) => (
-                          <tr key={inv.id} className="hover:bg-white/[0.02] transition-colors">
+                          <tr key={inv.id} className="hover: transition-colors">
                             <td className="font-bold text-foreground">{inv.invoiceNumber}</td>
                             <td className="text-foreground/60 font-semibold">{inv.clientId}</td>
                             <td className="font-bold text-foreground font-mono text-xs">{inv.total?.toLocaleString()} {inv.currency || compCurrency}</td>
                             <td className="text-foreground/40 font-semibold">{inv.dueDate}</td>
                             <td>
-                              <Badge variant="outline" className={cn("font-bold text-[9px] py-0.5 tracking-wider uppercase shadow-none", STATUS_COLORS[inv.status] || STATUS_COLORS.draft)}>
+                              <Badge variant="outline" className={cn("font-bold text-xs py-0.5 tracking-wider uppercase shadow-none", STATUS_COLORS[inv.status] || STATUS_COLORS.draft)}>
                                 {inv.status.toUpperCase()}
                               </Badge>
                             </td>
@@ -856,7 +841,7 @@ export default function FinanceDashboard() {
                                         }
                                       }
                                     }}
-                                    className="p-1.5 text-foreground/40 hover:text-red-500 rounded-lg hover:bg-muted/40 transition-colors border border-border/30 hover:border-border"
+                                    className="p-1.5 text-foreground/40 hover:text-red-500 rounded-lg hover: transition-colors border border-border/30 hover:border-border"
                                     title="Delete Invoice"
                                   >
                                     <Trash2 className="h-4 w-4" />
@@ -883,22 +868,22 @@ export default function FinanceDashboard() {
                   <Dialog open={isOcrModalOpen} onOpenChange={setIsOcrModalOpen}>
                     <DialogTrigger 
                       render={
-                        <button className="px-4 h-9 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-1.5 cursor-pointer bg-blue-600/10 border border-blue-500/20 text-blue-300 hover:bg-blue-600/20">
-                          <Sparkles className="h-4 w-4 text-blue-400 animate-pulse" /> Smart Scan
+                        <button className="px-4 h-9 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-1.5 cursor-pointer bg-primary/10 border border-primary/20 text-primary/80 hover:bg-primary/20">
+                          <Sparkles className="h-4 w-4 text-primary animate-pulse" /> Smart Scan
                         </button>
                       }
                     />
-                    <DialogContent className="sm:max-w-[425px] bg-[#121813] border border-white/[0.08] text-foreground p-6 rounded-2xl shadow-xl">
+                    <DialogContent className="sm:max-w-[425px] bg-background border border-border text-foreground p-6 rounded-2xl shadow-xl">
                       <DialogHeader>
                         <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
-                          <Sparkles className="h-5 w-5 text-blue-400" /> AI Receipt Scanner
+                          <Sparkles className="h-5 w-5 text-primary" /> AI Receipt Scanner
                         </DialogTitle>
                       </DialogHeader>
                       <div className="grid gap-4 py-4">
                         {!ocrResult ? (
-                          <div className="flex flex-col items-center justify-center p-8 border border-border border-dashed rounded-xl bg-white/[0.01]">
+                          <div className="flex flex-col items-center justify-center p-8 border border-border border-dashed rounded-xl">
                             {isScanning ? (
-                              <div className="flex flex-col items-center gap-3 text-blue-400">
+                              <div className="flex flex-col items-center gap-3 text-primary">
                                 <Loader2 className="h-7 w-7 animate-spin" />
                                 <p className="text-xs font-bold uppercase tracking-wider">Extracting details...</p>
                               </div>
@@ -906,7 +891,7 @@ export default function FinanceDashboard() {
                               <>
                                 <Upload className="h-8 w-8 text-foreground/30 mb-3" />
                                 <p className="text-xs font-bold text-foreground mb-1 uppercase tracking-wider">Upload Receipt Image</p>
-                                <p className="text-[10px] text-foreground/20 mb-4 text-center">JPG, PNG up to 5MB</p>
+                                <p className="text-xs text-foreground/20 mb-4 text-center">JPG, PNG up to 5MB</p>
                                 <Label htmlFor="receipt-upload" className="cursor-pointer btn-primary h-8 py-0 px-4 text-xs font-bold flex items-center justify-center">
                                   Select File
                                 </Label>
@@ -917,7 +902,7 @@ export default function FinanceDashboard() {
                         ) : (
                           <div className="space-y-4">
                             <div className="bg-emerald-950/40 border border-emerald-500/20 text-emerald-300 p-3 rounded-xl text-xs flex items-start gap-2">
-                              <Sparkles className="h-4 w-4 shrink-0 text-emerald-400" />
+                              <Sparkles className="h-4 w-4 shrink-0 text-accent" />
                               <p className="font-semibold leading-normal">Data extracted successfully! Review and save.</p>
                             </div>
                             <div className="grid gap-2">
@@ -925,7 +910,7 @@ export default function FinanceDashboard() {
                               <Input 
                                 value={ocrVendor} 
                                 onChange={(e) => setOcrVendor(e.target.value)} 
-                                className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full" 
+                                className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-9 text-xs border-border placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 w-full" 
                               />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
@@ -936,7 +921,7 @@ export default function FinanceDashboard() {
                                   onChange={(e) => setOcrAmount(e.target.value)} 
                                   type="number" 
                                   step="0.01" 
-                                  className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono" 
+                                  className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-9 text-xs border-border placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 w-full font-mono" 
                                 />
                               </div>
                               <div className="grid gap-2">
@@ -945,11 +930,11 @@ export default function FinanceDashboard() {
                                   value={ocrDate} 
                                   onChange={(e) => setOcrDate(e.target.value)} 
                                   type="date" 
-                                  className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full" 
+                                  className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-9 text-xs border-border placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 w-full" 
                                 />
                               </div>
                             </div>
-                            <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-white/[0.06]">
+                            <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-border">
                               <button onClick={() => {setOcrResult(null); setReceiptImage(null);}} className="btn-ghost h-9 py-0 px-4 text-xs font-semibold border-border text-foreground/70 hover:text-foreground cursor-pointer">Scan Another</button>
                               <button onClick={handleSaveOcrExpense} className="btn-primary h-9 py-0 px-4 text-xs font-bold flex items-center justify-center cursor-pointer">Save Expense</button>
                             </div>
@@ -967,7 +952,7 @@ export default function FinanceDashboard() {
                         </button>
                       }
                     />
-                    <DialogContent className="sm:max-w-[425px] bg-[#121813] border border-white/[0.08] text-foreground p-6 rounded-2xl shadow-xl">
+                    <DialogContent className="sm:max-w-[425px] bg-background border border-border text-foreground p-6 rounded-2xl shadow-xl">
                       <DialogHeader>
                         <DialogTitle className="text-base font-bold text-foreground">Log Corporate Expense</DialogTitle>
                       </DialogHeader>
@@ -979,7 +964,7 @@ export default function FinanceDashboard() {
                             placeholder="e.g., Amazon Web Services" 
                             value={manualVendor} 
                             onChange={(e) => setManualVendor(e.target.value)} 
-                            className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full" 
+                            className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-9 text-xs border-border placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 w-full" 
                           />
                         </div>
                         <div className="grid gap-2">
@@ -987,7 +972,7 @@ export default function FinanceDashboard() {
                           <select 
                             value={manualCategory} 
                             onChange={(e) => setManualCategory(e.target.value)} 
-                            className="w-full h-9 border border-border rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-foreground"
+                            className="w-full h-9 border border-border rounded-xl px-3 text-xs focus:border-primary/60 focus:ring-0 bg-background text-foreground"
                           >
                             <option value="Software">Software & Subscriptions</option>
                             <option value="Marketing">Marketing & Advertising</option>
@@ -1008,7 +993,7 @@ export default function FinanceDashboard() {
                               placeholder="0.00" 
                               value={manualAmount} 
                               onChange={(e) => setManualAmount(e.target.value)} 
-                              className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono" 
+                              className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-9 text-xs border-border placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 w-full font-mono" 
                             />
                           </div>
                           <div className="grid gap-2">
@@ -1018,11 +1003,11 @@ export default function FinanceDashboard() {
                               type="date" 
                               value={manualDate} 
                               onChange={(e) => setManualDate(e.target.value)} 
-                              className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full" 
+                              className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-9 text-xs border-border placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 w-full" 
                             />
                           </div>
                         </div>
-                        <DialogFooter className="pt-4 border-t border-white/[0.06] gap-2 sm:gap-0 mt-4">
+                        <DialogFooter className="pt-4 border-t border-border gap-2 sm:gap-0 mt-4">
                           <button type="button" onClick={() => setIsManualOpen(false)} className="btn-ghost h-9 py-0 px-4 text-xs font-semibold border-border text-foreground/70 hover:text-foreground cursor-pointer">Cancel</button>
                           <button type="submit" disabled={savingManual} className="btn-primary h-9 py-0 px-4 text-xs font-bold flex items-center justify-center cursor-pointer">
                             {savingManual ? "Saving..." : "Log Expense"}
@@ -1034,16 +1019,16 @@ export default function FinanceDashboard() {
                 </div>
               </RoleGuard>
             </div>
-            <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
+            <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border">
               <CardContent className="p-0">
                 {expenses.length === 0 ? (
-                  <div className="text-center py-16 text-foreground/30 bg-white/[0.01]">
+                  <div className="text-center py-16 text-foreground/30">
                     <Receipt className="h-10 w-10 mx-auto mb-3 opacity-20" />
                     <p className="text-xs font-bold uppercase tracking-wider text-foreground/40">No expenses logged yet.</p>
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
-                    <table className="glass-table">
+                    <table className="w-full text-sm text-left">
                       <thead>
                         <tr>
                           <th>Employee</th>
@@ -1057,7 +1042,7 @@ export default function FinanceDashboard() {
                       </thead>
                       <tbody>
                         {expenses.map((exp) => (
-                          <tr key={exp.id} className="hover:bg-white/[0.02] transition-colors">
+                          <tr key={exp.id} className="hover: transition-colors">
                             <td className="font-bold text-foreground">{exp.submittedBy}</td>
                             <td className="text-foreground/60 font-semibold">{exp.vendor || 'General Vendor'}</td>
                             <td className="text-foreground/60 font-semibold">{exp.category}</td>
@@ -1066,7 +1051,7 @@ export default function FinanceDashboard() {
                               {exp.date || (exp.createdAt?.seconds ? new Date(exp.createdAt.seconds * 1000).toLocaleDateString() : 'N/A')}
                             </td>
                             <td>
-                              <Badge variant="outline" className={cn("font-bold text-[9px] py-0.5 tracking-wider uppercase shadow-none", 
+                              <Badge variant="outline" className={cn("font-bold text-xs py-0.5 tracking-wider uppercase shadow-none", 
                                 exp.status === 'approved' ? 'bg-emerald-600/15 text-emerald-300 border-emerald-500/20' :
                                 exp.status === 'rejected' ? 'bg-rose-600/15 text-rose-300 border-rose-500/20' :
                                 'bg-amber-600/15 text-amber-300 border-amber-500/20 animate-pulse'
@@ -1080,19 +1065,19 @@ export default function FinanceDashboard() {
                                   <div className="flex gap-1.5">
                                     <button 
                                       onClick={() => handleUpdateExpenseStatus(exp.id, "approved")}
-                                      className="h-7 px-3 bg-emerald-600 hover:bg-emerald-700 text-foreground text-[10px] font-bold rounded-lg transition-colors cursor-pointer shadow-glow-emerald"
+                                      className="h-7 px-3 bg-emerald-600 hover:bg-emerald-700 text-foreground text-xs font-bold rounded-lg transition-colors cursor-pointer shadow-glow-emerald"
                                     >
                                       Approve
                                     </button>
                                     <button 
                                       onClick={() => handleUpdateExpenseStatus(exp.id, "rejected")}
-                                      className="h-7 px-3 bg-rose-600/10 hover:bg-rose-600/20 border border-rose-500/20 text-rose-300 text-[10px] font-bold rounded-lg transition-colors cursor-pointer"
+                                      className="h-7 px-3 bg-rose-600/10 hover:bg-rose-600/20 border border-rose-500/20 text-rose-300 text-xs font-bold rounded-lg transition-colors cursor-pointer"
                                     >
                                       Reject
                                     </button>
                                   </div>
                                 ) : (
-                                  <span className="text-[10px] text-foreground/30 font-bold uppercase tracking-wider italic">Reviewed</span>
+                                  <span className="text-xs text-foreground/30 font-bold uppercase tracking-wider italic">Reviewed</span>
                                 )}
                                 {canAccess(role, "DELETE_DATA") && (
                                   <button 
@@ -1106,7 +1091,7 @@ export default function FinanceDashboard() {
                                         }
                                       }
                                     }}
-                                    className="p-1.5 text-foreground/40 hover:text-red-500 rounded-lg hover:bg-muted/40 transition-colors border border-border/30 hover:border-border"
+                                    className="p-1.5 text-foreground/40 hover:text-red-500 rounded-lg hover: transition-colors border border-border/30 hover:border-border"
                                     title="Delete Expense"
                                   >
                                     <Trash2 className="h-4 w-4" />
@@ -1129,14 +1114,14 @@ export default function FinanceDashboard() {
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-sm font-bold text-foreground uppercase tracking-wider">Agency Payroll & Compensation</h2>
-                <p className="text-[11px] text-foreground/40 mt-1">Manage employee base pay, process bonuses, and generate official payslips.</p>
+                <p className="text-xs text-foreground/40 mt-1">Manage employee base pay, process bonuses, and generate official payslips.</p>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-foreground/40 uppercase">Period:</span>
                 <select 
                   value={payrollPeriod}
                   onChange={(e) => setPayrollPeriod(e.target.value)}
-                  className="h-8 border border-border rounded-lg px-2 text-xs focus:ring-0 bg-[#121813] text-foreground font-semibold"
+                  className="h-8 border border-border rounded-lg px-2 text-xs focus:ring-0 bg-background text-foreground font-semibold"
                 >
                   <option value="May 2026">May 2026</option>
                   <option value="June 2026">June 2026</option>
@@ -1147,13 +1132,13 @@ export default function FinanceDashboard() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Roster list */}
-              <Card className="lg:col-span-2 glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
-                <CardHeader className="border-b border-white/[0.04] p-4 bg-white/[0.01]">
+              <Card className="lg:col-span-2 bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border">
+                <CardHeader className="border-b border-border p-4">
                   <CardTitle className="text-xs uppercase font-bold text-foreground tracking-wider">Employee Roster</CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
-                    <table className="glass-table text-xs">
+                    <table className="w-full text-sm text-left text-xs">
                       <thead>
                         <tr>
                           <th>Name</th>
@@ -1167,7 +1152,7 @@ export default function FinanceDashboard() {
                         {employeesList.map(emp => {
                           const baseSalary = emp.baseSalary || 12000;
                           return (
-                            <tr key={emp.id} className={cn("hover:bg-white/[0.02] transition-colors cursor-pointer", selectedEmpPayroll?.id === emp.id ? "bg-white/[0.04]" : "")} onClick={() => {
+                            <tr key={emp.id} className={cn("hover: transition-colors cursor-pointer", selectedEmpPayroll?.id === emp.id ? "" : "")} onClick={() => {
                               setSelectedEmpPayroll(emp);
                               setPayrollBonus("");
                               setPayrollDeduction("");
@@ -1175,7 +1160,7 @@ export default function FinanceDashboard() {
                               <td className="font-bold text-foreground flex items-center gap-2.5 py-3">
                                 <Avatar className="h-7 w-7 border border-border">
                                   <AvatarImage src={emp.profilePhotoURL} />
-                                  <AvatarFallback className="bg-indigo-600 text-[10px] font-bold text-foreground">
+                                  <AvatarFallback className="bg-primary text-xs font-bold text-foreground">
                                     {emp.fullName ? emp.fullName.split(" ").map((n: any) => n[0]).join("") : "EM"}
                                   </AvatarFallback>
                                 </Avatar>
@@ -1185,7 +1170,7 @@ export default function FinanceDashboard() {
                               <td className="font-bold text-foreground font-mono">{baseSalary.toLocaleString()} AED</td>
                               <td className="text-foreground/40 font-mono">0 AED</td>
                               <td className="text-right">
-                                <button className="text-blue-400 font-bold hover:underline hover:text-blue-300">Configure</button>
+                                <button className="text-primary font-bold hover:underline hover:text-primary/80">Configure</button>
                               </td>
                             </tr>
                           );
@@ -1202,22 +1187,22 @@ export default function FinanceDashboard() {
               </Card>
 
               {/* Configure Panel */}
-              <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02] p-5 flex flex-col justify-between">
+              <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border p-5 flex flex-col justify-between">
                 <div>
                   <h3 className="text-xs uppercase font-bold text-foreground/55 tracking-wider mb-4">Pay Period Configuration</h3>
                   
                   {selectedEmpPayroll ? (
                     <div className="space-y-4">
-                      <div className="flex items-center gap-3 bg-white/[0.02] border border-white/[0.06] p-3 rounded-xl">
+                      <div className="flex items-center gap-3 border border-border p-3 rounded-xl">
                         <Avatar className="h-10 w-10 border border-border">
                           <AvatarImage src={selectedEmpPayroll.profilePhotoURL} />
-                          <AvatarFallback className="bg-indigo-600 text-xs font-bold text-foreground">
+                          <AvatarFallback className="bg-primary text-xs font-bold text-foreground">
                             {selectedEmpPayroll.fullName ? selectedEmpPayroll.fullName.split(" ").map((n: any) => n[0]).join("") : "EM"}
                           </AvatarFallback>
                         </Avatar>
                         <div>
                           <p className="text-sm font-bold text-foreground">{selectedEmpPayroll.fullName}</p>
-                          <p className="text-[10px] text-foreground/40 font-semibold uppercase mt-0.5">{selectedEmpPayroll.jobTitle || "Employee"}</p>
+                          <p className="text-xs text-foreground/40 font-semibold uppercase mt-0.5">{selectedEmpPayroll.jobTitle || "Employee"}</p>
                         </div>
                       </div>
 
@@ -1226,7 +1211,7 @@ export default function FinanceDashboard() {
                         <Input 
                           disabled
                           value={selectedEmpPayroll.baseSalary || 12000} 
-                          className="glass-input h-9 text-xs border-border bg-white/[0.01] text-foreground/50 font-mono"
+                          className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-9 text-xs border-border text-foreground/50 font-mono"
                         />
                       </div>
 
@@ -1238,7 +1223,7 @@ export default function FinanceDashboard() {
                             placeholder="e.g. 1500"
                             value={payrollBonus} 
                             onChange={(e) => setPayrollBonus(e.target.value)}
-                            className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 font-mono text-foreground bg-[#121813]"
+                            className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-9 text-xs border-border placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 font-mono text-foreground bg-background"
                           />
                         </div>
                         <div className="grid gap-2">
@@ -1248,18 +1233,18 @@ export default function FinanceDashboard() {
                             placeholder="e.g. 300"
                             value={payrollDeduction} 
                             onChange={(e) => setPayrollDeduction(e.target.value)}
-                            className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 font-mono text-foreground bg-[#121813]"
+                            className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-9 text-xs border-border placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 font-mono text-foreground bg-background"
                           />
                         </div>
                       </div>
 
                       {/* Pay Details Summary */}
-                      <div className="bg-white/[0.01] border border-white/[0.06] p-3.5 rounded-xl space-y-2 text-xs text-foreground/60">
+                      <div className="border border-border p-3.5 rounded-xl space-y-2 text-xs text-foreground/60">
                         <div className="flex justify-between">
                           <span>Base Salary:</span>
                           <span className="font-mono text-foreground">{(selectedEmpPayroll.baseSalary || 12000).toLocaleString()} AED</span>
                         </div>
-                        <div className="flex justify-between text-emerald-400">
+                        <div className="flex justify-between text-accent">
                           <span>Bonus Added:</span>
                           <span className="font-mono">+{Number(payrollBonus || 0).toLocaleString()} AED</span>
                         </div>
@@ -1267,9 +1252,9 @@ export default function FinanceDashboard() {
                           <span>Deductions Applied:</span>
                           <span className="font-mono">-{Number(payrollDeduction || 0).toLocaleString()} AED</span>
                         </div>
-                        <div className="flex justify-between border-t border-white/[0.06] pt-2 font-bold text-foreground text-sm">
+                        <div className="flex justify-between border-t border-border pt-2 font-bold text-foreground text-sm">
                           <span>Net Payday:</span>
-                          <span className="font-mono text-indigo-400">
+                          <span className="font-mono text-accent">
                             {((selectedEmpPayroll.baseSalary || 12000) + Number(payrollBonus || 0) - Number(payrollDeduction || 0)).toLocaleString()} AED
                           </span>
                         </div>
@@ -1304,7 +1289,7 @@ export default function FinanceDashboard() {
                             createdAt: serverTimestamp()
                           });
                         }}
-                        className="w-full bg-indigo-600 hover:bg-indigo-500 text-foreground font-bold h-10 py-0 flex items-center justify-center gap-1.5 shadow-glow-indigo rounded-xl cursor-pointer"
+                        className="w-full bg-primary hover:bg-primary text-foreground font-bold h-10 py-0 flex items-center justify-center gap-1.5 shadow-glow-indigo rounded-xl cursor-pointer"
                       >
                         <FileDown className="h-4 w-4" /> Download Official Payslip
                       </Button>

@@ -154,9 +154,9 @@ export default function LoginPage() {
   if (loading || user) {
     return (
       <div className="h-screen w-full flex flex-col items-center justify-center bg-[#030712] relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-blue-600/10 blur-3xl animate-pulse" />
-        <Zap className="h-8 w-8 text-blue-500 animate-spin mb-4" />
-        <p className="text-sm font-semibold text-white/50 tracking-wider uppercase font-mono">Verifying Credentials...</p>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-primary/10 blur-3xl animate-pulse" />
+        <Zap className="h-8 w-8 text-primary animate-spin mb-4" />
+        <p className="text-sm font-semibold text-muted-foreground tracking-wider uppercase font-mono">Verifying Credentials...</p>
       </div>
     );
   }
@@ -164,29 +164,29 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen w-full relative justify-center items-center p-4 bg-[#030712]">
       {/* Decorative Orbs */}
-      <div className="absolute top-[10%] left-[20%] w-[320px] h-[320px] rounded-full bg-blue-600/15 blur-[120px] pointer-events-none" />
+      <div className="absolute top-[10%] left-[20%] w-[320px] h-[320px] rounded-full bg-primary/15 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[10%] right-[20%] w-[350px] h-[350px] rounded-full bg-cyan-500/10 blur-[130px] pointer-events-none" />
 
       {/* Grid overlay */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:48px_48px] pointer-events-none" />
 
-      <Card className="w-full max-w-md bg-white/[0.03] backdrop-blur-[24px] border border-white/[0.08] shadow-xl rounded-2xl overflow-hidden p-6 relative group animate-scale-in">
+      <Card className="w-full max-w-md bg-card shadow-sm border border-border shadow-xl rounded-2xl overflow-hidden p-6 relative group animate-scale-in">
         {/* Border blue glow on hover */}
-        <div className="absolute inset-0 border border-blue-500/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+        <div className="absolute inset-0 border border-primary/20 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
         <CardHeader className="space-y-3 text-center pb-6">
           {/* Logo container */}
           <div className="flex justify-center items-center gap-2 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white shadow-glow-blue">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white shadow-sm">
               <Zap className="h-5 w-5 text-white fill-white/20 animate-pulse" />
             </div>
             <div className="text-left">
               <h2 className="text-base font-extrabold text-white tracking-tight leading-tight">Mints Global</h2>
-              <p className="text-[9px] font-bold text-blue-400 uppercase tracking-widest leading-none">Internal ERP Platform</p>
+              <p className="text-xs font-bold text-primary uppercase tracking-widest leading-none">Internal ERP Platform</p>
             </div>
           </div>
           <CardTitle className="text-xl font-bold text-white tracking-tight">Welcome Back</CardTitle>
-          <CardDescription className="text-white/40 text-xs">
+          <CardDescription className="text-muted-foreground text-xs">
             Sign in to access your Mints Global workspace
           </CardDescription>
         </CardHeader>
@@ -204,7 +204,7 @@ export default function LoginPage() {
                     setReactivateEmail(email);
                     setIsReactivateOpen(true);
                   }}
-                  className="w-full text-center text-xs font-bold text-blue-400 hover:text-blue-300 underline cursor-pointer"
+                  className="w-full text-center text-xs font-bold text-primary hover:text-primary/80 underline cursor-pointer"
                 >
                   Request Account Reactivation
                 </button>
@@ -218,15 +218,15 @@ export default function LoginPage() {
             disabled={isLoggingIn}
           >
             Continue with Google
-            <span className="ml-1.5 text-[10px] text-blue-200 font-normal opacity-85">via Gmail / Google</span>
+            <span className="ml-1.5 text-xs text-primary/70 font-normal opacity-85">via Gmail / Google</span>
           </Button>
           
           <div className="relative my-2">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-white/[0.06]" />
+              <span className="w-full border-t border-border" />
             </div>
-            <div className="relative flex justify-center text-[10px] uppercase">
-              <span className="bg-[#0c1322] px-2 text-white/30 font-bold tracking-wider">
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground font-bold tracking-wider">
                 Or secure login
               </span>
             </div>
@@ -235,8 +235,8 @@ export default function LoginPage() {
           <form onSubmit={handleEmailLogin} className="space-y-4">
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <Label htmlFor="email" className="text-xs font-semibold text-white/70">Username or Email</Label>
-                <span className="text-[9px] text-white/30 font-medium">auto-appends @mintsglobal.ae</span>
+                <Label htmlFor="email" className="text-xs font-semibold text-muted-foreground">Username or Email</Label>
+                <span className="text-xs text-muted-foreground font-medium">auto-appends @mintsglobal.ae</span>
               </div>
               <Input 
                 id="email" 
@@ -246,12 +246,12 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoggingIn}
-                className="glass-input h-10 text-xs border-white/10 px-3 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0"
+                className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-10 text-xs border-border px-3 placeholder:text-muted-foreground focus:border-primary/60 focus:ring-0"
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="password" className="text-xs font-semibold text-white/70">Password</Label>
+              <Label htmlFor="password" className="text-xs font-semibold text-muted-foreground">Password</Label>
               <Input 
                 id="password" 
                 type="password" 
@@ -259,7 +259,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoggingIn}
-                className="glass-input h-10 text-xs border-white/10 px-3 placeholder:text-white/20 focus:border-blue-500/60 focus:ring-0"
+                className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-10 text-xs border-border px-3 placeholder:text-muted-foreground focus:border-primary/60 focus:ring-0"
               />
             </div>
 
@@ -273,7 +273,7 @@ export default function LoginPage() {
             </Button>
           </form>
           
-          <p className="text-[10px] text-center text-white/20 font-medium mt-6 leading-relaxed">
+          <p className="text-xs text-center text-muted-foreground font-medium mt-6 leading-relaxed">
             Corporate Operating Center. Unauthorized access is subject to local cyber laws.
           </p>
         </CardContent>
@@ -281,15 +281,15 @@ export default function LoginPage() {
 
       {/* Reactivation Request Modal */}
       {isReactivateOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#030712]/80 backdrop-blur-md">
-          <div className="w-full max-w-md bg-[#0a1628]/95 border border-white/[0.08] shadow-2xl rounded-2xl overflow-hidden p-6 relative text-foreground">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#030712]/80">
+          <div className="w-full max-w-md bg-card border border-border shadow-2xl rounded-2xl overflow-hidden p-6 relative text-foreground">
             <h3 className="text-lg font-bold text-white tracking-tight mb-2">Request Account Reactivation</h3>
-            <p className="text-white/40 text-xs mb-4">
+            <p className="text-muted-foreground text-xs mb-4">
               If your account was deactivated, submit a request with a brief explanation to request access recovery.
             </p>
             <form onSubmit={handleReactivationSubmit} className="space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="reactivateName" className="text-xs font-semibold text-white/70">Full Name</Label>
+                <Label htmlFor="reactivateName" className="text-xs font-semibold text-muted-foreground">Full Name</Label>
                 <Input
                   id="reactivateName"
                   type="text"
@@ -297,11 +297,11 @@ export default function LoginPage() {
                   value={reactivateName}
                   onChange={(e) => setReactivateName(e.target.value)}
                   placeholder="e.g. John Doe"
-                  className="glass-input h-10 text-xs border-white/10 px-3 text-white placeholder:text-white/20 bg-white/[0.03] focus:border-blue-500/60 focus:ring-0"
+                  className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-10 text-xs border-border px-3 text-white placeholder:text-muted-foreground focus:border-primary/60 focus:ring-0"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="reactivateEmail" className="text-xs font-semibold text-white/70">Corporate Email</Label>
+                <Label htmlFor="reactivateEmail" className="text-xs font-semibold text-muted-foreground">Corporate Email</Label>
                 <Input
                   id="reactivateEmail"
                   type="email"
@@ -309,11 +309,11 @@ export default function LoginPage() {
                   value={reactivateEmail}
                   onChange={(e) => setReactivateEmail(e.target.value)}
                   placeholder="e.g. john.doe@mintsglobal.ae"
-                  className="glass-input h-10 text-xs border-white/10 px-3 text-white placeholder:text-white/20 bg-white/[0.03] focus:border-blue-500/60 focus:ring-0"
+                  className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-10 text-xs border-border px-3 text-white placeholder:text-muted-foreground focus:border-primary/60 focus:ring-0"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="reactivateReason" className="text-xs font-semibold text-white/70">Reason for Reactivation</Label>
+                <Label htmlFor="reactivateReason" className="text-xs font-semibold text-muted-foreground">Reason for Reactivation</Label>
                 <textarea
                   id="reactivateReason"
                   required
@@ -321,7 +321,7 @@ export default function LoginPage() {
                   value={reactivateReason}
                   onChange={(e) => setReactivateReason(e.target.value)}
                   placeholder="Please state why you require access restored..."
-                  className="glass-input w-full text-xs border border-white/10 rounded-xl p-3 text-white placeholder:text-white/20 bg-[#0c1322] focus:border-blue-500/60 focus:ring-0"
+                  className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm w-full text-xs border border-border rounded-xl p-3 text-white placeholder:text-muted-foreground bg-card focus:border-primary/60 focus:ring-0"
                 />
               </div>
               <div className="flex gap-3 pt-2">
@@ -330,7 +330,7 @@ export default function LoginPage() {
                   variant="outline"
                   onClick={() => setIsReactivateOpen(false)}
                   disabled={isSubmittingRequest}
-                  className="w-full text-xs h-10 text-white/60 hover:text-white border-white/10 hover:bg-white/5 bg-transparent rounded-xl"
+                  className="w-full text-xs h-10 text-muted-foreground hover:text-foreground border-border hover: bg-transparent rounded-xl"
                 >
                   Cancel
                 </Button>

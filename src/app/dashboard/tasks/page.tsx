@@ -12,6 +12,7 @@ import { Plus, Clock, MessageSquare, CheckSquare, Target, Lock, Play, Kanban as 
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { downloadCSV } from "@/lib/exportUtils";
 
@@ -50,8 +51,8 @@ const COLUMNS: { id: TaskStatus; title: string }[] = [
 const PRIORITY_COLORS: Record<TaskPriority, string> = {
   urgent: "bg-rose-500 shadow-[0_0_6px_rgba(239,68,68,0.6)]",
   high: "bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.6)]",
-  normal: "bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.6)]",
-  low: "bg-white/20",
+  normal: "bg-primary shadow-[0_0_6px_rgba(59,130,246,0.6)]",
+  low: "",
 };
 
 export default function TaskBoard() {
@@ -325,7 +326,7 @@ export default function TaskBoard() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <KanbanIcon className="h-5 w-5 text-blue-500" /> Tasks
+            <KanbanIcon className="h-5 w-5 text-primary" /> Tasks
           </h1>
           <p className="text-xs text-foreground/40 mt-1">Manage tasks across active projects.</p>
         </div>
@@ -338,8 +339,8 @@ export default function TaskBoard() {
             }}
             className={cn("px-4 h-9 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-1.5 cursor-pointer border", 
               focusMode 
-                ? "bg-blue-600 border-blue-500 text-foreground shadow-glow-blue" 
-                : "bg-muted/40 border-border text-foreground/60 hover:bg-muted/80"
+                ? "bg-primary border-primary text-foreground shadow-sm" 
+                : " border-border text-foreground/60 hover:bg-muted/80"
             )}
           >
             <Target className={cn("h-4 w-4", focusMode && "animate-pulse")} />
@@ -347,10 +348,10 @@ export default function TaskBoard() {
           </button>
 
           {!focusMode && (
-            <div className="flex items-center space-x-2 bg-white/[0.02] px-3.5 h-9 rounded-xl border border-border text-xs">
+            <div className="flex items-center space-x-2 px-3.5 h-9 rounded-xl border border-border text-xs">
               <span className={myTasksOnly ? "text-foreground/40 font-bold" : "font-bold text-foreground"}>Team</span>
               <button 
-                className={`w-9 h-5 rounded-full relative transition-colors cursor-pointer ${myTasksOnly ? 'bg-blue-600 shadow-glow-blue' : 'bg-muted/80'}`}
+                className={`w-9 h-5 rounded-full relative transition-colors cursor-pointer ${myTasksOnly ? 'bg-primary shadow-sm' : 'bg-muted/80'}`}
                 onClick={() => {
                   if (role !== "intern") setMyTasksOnly(!myTasksOnly);
                 }}
@@ -364,9 +365,9 @@ export default function TaskBoard() {
 
           <button 
             onClick={handleExportCSV}
-            className="px-4 h-9 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-1.5 cursor-pointer border bg-muted/40 border-border text-foreground/60 hover:bg-muted/80 hover:text-foreground"
+            className="px-4 h-9 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-1.5 cursor-pointer border border-border text-foreground/60 hover:bg-muted/80 hover:text-foreground"
           >
-            <Download className="h-4 w-4 text-emerald-400" />
+            <Download className="h-4 w-4 text-accent" />
             Export CSV
           </button>
 
@@ -384,13 +385,13 @@ export default function TaskBoard() {
 
       {loading ? (
         <div className="flex-1 flex justify-center items-center">
-          <Clock className="h-6 w-6 text-blue-500 animate-spin" />
+          <Clock className="h-6 w-6 text-primary animate-spin" />
         </div>
       ) : focusMode ? (
         <motion.div 
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="flex-1 bg-white/[0.01] border border-white/[0.05] rounded-2xl p-6 flex flex-col items-center overflow-y-auto"
+          className="flex-1 border border-border rounded-2xl p-6 flex flex-col items-center overflow-y-auto"
         >
           <div className="max-w-2xl w-full">
             <div className="text-center mb-8">
@@ -401,7 +402,7 @@ export default function TaskBoard() {
             <div className="space-y-4">
               <AnimatePresence>
                 {focusTasks.length === 0 ? (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12 bg-white/[0.01] border border-white/[0.05] border-dashed rounded-2xl">
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12 border border-border border-dashed rounded-2xl">
                     <CheckSquare className="h-10 w-10 text-foreground/20 mx-auto mb-3" />
                     <h3 className="text-sm font-bold text-foreground/50 uppercase tracking-wider">All caught up!</h3>
                     <p className="text-xs text-foreground/30 mt-1">You have no urgent tasks due today.</p>
@@ -420,7 +421,7 @@ export default function TaskBoard() {
                           setSelectedTask(task);
                           setIsDetailsOpen(true);
                         }}
-                        className={cn("glass-card overflow-hidden border-white/[0.08] bg-white/[0.02] relative group cursor-pointer hover:border-blue-500/30 transition-all", 
+                        className={cn("bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border relative group cursor-pointer hover:border-primary/30 transition-all", 
                           task.priority === "urgent" ? "border-rose-500/30" : "",
                           task.blocked ? "opacity-60" : ""
                         )}
@@ -430,16 +431,16 @@ export default function TaskBoard() {
                         )}
                         <CardContent className="p-5">
                           <div className="flex items-start gap-4">
-                            <button className="mt-1 w-5 h-5 rounded border-2 border-border/80 flex items-center justify-center hover:border-blue-500 hover:bg-blue-500/10 transition-colors shrink-0 cursor-pointer">
+                            <button className="mt-1 w-5 h-5 rounded border-2 border-border/80 flex items-center justify-center hover:border-primary hover:bg-primary/10 transition-colors shrink-0 cursor-pointer">
                             </button>
                             <div className="flex-1">
                                <div className="flex items-center justify-between mb-1.5">
                                  <div className="flex items-center gap-2">
-                                   <span className="badge bg-muted/40 border border-border text-foreground/50 text-[9px] font-bold py-0.5 uppercase tracking-wider">
+                                   <span className="badge border border-border text-foreground/50 text-xs font-bold py-0.5 uppercase tracking-wider">
                                      {task.projectName || "Project"}
                                    </span>
-                                   {task.priority === "urgent" && <span className="badge status-critical font-bold text-[9px] py-0.5 uppercase tracking-wider">Urgent</span>}
-                                   {task.blocked && <span className="badge status-draft font-bold text-[9px] py-0.5 uppercase tracking-wider flex items-center gap-1"><Lock className="w-2.5 h-2.5" /> Blocked</span>}
+                                   {task.priority === "urgent" && <span className="badge status-critical font-bold text-xs py-0.5 uppercase tracking-wider">Urgent</span>}
+                                   {task.blocked && <span className="badge status-draft font-bold text-xs py-0.5 uppercase tracking-wider flex items-center gap-1"><Lock className="w-2.5 h-2.5" /> Blocked</span>}
                                  </div>
                                  <button 
                                    onClick={(e) => {
@@ -451,22 +452,22 @@ export default function TaskBoard() {
                                    <Trash2 className="w-3 h-3" />
                                  </button>
                                </div>
-                              <h3 className="text-sm font-bold text-foreground group-hover:text-blue-400 transition-colors leading-snug">{task.title}</h3>
+                              <h3 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors leading-snug">{task.title}</h3>
                               
                               <div className="flex items-center gap-4 mt-4 text-xs font-bold uppercase tracking-wider">
                                 {task.dueDate && (
-                                  <div className={cn("flex items-center gap-1 px-2.5 h-6 rounded-lg text-[9px] font-bold uppercase", 
+                                  <div className={cn("flex items-center gap-1 px-2.5 h-6 rounded-lg text-xs font-bold uppercase", 
                                     isOverdue(task.dueDate) ? "bg-rose-950/40 border border-rose-500/20 text-rose-300" : "bg-amber-950/40 border border-amber-500/20 text-amber-300"
                                   )}>
                                     <Clock className="w-3 h-3" />
                                     {isOverdue(task.dueDate) ? "Overdue" : "Due Today"}
                                   </div>
                                 )}
-                                <div className="flex items-center gap-1 text-foreground/30 text-[9px] font-bold">
-                                  <CheckSquare className="w-3 h-3 text-blue-400/80" /> 2/5 Subtasks
+                                <div className="flex items-center gap-1 text-foreground/30 text-xs font-bold">
+                                  <CheckSquare className="w-3 h-3 text-primary/80" /> 2/5 Subtasks
                                 </div>
-                                <button className="ml-auto btn-ghost py-1 px-3 h-7 text-[10px] font-bold flex items-center gap-1 border-border text-foreground/70 hover:text-foreground cursor-pointer">
-                                  <Play className="w-2.5 h-2.5 fill-current text-emerald-400" /> Start
+                                <button className="ml-auto btn-ghost py-1 px-3 h-7 text-xs font-bold flex items-center gap-1 border-border text-foreground/70 hover:text-foreground cursor-pointer">
+                                  <Play className="w-2.5 h-2.5 fill-current text-accent" /> Start
                                 </button>
                               </div>
                             </div>
@@ -486,10 +487,10 @@ export default function TaskBoard() {
           <DragDropContext onDragEnd={onDragEnd}>
             <div className="flex h-full gap-6 min-w-max items-start">
               {COLUMNS.map(column => (
-                <div key={column.id} className="flex flex-col w-[300px] max-h-full bg-white/[0.02] rounded-2xl border border-white/[0.06] shadow-sm shrink-0">
-                  <div className="p-3 border-b border-white/[0.06] bg-muted/20 rounded-t-2xl flex justify-between items-center backdrop-blur-sm shrink-0">
+                <div key={column.id} className="flex flex-col w-[300px] max-h-full rounded-2xl border border-border shadow-sm shrink-0">
+                  <div className="p-3 border-b border-border rounded-t-2xl flex justify-between items-center shrink-0">
                     <h3 className="font-bold text-xs text-foreground uppercase tracking-wider">{column.title}</h3>
-                    <Badge className="bg-muted/40 border border-border text-foreground/60 font-mono text-[10px]">{tasks[column.id].length}</Badge>
+                    <Badge className="border border-border text-foreground/60 font-mono text-xs">{tasks[column.id].length}</Badge>
                   </div>
                   
                   <Droppable droppableId={column.id}>
@@ -498,7 +499,7 @@ export default function TaskBoard() {
                         {...provided.droppableProps} 
                         ref={provided.innerRef}
                         className={cn("flex-1 p-3 overflow-y-auto min-h-[400px] transition-colors rounded-b-2xl max-h-[500px]", 
-                          snapshot.isDraggingOver ? "bg-blue-600/5 ring-1 ring-blue-500/10" : ""
+                          snapshot.isDraggingOver ? "bg-primary/5 ring-1 ring-primary/10" : ""
                         )}
                       >
                         {tasks[column.id].map((task, index) => (
@@ -512,9 +513,8 @@ export default function TaskBoard() {
                                   setSelectedTask(task);
                                   setIsDetailsOpen(true);
                                 }}
-                                className={cn(
-                                  "mb-3 cursor-pointer border-white/[0.08] bg-card/80 hover:bg-[#0c1322] transition-all relative overflow-hidden group hover:border-blue-500/30", 
-                                  snapshot.isDragging ? 'shadow-xl ring-1 ring-blue-500/30 rotate-1 bg-blue-950/90' : 'shadow-sm',
+                                className={cn("mb-3 cursor-pointer border-border bg-card/80 hover:bg-card transition-all relative overflow-hidden group hover:border-primary/30", 
+                                  snapshot.isDragging ? 'shadow-xl ring-1 ring-primary/30 rotate-1 bg-blue-950/90' : 'shadow-sm',
                                   task.priority === "urgent" && "border-rose-500/20"
                                 )}
                               >
@@ -525,7 +525,7 @@ export default function TaskBoard() {
                                   <div className="flex justify-between items-start mb-2 gap-2">
                                     <div className="flex items-center gap-2">
                                       <div className={`w-1.5 h-1.5 rounded-full ${PRIORITY_COLORS[task.priority]}`} title={`${task.priority} priority`} />
-                                      <Badge variant="outline" className="text-[9px] uppercase font-bold py-0 px-1.5 h-4 bg-muted/40 text-foreground/50 border-border">
+                                      <Badge variant="outline" className="text-xs uppercase font-bold py-0 px-1.5 h-4 text-foreground/50 border-border">
                                         {task.projectName || "Project"}
                                       </Badge>
                                       {task.blocked && <span title="Blocked"><Lock className="w-3 h-3 text-foreground/30" /></span>}
@@ -541,33 +541,33 @@ export default function TaskBoard() {
                                     </button>
                                   </div>
                                   
-                                  <p className="text-xs font-bold text-foreground mb-3 leading-snug line-clamp-2 group-hover:text-blue-400 transition-colors">
+                                  <p className="text-xs font-bold text-foreground mb-3 leading-snug line-clamp-2 group-hover:text-primary transition-colors">
                                     {task.title}
                                   </p>
                                   
-                                  <div className="flex items-center justify-between mt-auto pt-3 border-t border-white/[0.04]">
-                                    <div className="flex gap-2 text-foreground/40 text-[9px] font-bold">
+                                  <div className="flex items-center justify-between mt-auto pt-3 border-t border-border">
+                                    <div className="flex gap-2 text-foreground/40 text-xs font-bold">
                                       <div className="flex items-center gap-1 hover:text-foreground/70 transition-colors">
-                                        <CheckSquare className="w-3 h-3 text-blue-400" /> {task.status === "done" ? "1/1" : "0/1"}
+                                        <CheckSquare className="w-3 h-3 text-primary" /> {task.status === "done" ? "1/1" : "0/1"}
                                       </div>
                                       <div className="flex items-center gap-1 hover:text-foreground/70 transition-colors">
-                                        <MessageSquare className="w-3 h-3 text-blue-400" /> {task.remarks?.length || 0}
+                                        <MessageSquare className="w-3 h-3 text-primary" /> {task.remarks?.length || 0}
                                       </div>
                                     </div>
                                     
                                     <div className="flex items-center gap-2">
                                       {task.dueDate && (
-                                        <div className={cn("flex items-center gap-1 text-[8px] px-1.5 py-0.5 rounded font-bold uppercase", 
+                                        <div className={cn("flex items-center gap-1 text-xs px-1.5 py-0.5 rounded font-bold uppercase", 
                                           isOverdue(task.dueDate) ? 'bg-rose-950/40 border border-rose-500/20 text-rose-300' : 
                                           isToday(task.dueDate) ? 'bg-amber-950/40 border border-amber-500/20 text-amber-300' : 
-                                          'bg-muted/40 text-foreground/50 border border-border'
+                                          ' text-foreground/50 border border-border'
                                         )}>
                                           <Clock className="w-2.5 h-2.5" />
                                           {new Date(task.dueDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                                         </div>
                                       )}
                                       <Avatar className="w-5 h-5 border border-border shadow-sm" title={employeesList.find(e => e.id === task.assignedTo)?.fullName || "Unassigned"}>
-                                        <AvatarFallback className="bg-blue-800 text-[8px] font-bold text-blue-200">
+                                        <AvatarFallback className="bg-primary/20 text-xs font-bold text-primary/70">
                                           {(() => {
                                             const emp = employeesList.find(e => e.id === task.assignedTo);
                                             if (!emp?.fullName) return "?";
@@ -589,7 +589,7 @@ export default function TaskBoard() {
                             setAddingToStatus(column.id as TaskStatus);
                             setIsAddOpen(true);
                           }}
-                          className="w-full text-foreground/30 hover:text-foreground justify-start h-8 px-2 text-xs mt-1 hover:bg-muted/40 rounded-xl transition-all font-bold border border-dashed border-border/30 hover:border-white/15 flex items-center cursor-pointer"
+                          className="w-full text-foreground/30 hover:text-foreground justify-start h-8 px-2 text-xs mt-1 hover: rounded-xl transition-all font-bold border border-dashed border-border/30 hover:border-border flex items-center cursor-pointer"
                         >
                           <Plus className="w-3.5 h-3.5 mr-1.5" /> Add a task
                         </button>
@@ -604,7 +604,7 @@ export default function TaskBoard() {
       )}
 
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-        <DialogContent className="bg-[#0f172a] border-border text-foreground sm:max-w-md">
+        <DialogContent className="bg-card border-border text-foreground sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Add New Task</DialogTitle>
           </DialogHeader>
@@ -616,41 +616,58 @@ export default function TaskBoard() {
                 placeholder="What needs to be done?"
                 value={newTask.title}
                 onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                className="bg-muted/40 border-border text-foreground placeholder:text-foreground/30"
+                className="border-border text-foreground placeholder:text-foreground/30"
               />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-bold text-foreground/70 uppercase tracking-wider">Assign To</label>
-              <select
-                value={newTask.assignedTo || user?.uid || ""}
-                onChange={(e) => setNewTask({ ...newTask, assignedTo: e.target.value })}
-                className="flex h-9 w-full rounded-lg border border-border bg-muted/40 px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 text-foreground appearance-none"
+              <Select 
+                value={newTask.assignedTo || user?.uid || ""} 
+                onValueChange={(val) => setNewTask({ ...newTask, assignedTo: val as string })}
+                items={[
+                  { value: user?.uid || "", label: "Assign to me" },
+                  ...Object.values(employeesByDept).flat().map(emp => ({
+                    value: emp.id,
+                    label: `${emp.fullName} ${emp.jobTitle ? `- ${emp.jobTitle}` : ""}`
+                  }))
+                ]}
               >
-                <option value={user?.uid || ""} className="bg-[#0f172a]">Assign to me</option>
-                {Object.entries(employeesByDept).map(([dept, emps]) => (
-                  <optgroup key={dept} label={dept} className="bg-[#0f172a] text-blue-400 font-bold uppercase text-[10px]">
-                    {emps.map(emp => (
-                      <option key={emp.id} value={emp.id} className="text-foreground text-xs normal-case font-medium">
-                        {emp.fullName} {emp.jobTitle ? `- ${emp.jobTitle}` : ""}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
+                <SelectTrigger className="w-full border-border text-foreground h-9">
+                  <SelectValue placeholder="Assign task" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border-border text-foreground max-h-60 overflow-y-auto">
+                  <SelectItem value={user?.uid || ""}>Assign to me</SelectItem>
+                  {Object.entries(employeesByDept).map(([dept, emps]) => (
+                    <SelectGroup key={dept}>
+                      <SelectLabel className="font-bold text-primary">{dept}</SelectLabel>
+                      {emps.map(emp => (
+                        <SelectItem key={emp.id} value={emp.id}>
+                          {emp.fullName} {emp.jobTitle ? `- ${emp.jobTitle}` : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-xs font-bold text-foreground/70 uppercase tracking-wider">Priority</label>
-                <select
-                  value={newTask.priority}
-                  onChange={(e) => setNewTask({ ...newTask, priority: e.target.value as TaskPriority })}
-                  className="flex h-9 w-full rounded-lg border border-border bg-muted/40 px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500 text-foreground appearance-none"
+                <Select 
+                  value={newTask.priority} 
+                  onValueChange={(val) => setNewTask({ ...newTask, priority: val as TaskPriority })}
+                  items={{ low: 'Low', normal: 'Normal', high: 'High', urgent: 'Urgent' }}
                 >
-                  <option value="low" className="bg-[#0f172a]">Low</option>
-                  <option value="normal" className="bg-[#0f172a]">Normal</option>
-                  <option value="high" className="bg-[#0f172a]">High</option>
-                  <option value="urgent" className="bg-[#0f172a]">Urgent</option>
-                </select>
+                  <SelectTrigger className="w-full border-border text-foreground h-9">
+                    <SelectValue placeholder="Priority" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background border-border text-foreground">
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="normal">Normal</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="urgent">Urgent</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-foreground/70 uppercase tracking-wider">Due Date</label>
@@ -658,7 +675,7 @@ export default function TaskBoard() {
                   type="date"
                   value={newTask.dueDate}
                   onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
-                  className="bg-muted/40 border-border text-foreground placeholder:text-foreground/30"
+                  className="border-border text-foreground placeholder:text-foreground/30"
                   style={{ colorScheme: "dark" }}
                 />
               </div>
@@ -675,7 +692,7 @@ export default function TaskBoard() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-4 py-2 text-sm font-bold bg-blue-600 hover:bg-blue-500 text-foreground rounded-lg transition-colors flex items-center justify-center disabled:opacity-50"
+                className="px-4 py-2 text-sm font-bold bg-primary hover:bg-primary text-foreground rounded-lg transition-colors flex items-center justify-center disabled:opacity-50"
               >
                 {isSubmitting ? "Adding..." : "Add Task"}
               </button>
@@ -686,14 +703,14 @@ export default function TaskBoard() {
 
       {/* Task Details & Remarks Dialog */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-        <DialogContent className="bg-[#0f172a] border-border text-foreground sm:max-w-lg">
+        <DialogContent className="bg-card border-border text-foreground sm:max-w-lg">
           <DialogHeader>
             <div className="flex items-center gap-2 mb-1">
-              <span className="badge bg-muted/40 border border-border text-foreground/50 text-[9px] font-bold py-0.5 uppercase tracking-wider">
+              <span className="badge border border-border text-foreground/50 text-xs font-bold py-0.5 uppercase tracking-wider">
                 {activeTask?.projectName || "General"}
               </span>
               <div className={`w-1.5 h-1.5 rounded-full ${activeTask ? PRIORITY_COLORS[activeTask.priority] : ''}`} />
-              <span className="text-[9px] font-bold uppercase text-foreground/40">{activeTask?.priority} Priority</span>
+              <span className="text-xs font-bold uppercase text-foreground/40">{activeTask?.priority} Priority</span>
             </div>
             <DialogTitle className="text-base font-extrabold text-foreground leading-tight">
               {activeTask?.title}
@@ -702,12 +719,12 @@ export default function TaskBoard() {
 
           <div className="space-y-5 mt-4">
             {/* Task Meta Details */}
-            <div className="grid grid-cols-2 gap-4 bg-white/[0.02] border border-white/[0.05] p-3 rounded-xl text-xs">
+            <div className="grid grid-cols-2 gap-4 border border-border p-3 rounded-xl text-xs">
               <div>
                 <span className="text-foreground/40 block mb-0.5">Assigned To:</span>
                 <span className="font-bold text-foreground flex items-center gap-1.5">
                   <Avatar className="w-4 h-4 border border-border">
-                    <AvatarFallback className="bg-blue-800 text-[7px] font-bold text-blue-200">
+                    <AvatarFallback className="bg-primary/20 text-xs font-bold text-primary/70">
                       {activeTask ? (employeesList.find(e => e.id === activeTask.assignedTo)?.fullName?.substring(0,2).toUpperCase() || "UN") : "UN"}
                     </AvatarFallback>
                   </Avatar>
@@ -717,7 +734,7 @@ export default function TaskBoard() {
               <div>
                 <span className="text-foreground/40 block mb-0.5">Due Date:</span>
                 <span className="font-bold text-foreground flex items-center gap-1">
-                  <Clock className="w-3 h-3 text-blue-400" />
+                  <Clock className="w-3 h-3 text-primary" />
                   {activeTask?.dueDate ? new Date(activeTask.dueDate).toLocaleDateString() : "No deadline set"}
                 </span>
               </div>
@@ -726,22 +743,22 @@ export default function TaskBoard() {
             {/* Remarks Log */}
             <div>
               <h3 className="text-xs font-bold text-foreground/70 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
-                <MessageSquare className="w-3.5 h-3.5 text-blue-400" /> Remarks & Progress Logs ({activeTask?.remarks?.length || 0})
+                <MessageSquare className="w-3.5 h-3.5 text-primary" /> Remarks & Progress Logs ({activeTask?.remarks?.length || 0})
               </h3>
               
               <div className="space-y-3 max-h-48 overflow-y-auto pr-1 scrollbar-thin">
                 {!activeTask?.remarks || activeTask.remarks.length === 0 ? (
-                  <div className="text-center py-6 text-foreground/20 text-[10px] font-medium border border-white/[0.04] border-dashed rounded-xl">
+                  <div className="text-center py-6 text-foreground/20 text-xs font-medium border border-border border-dashed rounded-xl">
                     No remarks logged yet.
                   </div>
                 ) : (
                   activeTask.remarks.map((remark) => (
-                    <div key={remark.id} className="bg-white/[0.02] border border-white/[0.05] p-3 rounded-xl">
-                      <div className="flex justify-between items-center mb-1 text-[9px] font-bold uppercase">
-                        <span className="text-blue-400">{remark.authorName}</span>
+                    <div key={remark.id} className="border border-border p-3 rounded-xl">
+                      <div className="flex justify-between items-center mb-1 text-xs font-bold uppercase">
+                        <span className="text-primary">{remark.authorName}</span>
                         <span className="text-foreground/30">{new Date(remark.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                       </div>
-                      <p className="text-[11px] text-foreground/80 leading-relaxed font-medium">
+                      <p className="text-xs text-foreground/80 leading-relaxed font-medium">
                         {remark.text}
                       </p>
                     </div>
@@ -751,8 +768,8 @@ export default function TaskBoard() {
             </div>
 
             {/* Add Remark Form */}
-            <form onSubmit={handleAddRemark} className="space-y-2 border-t border-white/[0.06] pt-4">
-              <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider block">Add Progress Remark</label>
+            <form onSubmit={handleAddRemark} className="space-y-2 border-t border-border pt-4">
+              <label className="text-xs font-bold text-foreground/40 uppercase tracking-wider block">Add Progress Remark</label>
               <div className="flex gap-2">
                 <input
                   required
@@ -763,12 +780,12 @@ export default function TaskBoard() {
                   }
                   value={newRemark}
                   onChange={(e) => setNewRemark(e.target.value)}
-                  className="flex-grow h-9 rounded-lg border border-border bg-muted/40 px-3 py-1 text-xs text-foreground placeholder:text-foreground/30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-500"
+                  className="flex-grow h-9 rounded-lg border border-border px-3 py-1 text-xs text-foreground placeholder:text-foreground/30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
                 />
                 <button
                   type="submit"
                   disabled={isSubmittingRemark || !newRemark.trim()}
-                  className="px-3 h-9 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-foreground rounded-lg text-xs font-bold transition-colors cursor-pointer flex items-center justify-center"
+                  className="px-3 h-9 bg-primary hover:bg-primary disabled:opacity-50 text-foreground rounded-lg text-xs font-bold transition-colors cursor-pointer flex items-center justify-center"
                 >
                   {isSubmittingRemark ? "..." : "Log"}
                 </button>

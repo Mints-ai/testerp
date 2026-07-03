@@ -49,8 +49,7 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
           return (
             <div
               key={toast.id}
-              className={cn(
-                "pointer-events-auto flex items-start gap-3 p-4 rounded-xl shadow-lg border backdrop-blur-xl animate-in slide-in-from-right duration-350 transition-all",
+              className={cn("pointer-events-auto flex items-start gap-3 p-4 rounded-xl shadow-lg border animate-in slide-in-from-right duration-350 transition-all",
                 // Glassmorphic Theme Variants
                 isSuccess 
                   ? "bg-emerald-950/70 border-emerald-500/25 text-emerald-100 shadow-[0_8px_32px_0_rgba(16,185,129,0.12)]" 
@@ -77,7 +76,7 @@ export const ToastProvider = ({ children }: { children: React.ReactNode }) => {
               {/* Close Button */}
               <button
                 onClick={() => removeToast(toast.id)}
-                className="shrink-0 text-white/40 hover:text-white/80 transition-colors p-0.5 rounded-lg hover:bg-white/[0.04]"
+                className="shrink-0 text-foreground/40 hover:text-foreground/80 transition-colors p-0.5 rounded-lg hover:bg-muted/40"
               >
                 <X className="h-4 w-4" />
               </button>

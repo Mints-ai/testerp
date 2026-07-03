@@ -17,8 +17,13 @@ const projData = [{ v: 2 }, { v: 4 }, { v: 3 }, { v: 6 }, { v: 5 }, { v: 7 }];
 const teamData = [{ v: 3 }, { v: 5 }, { v: 8 }, { v: 12 }, { v: 15 }, { v: 18 }];
 const hoursData = [{ v: 20 }, { v: 35 }, { v: 42 }, { v: 38 }, { v: 45 }, { v: 40 }];
 
-// Clean Attendance Heatmap Data (12 weeks, 5 days a week, all zeroes)
-const heatmapData: number[][] = Array(12).fill(Array(5).fill(0));
+// Realistic Attendance Heatmap Data (12 weeks, 5 days a week)
+// 0: absent, 1: half-day/late, 2: present, 3: overtime
+const heatmapData: number[][] = [
+  [2, 2, 2, 2, 2], [2, 2, 0, 2, 2], [2, 2, 2, 2, 1], [2, 2, 3, 2, 2],
+  [2, 0, 2, 2, 2], [2, 2, 2, 1, 2], [2, 2, 2, 2, 2], [3, 2, 2, 2, 2],
+  [2, 2, 2, 2, 0], [2, 1, 2, 2, 2], [2, 2, 2, 3, 2], [2, 2, 2, 2, 2]
+];
 
 export default function DashboardHome() {
   const { user, role } = useAuth();
@@ -164,11 +169,11 @@ export default function DashboardHome() {
       {/* MAIN CONTENT AREA */}
       <div className="flex-1 space-y-6">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <Zap className="h-5 w-5 text-blue-500 fill-blue-500/10 animate-pulse" />
+          <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            <Zap className="h-6 w-6 text-primary fill-primary/10 animate-pulse" />
             {isExecutive ? "Command Center" : "My Workspace"}
           </h1>
-          <p className="text-xs text-foreground/40 mt-1">
+          <p className="text-sm text-foreground/60 mt-1">
             {isExecutive 
               ? "Here is the top-level activity and operational health for Mints Global."
               : `Welcome back, ${user?.displayName?.split(" ")[0] || "User"}. Here's what's on your desk today.`}
@@ -177,14 +182,14 @@ export default function DashboardHome() {
 
         {/* Sparkline Stat Cards */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="glass-card overflow-hidden group border-white/[0.08] bg-white/[0.02]">
+          <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden group border-border">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 z-10 relative">
-              <CardTitle className="text-[11px] font-bold text-foreground/50 uppercase tracking-wider">Open Tasks</CardTitle>
-              <CheckCircle2 className="h-4 w-4 text-blue-400" />
+              <CardTitle className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Open Tasks</CardTitle>
+              <CheckCircle2 className="h-5 w-5 text-primary" />
             </CardHeader>
-            <CardContent className="z-10 relative pb-14">
+            <CardContent className="z-10 relative pb-8">
               <div className="stat-number">{stats.openTasks}</div>
-              <p className="text-[10px] text-foreground/40 mt-1">Live operational tasks</p>
+              <p className="text-xs text-foreground/50 mt-1">Live operational tasks</p>
             </CardContent>
             <div className="absolute bottom-0 left-0 right-0 h-14 opacity-20 group-hover:opacity-40 transition-opacity">
               {mounted ? (
@@ -192,11 +197,11 @@ export default function DashboardHome() {
                   <AreaChart data={taskData}>
                     <defs>
                       <linearGradient id="colorTasks" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#2563eb" stopOpacity={0.4}/>
-                        <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="#708238" stopOpacity={0.4}/>
+                        <stop offset="95%" stopColor="#708238" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <Area type="monotone" dataKey="v" stroke="#2563eb" fillOpacity={1} fill="url(#colorTasks)" />
+                    <Area type="monotone" dataKey="v" stroke="#708238" fillOpacity={1} fill="url(#colorTasks)" />
                   </AreaChart>
                 </ResponsiveContainer>
               ) : null}
@@ -205,42 +210,42 @@ export default function DashboardHome() {
 
           {isExecutive && (
             <>
-              <Card className="glass-card overflow-hidden group border-white/[0.08] bg-white/[0.02]">
+              <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden group border-border">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 z-10 relative">
-                  <CardTitle className="text-[11px] font-bold text-foreground/50 uppercase tracking-wider">Active Projects</CardTitle>
-                  <Briefcase className="h-4 w-4 text-cyan-400" />
+                  <CardTitle className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Active Projects</CardTitle>
+                  <Briefcase className="h-5 w-5 text-accent" />
                 </CardHeader>
-                <CardContent className="z-10 relative pb-14">
+                <CardContent className="z-10 relative pb-8">
                   <div className="stat-number">{stats.activeProjects}</div>
-                  <p className="text-[10px] text-foreground/40 mt-1">Actively loaded projects</p>
+                  <p className="text-xs text-foreground/50 mt-1">Actively loaded projects</p>
                 </CardContent>
                 <div className="absolute bottom-0 left-0 right-0 h-14 opacity-20 group-hover:opacity-40 transition-opacity">
                   {mounted ? (
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={projData}>
-                        <Line type="monotone" dataKey="v" stroke="#06b6d4" strokeWidth={2} dot={false} />
+                        <Line type="monotone" dataKey="v" stroke="#8fa87b" strokeWidth={2} dot={false} />
                       </LineChart>
                     </ResponsiveContainer>
                   ) : null}
                 </div>
               </Card>
 
-              <Card className="glass-card overflow-hidden group border-white/[0.08] bg-white/[0.02]">
+              <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden group border-border">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 z-10 relative">
-                  <CardTitle className="text-[11px] font-bold text-foreground/50 uppercase tracking-wider">Team Size</CardTitle>
-                  <Users className="h-4 w-4 text-violet-400" />
+                  <CardTitle className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Team Size</CardTitle>
+                  <Users className="h-5 w-5 text-primary" />
                 </CardHeader>
-                <CardContent className="z-10 relative pb-14">
+                <CardContent className="z-10 relative pb-8">
                   <div className="stat-number flex items-baseline gap-2">
                     <span>{stats.teamSize}</span>
                     {stats.onlineCount > 0 && (
-                      <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full flex items-center gap-1 animate-pulse">
-                        <span className="w-1 h-1 rounded-full bg-emerald-400"></span>
+                      <span className="text-xs text-primary font-bold bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full flex items-center gap-1 animate-pulse">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
                         {stats.onlineCount} Active
                       </span>
                     )}
                   </div>
-                  <p className="text-[10px] text-foreground/40 mt-1">Onboarded employees</p>
+                  <p className="text-xs text-foreground/50 mt-1">Onboarded employees</p>
                 </CardContent>
                 <div className="absolute bottom-0 left-0 right-0 h-14 opacity-20 group-hover:opacity-40 transition-opacity">
                   {mounted ? (
@@ -248,11 +253,11 @@ export default function DashboardHome() {
                       <AreaChart data={teamData}>
                         <defs>
                           <linearGradient id="colorTeam" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.4}/>
-                            <stop offset="95%" stopColor="#7c3aed" stopOpacity={0}/>
+                            <stop offset="5%" stopColor="#708238" stopOpacity={0.4}/>
+                            <stop offset="95%" stopColor="#708238" stopOpacity={0}/>
                           </linearGradient>
                         </defs>
-                        <Area type="step" dataKey="v" stroke="#7c3aed" fillOpacity={1} fill="url(#colorTeam)" />
+                        <Area type="step" dataKey="v" stroke="#708238" fillOpacity={1} fill="url(#colorTeam)" />
                       </AreaChart>
                     </ResponsiveContainer>
                   ) : null}
@@ -261,20 +266,20 @@ export default function DashboardHome() {
             </>
           )}
 
-          <Card className="glass-card overflow-hidden group border-white/[0.08] bg-white/[0.02]">
+          <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden group border-border">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 z-10 relative">
-              <CardTitle className="text-[11px] font-bold text-foreground/50 uppercase tracking-wider">Hours Logged</CardTitle>
-              <Clock className="h-4 w-4 text-emerald-400" />
+              <CardTitle className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Hours Logged</CardTitle>
+              <Clock className="h-5 w-5 text-accent" />
             </CardHeader>
-            <CardContent className="z-10 relative pb-14">
-              <div className="stat-number">0<span className="text-xs text-foreground/30 font-sans ml-0.5">h</span></div>
-              <p className="text-[10px] text-foreground/40 mt-1">Current operational week</p>
+            <CardContent className="z-10 relative pb-8">
+              <div className="stat-number">0<span className="text-sm text-foreground/40 font-sans ml-0.5">h</span></div>
+              <p className="text-xs text-foreground/50 mt-1">Current operational week</p>
             </CardContent>
             <div className="absolute bottom-0 left-0 right-0 h-14 opacity-20 group-hover:opacity-40 transition-opacity">
               {mounted ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={hoursData}>
-                    <Line type="monotone" dataKey="v" stroke="#10b981" strokeWidth={2} dot={{ r: 2, fill: "#10b981" }} />
+                    <Line type="monotone" dataKey="v" stroke="#8fa87b" strokeWidth={2} dot={{ r: 2, fill: "#8fa87b" }} />
                   </LineChart>
                 </ResponsiveContainer>
               ) : null}
@@ -286,22 +291,22 @@ export default function DashboardHome() {
           {/* Recent Activity / Tasks */}
           <div className="md:col-span-2 lg:col-span-4 space-y-6 flex flex-col">
             {/* Real-time Live Presence Map */}
-            <Card className="glass bg-white/[0.02] border-white/[0.08]">
-              <CardHeader className="pb-3 border-b border-white/[0.06] flex flex-row items-center justify-between">
+            <Card className="bg-card border border-border shadow-sm border-border">
+              <CardHeader className="pb-3 border-b border-border flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  <CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
+                    <span className="relative flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
                     </span>
                     Live Presence Map
                   </CardTitle>
-                  <CardDescription className="text-[10px] text-foreground/40 mt-1">Real-time status updates of onboarded colleagues based on activity beat.</CardDescription>
+                  <CardDescription className="text-xs text-foreground/50 mt-1">Real-time status updates of onboarded colleagues based on activity beat.</CardDescription>
                 </div>
-                <div className="flex gap-3 text-[9px] font-bold text-foreground/50">
-                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Online</span>
-                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> Idle</span>
-                  <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-white/20" /> Offline</span>
+                <div className="flex gap-4 text-xs font-bold text-foreground/60">
+                  <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-primary" /> Online</span>
+                  <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-warning" /> Idle</span>
+                  <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" /> Offline</span>
                 </div>
               </CardHeader>
               <CardContent className="p-4">
@@ -333,24 +338,23 @@ export default function DashboardHome() {
                       const initials = (emp.fullName || emp.name || "SA").split(" ").map((n: any) => n[0]).join("").substring(0, 2).toUpperCase();
 
                       return (
-                        <div key={emp.id} className="relative bg-white/[0.01] border border-white/[0.04] p-3 rounded-xl flex items-center gap-3 hover:bg-white/[0.03] hover:border-white/[0.08] transition-all group">
+                        <div key={emp.id} className="relative border border-border p-3 rounded-xl flex items-center gap-3 hover: hover:border-border transition-all group">
                           <div className="relative">
-                            <Avatar className="h-9 w-9 border border-border/30 shadow-sm">
+                            <Avatar className="h-10 w-10 border border-border/30 shadow-sm">
                               <AvatarImage src={emp.profilePhotoURL} />
-                              <AvatarFallback className="bg-blue-600/30 text-foreground font-bold text-xs">{initials}</AvatarFallback>
+                              <AvatarFallback className="bg-primary/30 text-foreground font-bold text-sm">{initials}</AvatarFallback>
                             </Avatar>
-                            <span className={cn(
-                              "absolute bottom-0 right-0 block h-2 w-2 rounded-full ring-1 ring-black/50",
-                              status === "online" && "bg-emerald-500 animate-pulse",
-                              status === "idle" && "bg-amber-500 animate-pulse",
-                              status === "offline" && "bg-white/20"
+                            <span className={cn("absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-background",
+                              status === "online" && "bg-primary animate-pulse",
+                              status === "idle" && "bg-warning animate-pulse",
+                              status === "offline" && "bg-muted-foreground/50"
                             )} />
                           </div>
 
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs font-bold text-foreground truncate leading-snug">{emp.fullName || emp.name}</p>
-                            <p className="text-[9px] text-foreground/40 truncate mt-0.5 leading-snug">{emp.jobTitle || "Team Colleague"}</p>
-                            <p className="text-[8px] text-foreground/30 font-semibold truncate mt-1 leading-snug">{lastSeenStr}</p>
+                            <p className="text-sm font-bold text-foreground truncate leading-snug">{emp.fullName || emp.name}</p>
+                            <p className="text-xs text-foreground/50 truncate mt-0.5 leading-snug">{emp.jobTitle || "Team Colleague"}</p>
+                            <p className="text-xs text-foreground/40 font-semibold truncate mt-1.5 leading-snug">{lastSeenStr}</p>
                           </div>
                         </div>
                       );
@@ -361,13 +365,13 @@ export default function DashboardHome() {
             </Card>
 
             {/* TEAM SHOUTOUTS */}
-            <Card className="glass bg-white/[0.02] border-white/[0.08] flex-1 flex flex-col">
-              <CardHeader className="pb-3 border-b border-white/[0.06] flex flex-row items-center justify-between">
+            <Card className="bg-card border border-border shadow-sm border-border flex-1 flex flex-col">
+              <CardHeader className="pb-3 border-b border-border flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <Heart className="h-4 w-4 text-red-400 fill-red-400/20" /> Team Shoutouts
+                  <CardTitle className="text-base font-bold text-foreground flex items-center gap-2">
+                    <Heart className="h-5 w-5 text-red-400 fill-red-400/20" /> Team Shoutouts
                   </CardTitle>
-                  <CardDescription className="text-[10px] text-foreground/40 mt-1">Recognize your peers for great work</CardDescription>
+                  <CardDescription className="text-xs text-foreground/50 mt-1">Recognize your peers for great work</CardDescription>
                 </div>
               </CardHeader>
               <CardContent className="p-4 flex-1 flex flex-col gap-4">
@@ -376,7 +380,7 @@ export default function DashboardHome() {
                     placeholder="Give a shoutout to someone..." 
                     value={newShoutout}
                     onChange={(e) => setNewShoutout(e.target.value)}
-                    className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 flex-1"
+                    className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-10 text-sm border-border placeholder:text-foreground/30 focus:border-primary/60 focus:ring-0 flex-1"
                   />
                   <button type="submit" disabled={isSubmittingShoutout || !newShoutout.trim()} className="btn-primary h-9 text-xs py-0 px-4 shrink-0 flex items-center justify-center font-bold">
                     Post
@@ -385,15 +389,15 @@ export default function DashboardHome() {
                 
                 <div className="space-y-2.5 overflow-y-auto max-h-[260px] pr-1">
                   {shoutouts.length === 0 ? (
-                    <div className="text-center py-6 text-foreground/20 text-xs font-semibold">No shoutouts yet. Be the first!</div>
+                    <div className="text-center py-6 text-foreground/40 text-sm font-semibold">No shoutouts yet. Be the first!</div>
                   ) : (
                     shoutouts.map((shout: any) => (
-                      <div key={shout.id} className="bg-white/[0.02] p-3 rounded-xl border border-white/[0.06] shadow-sm relative overflow-hidden group">
-                        <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-blue-500 to-cyan-500"></div>
-                        <p className="text-xs text-foreground/80 font-medium leading-relaxed pl-2">"{shout.text}"</p>
-                        <p className="text-[9px] text-foreground/40 mt-2 pl-2 flex justify-between">
-                          <span className="font-bold text-blue-400/80">— {shout.authorName}</span>
-                          <span className="font-mono">{shout.createdAt ? new Date(shout.createdAt.seconds * 1000).toLocaleDateString() : 'Just now'}</span>
+                      <div key={shout.id} className="p-4 rounded-xl border border-border shadow-sm relative overflow-hidden group">
+                        <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-primary to-accent"></div>
+                        <p className="text-sm text-foreground/90 font-medium leading-relaxed pl-3">"{shout.text}"</p>
+                        <p className="text-xs text-foreground/50 mt-3 pl-3 flex justify-between items-center">
+                          <span className="font-bold text-accent">— {shout.authorName}</span>
+                          <span className="font-mono text-xs">{shout.createdAt ? new Date(shout.createdAt.seconds * 1000).toLocaleDateString() : 'Just now'}</span>
                         </p>
                       </div>
                     ))
@@ -405,45 +409,45 @@ export default function DashboardHome() {
 
           <div className="md:col-span-2 lg:col-span-3 space-y-6 flex flex-col">
             {/* Announcements */}
-            <Card className="glass bg-white/[0.02] border-white/[0.08] overflow-hidden">
-              <CardHeader className="bg-muted/50 border-b border-white/[0.06] pb-4">
-                <CardTitle className="text-sm font-bold flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4 text-blue-400" />
+            <Card className="bg-card border border-border shadow-sm border-border overflow-hidden">
+              <CardHeader className="border-b border-border pb-4">
+                <CardTitle className="text-base font-bold flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5 text-primary" />
                   Notice Board
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-4 space-y-2.5 h-[180px] overflow-y-auto">
-                <div className="p-3 bg-white/[0.02] rounded-xl border border-white/[0.06] shadow-sm border-l-4 border-l-blue-500 hover:bg-white/[0.04] transition-all">
-                  <p className="font-bold text-xs text-foreground">Q3 Planning Meeting</p>
-                  <p className="text-[10px] text-foreground/45 mt-1 leading-relaxed">Tomorrow at 10:00 AM AST. All department heads must attend.</p>
+              <CardContent className="p-4 space-y-3 h-[180px] overflow-y-auto">
+                <div className="p-4 rounded-xl border border-border shadow-sm border-l-4 border-l-primary hover: transition-all">
+                  <p className="font-bold text-sm text-foreground">Q3 Planning Meeting</p>
+                  <p className="text-xs text-foreground/60 mt-1.5 leading-relaxed">Tomorrow at 10:00 AM AST. All department heads must attend.</p>
                 </div>
-                <div className="p-3 bg-white/[0.02] rounded-xl border border-white/[0.06] shadow-sm border-l-4 border-l-cyan-500 hover:bg-white/[0.04] transition-all">
-                  <p className="font-bold text-xs text-foreground">New Client Onboarding</p>
-                  <p className="text-[10px] text-foreground/45 mt-1 leading-relaxed">Please welcome Al Safa Group to the SEO portfolio.</p>
+                <div className="p-4 rounded-xl border border-border shadow-sm border-l-4 border-l-accent hover: transition-all">
+                  <p className="font-bold text-sm text-foreground">New Client Onboarding</p>
+                  <p className="text-xs text-foreground/60 mt-1.5 leading-relaxed">Please welcome Al Safa Group to the SEO portfolio.</p>
                 </div>
               </CardContent>
             </Card>
 
             {/* Attendance Heatmap */}
-            <Card className="glass bg-white/[0.02] border-white/[0.08] flex-1">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-bold text-foreground">Attendance Heatmap</CardTitle>
-                <CardDescription className="text-[10px] text-foreground/40">Your activity over the last 12 weeks</CardDescription>
+            <Card className="bg-card border border-border shadow-sm border-border">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-base font-bold text-foreground">Attendance Heatmap</CardTitle>
+                <CardDescription className="text-xs text-foreground/50">Your activity over the last 12 weeks</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex gap-1 overflow-x-auto pb-2">
+                <div className="flex gap-1.5 overflow-x-auto pb-2">
                   {heatmapData.map((week, wIdx) => (
-                    <div key={wIdx} className="flex flex-col gap-1">
+                    <div key={wIdx} className="flex flex-col gap-1.5">
                       {week.map((day, dIdx) => {
-                        let colorClass = "bg-white/[0.04] hover:bg-white/[0.08]"; // absent/weekend
-                        if (day === 1) colorClass = "bg-blue-600/35 hover:bg-blue-600/50"; // late/half-day
-                        if (day === 2) colorClass = "bg-blue-500 hover:bg-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.4)]"; // present
-                        if (day === 3) colorClass = "bg-cyan-500 hover:bg-cyan-400 shadow-[0_0_8px_rgba(6,182,212,0.4)]"; // overtime
+                        let colorClass = "bg-secondary hover:bg-secondary/80"; // absent/weekend
+                        if (day === 1) colorClass = "bg-primary/40 hover:bg-primary/60"; // late/half-day
+                        if (day === 2) colorClass = "bg-primary hover:bg-primary/80 shadow-[0_0_8px_rgba(112,130,56,0.4)]"; // present
+                        if (day === 3) colorClass = "bg-accent hover:bg-accent/80 shadow-[0_0_8px_rgba(143,168,123,0.4)]"; // overtime
                         
                         return (
                           <div 
                             key={dIdx} 
-                            className={`w-3 h-3 rounded-[3px] ${colorClass} cursor-help transition-all duration-150 border border-transparent`}
+                            className={`w-3.5 h-3.5 rounded-[3px] ${colorClass} cursor-help transition-all duration-150 border border-transparent`}
                             title={`Status level: ${day}`}
                           />
                         );
@@ -451,12 +455,12 @@ export default function DashboardHome() {
                     </div>
                   ))}
                 </div>
-                <div className="flex items-center gap-2 mt-4 text-[9px] text-foreground/30 font-bold uppercase tracking-wider">
+                <div className="flex items-center gap-2.5 mt-5 text-xs text-foreground/40 font-bold uppercase tracking-wider">
                   <span>Less</span>
-                  <div className="w-2.5 h-2.5 rounded-[2px] bg-white/[0.04]" />
-                  <div className="w-2.5 h-2.5 rounded-[2px] bg-blue-600/35" />
-                  <div className="w-2.5 h-2.5 rounded-[2px] bg-blue-500" />
-                  <div className="w-2.5 h-2.5 rounded-[2px] bg-cyan-500" />
+                  <div className="w-3 h-3 rounded-[3px] bg-secondary" />
+                  <div className="w-3 h-3 rounded-[3px] bg-primary/40" />
+                  <div className="w-3 h-3 rounded-[3px] bg-primary" />
+                  <div className="w-3 h-3 rounded-[3px] bg-accent" />
                   <span>More</span>
                 </div>
               </CardContent>
@@ -469,45 +473,45 @@ export default function DashboardHome() {
       {isExecutive && (
         <div className="hidden xl:block w-72 shrink-0">
           <div className="sticky top-24 space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-white/[0.06]">
-              <h3 className="text-xs font-bold text-foreground uppercase tracking-wider">Approvals</h3>
-              <Badge className="bg-blue-600/20 text-blue-400 border border-blue-500/20 font-mono text-[10px]">{stats.pendingLeaves} tasks</Badge>
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">Approvals</h3>
+              <Badge className="bg-primary/20 text-primary border border-primary/20 font-mono text-xs px-2 py-0.5">{stats.pendingLeaves} tasks</Badge>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4 mt-4">
               {stats.pendingApprovals.length === 0 ? (
-                <div className="text-center py-8 text-foreground/30 bg-white/[0.01] border border-white/[0.05] rounded-2xl text-[10px] font-semibold tracking-wide uppercase">
+                <div className="text-center py-10 text-foreground/40 border border-border rounded-2xl text-xs font-semibold tracking-wide uppercase">
                   🎉 All Caught Up!
                 </div>
               ) : (
                 stats.pendingApprovals.map((approval) => (
-                  <div key={approval.id} className="bg-white/[0.02] p-4 rounded-xl border border-white/[0.06] shadow-sm relative group hover:bg-white/[0.03] transition-all">
-                    <div className="absolute inset-0 border border-blue-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none" />
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="badge status-pending font-bold text-[9px] py-0.5 uppercase">
+                  <div key={approval.id} className="p-5 rounded-xl border border-border shadow-sm relative group hover: transition-all">
+                    <div className="absolute inset-0 border border-primary/20 rounded-xl opacity-0 group-hover:opacity-100 transition-all pointer-events-none" />
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="badge status-pending font-bold text-xs py-1 px-2 uppercase tracking-wide">
                         {approval.leaveType || "Leave Request"}
                       </span>
-                      <span className="text-[9px] font-mono text-foreground/30">
+                      <span className="text-xs font-mono text-foreground/40">
                         {approval.createdAt ? new Date(approval.createdAt).toLocaleDateString() : "Pending"}
                       </span>
                     </div>
-                    <p className="text-xs font-bold text-foreground leading-tight">{approval.employeeName || "Mints Team Member"}</p>
-                    <p className="text-[10px] text-foreground/40 mt-1.5 leading-relaxed">
+                    <p className="text-sm font-bold text-foreground leading-tight">{approval.employeeName || "Mints Team Member"}</p>
+                    <p className="text-xs text-foreground/50 mt-2 leading-relaxed">
                       {approval.startDate} to {approval.endDate}
                     </p>
-                    <p className="text-[9px] italic text-blue-400/70 mt-1 leading-snug">
+                    <p className="text-xs italic text-accent mt-2 leading-snug p-2 rounded-md border border-border">
                       "{approval.reason || "No reason provided"}"
                     </p>
                     <div className="flex gap-2 mt-3.5">
                       <button 
                         onClick={() => handleAction(approval.id, "approved")}
-                        className="flex-grow btn-primary py-1 px-3 text-[10px] h-7 font-bold flex items-center justify-center gap-1 cursor-pointer"
+                        className="flex-grow btn-primary py-1 px-3 text-xs h-7 font-bold flex items-center justify-center gap-1 cursor-pointer"
                       >
                         <Check className="h-3 w-3" /> Approve
                       </button>
                       <button 
                         onClick={() => handleAction(approval.id, "rejected")}
-                        className="flex-grow btn-ghost py-1 px-3 text-[10px] h-7 font-semibold flex items-center justify-center gap-1 border-border/30 hover:border-red-500/20 hover:text-red-400 hover:bg-red-500/5 cursor-pointer"
+                        className="flex-grow btn-ghost py-1 px-3 text-xs h-7 font-semibold flex items-center justify-center gap-1 border-border/30 hover:border-red-500/20 hover:text-red-400 hover:bg-red-500/5 cursor-pointer"
                       >
                         <X className="h-3 w-3" /> Reject
                       </button>

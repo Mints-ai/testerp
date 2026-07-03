@@ -138,7 +138,7 @@ export default function DocumentExpiryTracker() {
           </div>
           <button
             onClick={() => setIsAddOpen(true)}
-            className="btn-primary h-9 px-4 text-xs font-bold flex items-center gap-1.5 shadow-glow-blue cursor-pointer"
+            className="btn-primary h-9 px-4 text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
             <Plus className="h-4 w-4" /> Add Document
           </button>
@@ -150,20 +150,20 @@ export default function DocumentExpiryTracker() {
             { label: "Expired",  value: expiredCount,  icon: X,             color: "bg-rose-500/10 text-rose-400 border-rose-500/20",     click: "expired"  },
             { label: "Critical (≤30d)",  value: criticalCount, icon: AlertTriangle, color: "bg-red-500/10 text-red-400 border-red-500/20", click: "critical" },
             { label: "Warning (≤60d)",   value: warningCount,  icon: Clock,         color: "bg-amber-500/10 text-amber-400 border-amber-500/20", click: "warning" },
-            { label: "Valid",    value: validCount,    icon: CheckCircle,   color: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20", click: "valid" },
+            { label: "Valid",    value: validCount,    icon: CheckCircle,   color: "bg-emerald-500/10 text-accent border-emerald-500/20", click: "valid" },
           ].map(card => (
             <button
               key={card.label}
               onClick={() => setFilterStatus(filterStatus === card.click as any ? "all" : card.click as any)}
-              className={cn("glass-card border-white/[0.08] bg-white/[0.02] overflow-hidden p-5 flex items-center gap-4 text-left transition-all hover:bg-white/[0.04] cursor-pointer rounded-2xl",
-                filterStatus === card.click && "ring-1 ring-blue-500/40"
+              className={cn("bg-card border border-border shadow-sm rounded-lg border-border overflow-hidden p-5 flex items-center gap-4 text-left transition-all hover: cursor-pointer rounded-2xl",
+                filterStatus === card.click && "ring-1 ring-primary/40"
               )}
             >
               <div className={cn("p-3 rounded-xl border", card.color)}>
                 <card.icon className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">{card.label}</p>
+                <p className="text-xs font-bold text-foreground/40 uppercase tracking-wider">{card.label}</p>
                 <h3 className="text-2xl font-black text-foreground font-mono">{card.value}</h3>
               </div>
             </button>
@@ -177,13 +177,13 @@ export default function DocumentExpiryTracker() {
             placeholder="Search by employee name or document type..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="pl-9 glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-amber-500/60 focus:ring-0"
+            className="pl-9 bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-9 text-xs border-border placeholder:text-foreground/20 focus:border-amber-500/60 focus:ring-0"
           />
         </div>
 
         {/* Documents Table */}
-        <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
-          <CardHeader className="border-b border-white/[0.04] p-4 bg-white/[0.01]">
+        <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border">
+          <CardHeader className="border-b border-border p-4">
             <CardTitle className="text-xs uppercase font-bold text-foreground/50 tracking-wider flex items-center gap-2">
               <Calendar className="h-3.5 w-3.5 text-amber-400" />
               Document Registry
@@ -207,7 +207,7 @@ export default function DocumentExpiryTracker() {
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-white/[0.06] bg-white/[0.02] text-foreground/40 font-bold uppercase tracking-wider text-[9px]">
+                    <tr className="border-b border-border text-foreground/40 font-bold uppercase tracking-wider text-xs">
                       <th className="p-3">Employee</th>
                       <th className="p-3">Document Type</th>
                       <th className="p-3">Expiry Date</th>
@@ -224,8 +224,7 @@ export default function DocumentExpiryTracker() {
                           initial={{ opacity: 0, y: 4 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: Math.min(i * 0.02, 0.3) }}
-                          className={cn(
-                            "border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors",
+                          className={cn("border-b border-border hover: transition-colors",
                             d.days < 0 && "bg-rose-500/[0.03]",
                             d.days >= 0 && d.days <= 30 && "bg-red-500/[0.02]"
                           )}
@@ -251,11 +250,11 @@ export default function DocumentExpiryTracker() {
                             </span>
                           </td>
                           <td className="p-3">
-                            <Badge className={cn("text-[9px] font-bold uppercase tracking-wider shadow-none border", d.status.color)}>
+                            <Badge className={cn("text-xs font-bold uppercase tracking-wider shadow-none border", d.status.color)}>
                               {d.status.label}
                             </Badge>
                           </td>
-                          <td className="p-3 text-foreground/40 text-[11px] max-w-[200px] truncate">{d.notes || "—"}</td>
+                          <td className="p-3 text-foreground/40 text-xs max-w-[200px] truncate">{d.notes || "—"}</td>
                         </motion.tr>
                       ))}
                     </AnimatePresence>
@@ -274,29 +273,29 @@ export default function DocumentExpiryTracker() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
             onClick={e => { if (e.target === e.currentTarget) setIsAddOpen(false); }}
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="glass-card border-border bg-[#0d1117] w-full max-w-md p-6 rounded-2xl shadow-2xl"
+              className="bg-card border border-border shadow-sm rounded-lg border-border bg-[#0d1117] w-full max-w-md p-6 rounded-2xl shadow-2xl"
             >
               <div className="flex justify-between items-center mb-5">
                 <div>
                   <h2 className="text-sm font-bold text-foreground">Add Document Expiry Record</h2>
-                  <p className="text-[10px] text-foreground/40 mt-0.5">Track a new HR document and its expiry date</p>
+                  <p className="text-xs text-foreground/40 mt-0.5">Track a new HR document and its expiry date</p>
                 </div>
-                <button onClick={() => setIsAddOpen(false)} className="p-1.5 rounded-lg text-foreground/40 hover:text-foreground hover:bg-muted/40 cursor-pointer">
+                <button onClick={() => setIsAddOpen(false)} className="p-1.5 rounded-lg text-foreground/40 hover:text-foreground hover: cursor-pointer">
                   <X className="h-4 w-4" />
                 </button>
               </div>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-foreground/50">Employee</label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-foreground/50">Employee</label>
                   <Select value={form.employeeId} onValueChange={v => setForm(p => ({ ...p, employeeId: v || "" }))}>
-                    <SelectTrigger className="glass-input border-border text-foreground text-xs h-9">
+                    <SelectTrigger className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm border-border text-foreground text-xs h-9">
                       <SelectValue placeholder="Select employee..." />
                     </SelectTrigger>
                     <SelectContent className="bg-[#0d1117] border-border text-foreground">
@@ -307,9 +306,9 @@ export default function DocumentExpiryTracker() {
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-foreground/50">Document Type</label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-foreground/50">Document Type</label>
                   <Select value={form.docType} onValueChange={v => setForm(p => ({ ...p, docType: v || "" }))}>
-                    <SelectTrigger className="glass-input border-border text-foreground text-xs h-9">
+                    <SelectTrigger className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm border-border text-foreground text-xs h-9">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-[#0d1117] border-border text-foreground">
@@ -318,22 +317,22 @@ export default function DocumentExpiryTracker() {
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-foreground/50">Expiry Date</label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-foreground/50">Expiry Date</label>
                   <Input
                     type="date"
                     value={form.expiryDate}
                     onChange={e => setForm(p => ({ ...p, expiryDate: e.target.value }))}
-                    className="glass-input border-border text-foreground text-xs h-9"
+                    className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm border-border text-foreground text-xs h-9"
                     required
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-wider text-foreground/50">Notes (optional)</label>
+                  <label className="text-xs font-bold uppercase tracking-wider text-foreground/50">Notes (optional)</label>
                   <Input
                     placeholder="e.g. Renewal submitted, awaiting processing"
                     value={form.notes}
                     onChange={e => setForm(p => ({ ...p, notes: e.target.value }))}
-                    className="glass-input border-border text-foreground text-xs h-9"
+                    className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm border-border text-foreground text-xs h-9"
                   />
                 </div>
                 <div className="flex gap-3 pt-2">

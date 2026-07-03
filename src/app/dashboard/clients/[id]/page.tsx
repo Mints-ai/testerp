@@ -106,8 +106,8 @@ export default function ClientProfile() {
 
   if (!mounted || loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-blue-400 font-bold gap-3">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-primary font-bold gap-3">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         <span>Retrieving corporate profile...</span>
       </div>
     );
@@ -115,11 +115,11 @@ export default function ClientProfile() {
 
   if (!client) {
     return (
-      <div className="text-center py-16 bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl rounded-2xl p-8">
+      <div className="text-center py-16 border border-border rounded-2xl p-8">
         <Building2 className="h-12 w-12 text-foreground/20 mx-auto mb-4" />
         <h3 className="text-lg font-bold text-foreground/80">Profile Not Discovered</h3>
         <p className="text-sm text-foreground/40 mt-1">This corporate account might have been archived or removed.</p>
-        <Button variant="outline" className="mt-4 rounded-xl border-border text-foreground/60 hover:text-foreground hover:bg-muted/40 font-semibold" onClick={() => router.push("/dashboard/clients")}>
+        <Button variant="outline" className="mt-4 rounded-xl border-border text-foreground/60 hover:text-foreground hover: font-semibold" onClick={() => router.push("/dashboard/clients")}>
           <ChevronLeft className="w-4 h-4 mr-2" /> Back to CRM
         </Button>
       </div>
@@ -136,7 +136,7 @@ export default function ClientProfile() {
       <div className="space-y-6 pb-24 text-foreground">
         {/* Navigation Breadcrumb */}
         <div className="flex items-center justify-between shrink-0">
-          <Button variant="outline" className="rounded-xl border-border glass h-9 text-foreground/60 hover:text-foreground font-semibold" onClick={() => router.push("/dashboard/clients")}>
+          <Button variant="outline" className="rounded-xl border-border bg-card border border-border shadow-sm h-9 text-foreground/60 hover:text-foreground font-semibold" onClick={() => router.push("/dashboard/clients")}>
             <ChevronLeft className="w-4 h-4 mr-1.5" /> Back to CRM
           </Button>
           
@@ -146,12 +146,12 @@ export default function ClientProfile() {
         </div>
 
         {/* Header Hero Section */}
-        <div className="border border-white/[0.08] bg-white/[0.02] p-6 rounded-2xl shadow-card backdrop-blur-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="border border-border p-6 rounded-2xl shadow-card flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="flex items-center gap-4">
             {client.logo ? (
               <img src={client.logo} alt="" className="h-16 w-16 object-contain rounded-2xl border border-border bg-white p-1" />
             ) : (
-              <div className="h-16 w-16 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-300 font-bold text-2xl border border-blue-500/20">
+              <div className="h-16 w-16 rounded-2xl bg-primary/10 flex items-center justify-center text-primary/80 font-bold text-2xl border border-primary/20">
                 {client.companyName?.substring(0, 2).toUpperCase()}
               </div>
             )}
@@ -165,11 +165,11 @@ export default function ClientProfile() {
 
           <div className="flex gap-4 w-full md:w-auto">
             <div className="flex-1 md:flex-initial p-4 border border-emerald-500/20 bg-emerald-500/5 text-center rounded-2xl">
-              <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Total Contract Value</p>
+              <p className="text-xs font-bold text-accent uppercase tracking-wider">Total Contract Value</p>
               <h3 className="text-xl font-black text-emerald-300 mt-1 tabular-nums">AED {totalBilledVal.toLocaleString()}</h3>
             </div>
             <div className="flex-1 md:flex-initial p-4 border border-rose-500/20 bg-rose-500/5 text-center rounded-2xl">
-              <p className="text-[10px] font-bold text-rose-400 uppercase tracking-wider">Outstanding AR</p>
+              <p className="text-xs font-bold text-rose-400 uppercase tracking-wider">Outstanding AR</p>
               <h3 className="text-xl font-black text-rose-300 mt-1 tabular-nums">AED {unpaidVal.toLocaleString()}</h3>
             </div>
           </div>
@@ -179,8 +179,8 @@ export default function ClientProfile() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column: CRM Company Profile & Active Services */}
           <div className="lg:col-span-1 space-y-6">
-            <div className="border border-white/[0.08] bg-white/[0.02] rounded-2xl overflow-hidden shadow-card backdrop-blur-xl">
-              <div className="p-6 pb-3 border-b border-white/[0.06] bg-white/[0.01]">
+            <div className="border border-border rounded-2xl overflow-hidden shadow-card">
+              <div className="p-6 pb-3 border-b border-border">
                 <h2 className="text-base font-bold text-foreground">Corporate Details</h2>
                 <p className="text-xs text-foreground/40 font-medium mt-0.5">Primary CRM metadata for corporate communications.</p>
               </div>
@@ -190,44 +190,44 @@ export default function ClientProfile() {
                     <User className="h-5 w-5 text-foreground/30 shrink-0" />
                     <div>
                       <p className="text-foreground">{client.contactPerson}</p>
-                      <p className="text-[9px] uppercase font-bold text-foreground/30 tracking-wider">Primary Partner contact</p>
+                      <p className="text-xs uppercase font-bold text-foreground/30 tracking-wider">Primary Partner contact</p>
                     </div>
                   </div>
                 )}
                 <div className="flex items-center gap-3">
                   <Mail className="h-5 w-5 text-foreground/30 shrink-0" />
                   <div>
-                    <a href={`mailto:${client.email}`} className="text-blue-400 hover:text-blue-300 transition-colors hover:underline">{client.email || "No email listed"}</a>
-                    <p className="text-[9px] uppercase font-bold text-foreground/30 tracking-wider">Communication Gateway</p>
+                    <a href={`mailto:${client.email}`} className="text-primary hover:text-primary/80 transition-colors hover:underline">{client.email || "No email listed"}</a>
+                    <p className="text-xs uppercase font-bold text-foreground/30 tracking-wider">Communication Gateway</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Phone className="h-5 w-5 text-foreground/30 shrink-0" />
                   <div>
                     <p className="text-foreground">{client.phone || "No phone listed"}</p>
-                    <p className="text-[9px] uppercase font-bold text-foreground/30 tracking-wider">Primary phone line</p>
+                    <p className="text-xs uppercase font-bold text-foreground/30 tracking-wider">Primary phone line</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Clock className="h-5 w-5 text-foreground/30 shrink-0" />
                   <div>
                     <p className="text-foreground">{client.timezone || "GST"}</p>
-                    <p className="text-[9px] uppercase font-bold text-foreground/30 tracking-wider">Corporate Timezone</p>
+                    <p className="text-xs uppercase font-bold text-foreground/30 tracking-wider">Corporate Timezone</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Subscribed Retainers */}
-            <div className="border border-white/[0.08] bg-white/[0.02] rounded-2xl shadow-card backdrop-blur-xl">
-              <div className="p-6 pb-3 border-b border-white/[0.06] bg-white/[0.01]">
+            <div className="border border-border rounded-2xl shadow-card">
+              <div className="p-6 pb-3 border-b border-border">
                 <h2 className="text-base font-bold text-foreground">Services Retained</h2>
                 <p className="text-xs text-foreground/40 font-medium mt-0.5">Subscribed services under this account.</p>
               </div>
               <div className="p-6">
                 <div className="flex flex-wrap gap-2">
                   {client.servicesSubscribed?.map((svc: string) => (
-                    <Badge key={svc} variant="secondary" className="font-bold text-xs bg-white/[0.02] text-foreground/80 border border-border rounded-lg py-1 px-2.5">
+                    <Badge key={svc} variant="secondary" className="font-bold text-xs text-foreground/80 border border-border rounded-lg py-1 px-2.5">
                       {svc}
                     </Badge>
                   ))}
@@ -239,16 +239,16 @@ export default function ClientProfile() {
             </div>
 
             {/* Auto-Saving Notes Pad */}
-            <div className="border border-white/[0.08] bg-white/[0.02] rounded-2xl shadow-card backdrop-blur-xl">
-              <div className="p-6 pb-3 border-b border-white/[0.06] bg-white/[0.01] flex flex-row items-center justify-between">
+            <div className="border border-border rounded-2xl shadow-card">
+              <div className="p-6 pb-3 border-b border-border flex flex-row items-center justify-between">
                 <div>
                   <h2 className="text-base font-bold text-foreground">CRM Account Notes</h2>
                   <p className="text-xs text-foreground/40 font-medium mt-0.5">Private account updates and notes.</p>
                 </div>
                 <div className="text-xs font-semibold shrink-0">
                   {saveStatus === "typing" && <span className="text-amber-400">Typing...</span>}
-                  {saveStatus === "saving" && <span className="text-blue-400 animate-pulse">Saving changes...</span>}
-                  {saveStatus === "saved" && <span className="text-emerald-400 font-bold">Saved to CRM</span>}
+                  {saveStatus === "saving" && <span className="text-primary animate-pulse">Saving changes...</span>}
+                  {saveStatus === "saved" && <span className="text-accent font-bold">Saved to CRM</span>}
                 </div>
               </div>
               <div className="p-6 pt-4">
@@ -256,9 +256,9 @@ export default function ClientProfile() {
                   placeholder="Record strategic details, onboarding checklists, client background, or strategic goals here..." 
                   value={notes}
                   onChange={handleNotesChange}
-                  className="min-h-[180px] rounded-xl border-border focus:border-blue-500 focus:ring-blue-500 text-sm leading-relaxed text-foreground bg-white/[0.03] placeholder:text-foreground/20"
+                  className="min-h-[180px] rounded-xl border-border focus:border-primary focus:ring-primary text-sm leading-relaxed text-foreground placeholder:text-foreground/20"
                 />
-                <p className="text-[10px] text-foreground/30 mt-2 text-right">Changes are automatically saved to the database.</p>
+                <p className="text-xs text-foreground/30 mt-2 text-right">Changes are automatically saved to the database.</p>
               </div>
             </div>
           </div>
@@ -266,13 +266,13 @@ export default function ClientProfile() {
           {/* Right Column: Active Deliverables & Receivables Balance */}
           <div className="lg:col-span-2 space-y-6">
             {/* Active Deliverables / Projects */}
-            <div className="border border-white/[0.08] bg-white/[0.02] rounded-2xl shadow-card backdrop-blur-xl">
-              <div className="p-6 pb-4 border-b border-white/[0.06] bg-white/[0.01] flex flex-row items-center justify-between">
+            <div className="border border-border rounded-2xl shadow-card">
+              <div className="p-6 pb-4 border-b border-border flex flex-row items-center justify-between">
                 <div>
                   <h2 className="text-base font-bold text-foreground">Active Projects</h2>
                   <p className="text-xs text-foreground/40 font-medium mt-0.5">Operational deliverables belonging to {client.companyName}.</p>
                 </div>
-                <Badge variant="secondary" className="bg-blue-500/10 text-blue-300 border border-blue-500/20 font-bold">{projects.length} deliverables</Badge>
+                <Badge variant="secondary" className="bg-primary/10 text-primary/80 border border-primary/20 font-bold">{projects.length} deliverables</Badge>
               </div>
               <div className="p-0">
                 {projects.length === 0 ? (
@@ -287,23 +287,19 @@ export default function ClientProfile() {
                       <div 
                         key={proj.id} 
                         onClick={() => router.push(`/dashboard/projects/${proj.id}`)}
-                        className="flex justify-between items-center p-4 hover:bg-white/[0.03] transition-all cursor-pointer"
+                        className="flex justify-between items-center p-4 hover: transition-all cursor-pointer"
                       >
                         <div className="space-y-1">
-                          <p className="font-bold text-foreground text-sm hover:text-blue-400 transition-colors">{proj.name}</p>
+                          <p className="font-bold text-foreground text-sm hover:text-primary transition-colors">{proj.name}</p>
                           <div className="flex items-center gap-2 text-xs text-foreground/40 font-semibold">
-                            <Badge variant="outline" className="text-[10px] font-bold uppercase bg-white/[0.02] text-foreground/60 border-border">
+                            <Badge variant="outline" className="text-xs font-bold uppercase text-foreground/60 border-border">
                               {proj.serviceType || "Retainer"}
                             </Badge>
                             <span>·</span>
                             <span>Timeline: {proj.startDate || "Not started"}</span>
                           </div>
                         </div>
-                        <Badge className={`capitalize font-bold text-xs shadow-none border ${
-                          proj.status === "active" ? "bg-blue-500/10 text-blue-300 border-blue-500/20" :
-                          proj.status === "completed" ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/20" :
-                          "bg-amber-500/10 text-amber-300 border-amber-500/20"
-                        }`}>
+                        <Badge className={`capitalize font-bold text-xs shadow-none border ${ proj.status === "active" ? "bg-primary/10 text-primary/80 border-primary/20" : proj.status === "completed" ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/20" : "bg-amber-500/10 text-amber-300 border-amber-500/20" }`}>
                           {proj.status?.replace("_", " ")}
                         </Badge>
                       </div>
@@ -314,13 +310,13 @@ export default function ClientProfile() {
             </div>
 
             {/* Invoices Ledger */}
-            <div className="border border-white/[0.08] bg-white/[0.02] rounded-2xl shadow-card backdrop-blur-xl">
-              <div className="p-6 pb-4 border-b border-white/[0.06] bg-white/[0.01] flex flex-row items-center justify-between">
+            <div className="border border-border rounded-2xl shadow-card">
+              <div className="p-6 pb-4 border-b border-border flex flex-row items-center justify-between">
                 <div>
                   <h2 className="text-base font-bold text-foreground">Invoices & Receivables</h2>
                   <p className="text-xs text-foreground/40 font-medium mt-0.5">Financial balance statements generated for this account.</p>
                 </div>
-                <Badge variant="secondary" className="bg-white/[0.02] text-foreground/80 border border-border font-bold">{invoices.length} invoices</Badge>
+                <Badge variant="secondary" className="text-foreground/80 border border-border font-bold">{invoices.length} invoices</Badge>
               </div>
               <div className="p-0">
                 {invoices.length === 0 ? (
@@ -332,7 +328,7 @@ export default function ClientProfile() {
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
-                      <thead className="bg-white/[0.01] text-foreground/40 text-[10px] uppercase font-bold border-b border-white/[0.06]">
+                      <thead className="text-foreground/40 text-xs uppercase font-bold border-b border-border">
                         <tr>
                           <th className="px-5 py-3">Invoice #</th>
                           <th className="px-5 py-3">Generated Date</th>
@@ -342,16 +338,12 @@ export default function ClientProfile() {
                       </thead>
                       <tbody className="divide-y divide-white/[0.06] text-foreground/80 font-semibold">
                         {invoices.map((inv) => (
-                          <tr key={inv.id} className="hover:bg-white/[0.03] transition-colors">
-                            <td className="px-5 py-3.5 font-mono text-xs text-blue-400">{inv.invoiceNumber || inv.id?.substring(0, 8)}</td>
+                          <tr key={inv.id} className="hover: transition-colors">
+                            <td className="px-5 py-3.5 font-mono text-xs text-primary">{inv.invoiceNumber || inv.id?.substring(0, 8)}</td>
                             <td className="px-5 py-3.5 text-xs text-foreground/40">{inv.createdAt ? new Date(inv.createdAt).toLocaleDateString() : "Pending"}</td>
                             <td className="px-5 py-3.5 tabular-nums text-foreground">AED {(Number(inv.amount) || 0).toLocaleString()}</td>
                             <td className="px-5 py-3.5 text-right">
-                              <Badge className={`capitalize font-bold text-xs shadow-none border ${
-                                inv.status === "paid" ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/20" :
-                                inv.status === "overdue" ? "bg-rose-500/10 text-rose-300 border-rose-500/20" :
-                                "bg-white/[0.02] text-foreground/60 border-border"
-                              }`}>
+                              <Badge className={`capitalize font-bold text-xs shadow-none border ${ inv.status === "paid" ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/20" : inv.status === "overdue" ? "bg-rose-500/10 text-rose-300 border-rose-500/20" : " text-foreground/60 border-border" }`}>
                                 {inv.status || "Draft"}
                               </Badge>
                             </td>

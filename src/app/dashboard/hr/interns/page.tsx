@@ -81,10 +81,10 @@ export default function InternManagement() {
 
         {loading ? (
           <div className="flex justify-center p-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
         ) : interns.length === 0 ? (
-          <div className="text-center p-12 bg-white/[0.02] border border-white/[0.08] backdrop-blur-xl rounded-2xl">
+          <div className="text-center p-12 border border-border rounded-2xl">
             <h3 className="text-lg font-medium text-foreground/80">No active interns found</h3>
             <p className="text-sm text-foreground/40 mt-1">When interns are added, they will appear here.</p>
           </div>
@@ -96,19 +96,19 @@ export default function InternManagement() {
               const isEndingSoon = daysRemaining.includes("days left") && parseInt(daysRemaining) <= 7;
               
               return (
-                <div key={intern.id} className="overflow-hidden border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.04] backdrop-blur-xl transition-all shadow-card rounded-2xl flex flex-col justify-between">
+                <div key={intern.id} className="overflow-hidden border border-border hover: transition-all shadow-card rounded-2xl flex flex-col justify-between">
                   <div>
-                    <div className="p-5 pb-4 bg-white/[0.01] border-b border-white/[0.06]">
+                    <div className="p-5 pb-4 border-b border-border">
                       <div className="flex justify-between items-start">
                         <div className="flex items-center gap-3">
-                          <Avatar className="h-12 w-12 border border-border shadow-glow-blue/20">
+                          <Avatar className="h-12 w-12 border border-border shadow-sm/20">
                             <AvatarImage src={intern.profilePhotoURL} alt={intern.fullName} />
-                            <AvatarFallback className="bg-blue-500/10 text-blue-300 font-bold">
+                            <AvatarFallback className="bg-primary/10 text-primary/80 font-bold">
                               {getInitials(intern.fullName)}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <h3 className="text-base font-bold text-foreground hover:text-blue-400 transition-colors">
+                            <h3 className="text-base font-bold text-foreground hover:text-primary transition-colors">
                               <Link href={`/dashboard/hr/${intern.id}`}>
                                 {intern.fullName}
                               </Link>
@@ -129,7 +129,7 @@ export default function InternManagement() {
                         <span className="text-foreground/60">
                           {intern.internEndDate ? new Date(intern.internEndDate).toLocaleDateString() : 'TBD'}
                         </span>
-                        <Badge variant="outline" className="ml-auto font-bold border-border text-foreground/60 bg-white/[0.02]">
+                        <Badge variant="outline" className="ml-auto font-bold border-border text-foreground/60">
                           {daysRemaining}
                         </Badge>
                       </div>
@@ -140,9 +140,9 @@ export default function InternManagement() {
                           <span className="font-bold text-foreground/80">{progress}%</span>
                         </div>
                         {/* High-fidelity glowing custom progress bar */}
-                        <div className="h-2 w-full bg-muted/40 rounded-full overflow-hidden">
+                        <div className="h-2 w-full rounded-full overflow-hidden">
                           <div 
-                            className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 shadow-glow-blue transition-all duration-300 rounded-full" 
+                            className="h-full bg-gradient-to-r from-blue-500 to-cyan-400 shadow-sm transition-all duration-300 rounded-full" 
                             style={{ width: `${progress}%` }}
                           />
                         </div>
@@ -151,12 +151,12 @@ export default function InternManagement() {
                   </div>
 
                   <div className="p-5 pt-0">
-                    <div className="pt-4 flex justify-between gap-3 border-t border-white/[0.06]">
-                      <Button variant="outline" className="w-full border-border text-foreground/60 hover:text-foreground hover:bg-muted/40 font-semibold rounded-xl cursor-pointer" render={<Link href={`/dashboard/hr/${intern.id}`} />} nativeButton={false}>
+                    <div className="pt-4 flex justify-between gap-3 border-t border-border">
+                      <Button variant="outline" className="w-full border-border text-foreground/60 hover:text-foreground hover: font-semibold rounded-xl cursor-pointer" render={<Link href={`/dashboard/hr/${intern.id}`} />} nativeButton={false}>
                         View Profile
                       </Button>
                       <Button 
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-foreground shadow-glow-blue border-0 rounded-xl font-bold gap-2 cursor-pointer" 
+                        className="w-full bg-primary hover:bg-blue-700 text-foreground shadow-sm border-0 rounded-xl font-bold gap-2 cursor-pointer" 
                         onClick={() => generateInternCertificate(intern.fullName, intern.department || "General", new Date().toLocaleDateString())}
                       >
                         <FileText className="h-4 w-4" /> Certificate

@@ -285,10 +285,10 @@ export default function CloudDrive() {
   };
 
   const getFileIcon = (contentType: string) => {
-    if (contentType.includes('image')) return <ImageIcon className="h-10 w-10 text-indigo-500" />;
+    if (contentType.includes('image')) return <ImageIcon className="h-10 w-10 text-primary" />;
     if (contentType.includes('pdf')) return <FileText className="h-10 w-10 text-red-500" />;
     if (contentType.includes('zip') || contentType.includes('rar')) return <FileArchive className="h-10 w-10 text-amber-500" />;
-    if (contentType.includes('video')) return <FileVideo className="h-10 w-10 text-blue-500" />;
+    if (contentType.includes('video')) return <FileVideo className="h-10 w-10 text-primary" />;
     if (contentType.includes('audio')) return <FileAudio className="h-10 w-10 text-green-500" />;
     return <File className="h-10 w-10 text-slate-500" />;
   };
@@ -306,21 +306,13 @@ export default function CloudDrive() {
           <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 shadow-inner">
             <button
               onClick={() => setDriveMode('cloud')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center transition-all ${
-                driveMode === 'cloud'
-                  ? "bg-white text-indigo-700 shadow-sm"
-                  : "text-slate-500 hover:text-slate-800"
-              }`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center transition-all ${ driveMode === 'cloud' ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-800" }`}
             >
               <Cloud className="w-3.5 h-3.5 mr-1.5" /> Firebase Cloud
             </button>
             <button
               onClick={() => setDriveMode('local')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center transition-all ${
-                driveMode === 'local'
-                  ? "bg-white text-indigo-700 shadow-sm"
-                  : "text-slate-500 hover:text-slate-800"
-              }`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center transition-all ${ driveMode === 'local' ? "bg-white text-primary shadow-sm" : "text-slate-500 hover:text-slate-800" }`}
             >
               <Database className="w-3.5 h-3.5 mr-1.5" /> Free Local Drive
             </button>
@@ -333,7 +325,7 @@ export default function CloudDrive() {
             onChange={handleUpload}
           />
           <Button 
-            className="bg-indigo-600 hover:bg-indigo-700 text-foreground shadow-md"
+            className="bg-primary hover:bg-primary/80 text-primary-foreground shadow-md"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
           >
@@ -346,19 +338,19 @@ export default function CloudDrive() {
         </div>
       </div>
 
-      <Card className="glass-card min-h-[500px]">
+      <Card className="bg-card border border-border shadow-sm rounded-lg min-h-[500px]">
         <CardHeader className="border-b border-slate-100 bg-slate-50/50 flex flex-row items-center justify-between">
           <div className="flex flex-col gap-1">
             <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
               {driveMode === 'cloud' ? (
-                <Cloud className="h-5 w-5 text-indigo-600 animate-pulse" />
+                <Cloud className="h-5 w-5 text-primary animate-pulse" />
               ) : (
-                <Database className="h-5 w-5 text-teal-600" />
+                <Database className="h-5 w-5 text-accent" />
               )}
               {driveMode === 'cloud' ? "agency-assets/ (Firebase)" : "browser-local-assets/ (100% Free Drive)"}
             </CardTitle>
             <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500 mt-1">
-              <span className="cursor-pointer hover:text-indigo-600" onClick={() => setCurrentFolder("")}>Root Drive</span>
+              <span className="cursor-pointer hover:text-primary" onClick={() => setCurrentFolder("")}>Root Drive</span>
               {currentFolder && (
                 <>
                   <span>/</span>
@@ -370,7 +362,7 @@ export default function CloudDrive() {
               )}
             </div>
           </div>
-          <Badge variant="secondary" className={driveMode === 'local' ? "bg-teal-50 text-teal-700 border border-teal-100" : "bg-indigo-50 text-indigo-700 border border-indigo-100"}>
+          <Badge variant="secondary" className={driveMode === 'local' ? "bg-accent/10 text-accent border border-accent/20" : "bg-primary/10 text-primary border border-primary/20"}>
             {driveMode === 'local' ? "Unlimited Free Browser Space" : "Firebase Storage"}
           </Badge>
         </CardHeader>
@@ -396,23 +388,19 @@ export default function CloudDrive() {
                         }
                         setCurrentFolder(folder.id);
                       }}
-                      className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between h-32 hover:shadow-md ${
-                        isRestricted 
-                          ? "bg-slate-50/50 border-slate-200 opacity-60 hover:border-red-300"
-                          : "bg-white border-slate-200 hover:border-indigo-400"
-                      }`}
+                      className={`p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between h-32 hover:shadow-md ${ isRestricted ? "bg-slate-50/50 border-slate-200 opacity-60 hover:border-red-300" : "bg-white border-slate-200 hover:border-primary/50" }`}
                     >
                       <div className="flex justify-between items-start">
                         <span className="text-2xl">{folder.icon}</span>
                         {isRestricted && (
-                          <Badge variant="outline" className="text-[9px] font-bold border-red-200 text-red-600 bg-red-50 py-0 uppercase">Restricted</Badge>
+                          <Badge variant="outline" className="text-xs font-bold border-red-200 text-red-600 bg-red-50 py-0 uppercase">Restricted</Badge>
                         )}
                       </div>
                       <div>
                         <h4 className="font-bold text-sm text-slate-900 flex items-center gap-1.5">
                           {folder.name}
                         </h4>
-                        <p className="text-[10px] text-slate-500 mt-1 truncate">{folder.desc}</p>
+                        <p className="text-xs text-slate-500 mt-1 truncate">{folder.desc}</p>
                       </div>
                     </div>
                   );
@@ -424,7 +412,7 @@ export default function CloudDrive() {
 
           {loading ? (
             <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
-              <Loader2 className="h-8 w-8 animate-spin text-indigo-500 mb-4" />
+              <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
               <p>Loading files...</p>
             </div>
           ) : files.length === 0 ? (
@@ -443,7 +431,7 @@ export default function CloudDrive() {
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ delay: i * 0.05 }}
                     key={file.path}
-                    className="group relative bg-white border border-slate-200 rounded-xl p-4 hover:border-indigo-400 hover:shadow-lg transition-all flex flex-col items-center text-center"
+                    className="group relative bg-white border border-slate-200 rounded-xl p-4 hover:border-primary/50 hover:shadow-lg transition-all flex flex-col items-center text-center"
                   >
                     <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <DropdownMenu>

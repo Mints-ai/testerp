@@ -438,14 +438,14 @@ export default function AttendancePage() {
           <p className="text-foreground/40 mt-1">Track your daily working hours, break schedules, and overtime metrics live.</p>
         </div>
         
-        <div className="flex items-center gap-4 bg-white/[0.02] border border-white/[0.06] backdrop-blur-[24px] px-4 py-2 rounded-xl">
-          <CalendarIcon className="w-5 h-5 text-blue-400" />
+        <div className="flex items-center gap-4 border border-border bg-card shadow-sm px-4 py-2 rounded-xl">
+          <CalendarIcon className="w-5 h-5 text-primary" />
           <span className="font-semibold text-foreground/80">{formatDate(currentTime)}</span>
         </div>
       </div>
 
       <Tabs defaultValue="personal" className="w-full flex flex-col min-h-0">
-        <TabsList className="mb-6 bg-white/[0.03] border border-white/[0.08] p-1 rounded-xl w-full sm:w-fit shrink-0 gap-1 text-foreground flex overflow-x-auto scrollbar-hide flex-nowrap max-w-full justify-start">
+        <TabsList className="mb-6 border border-border p-1 rounded-xl w-full sm:w-fit shrink-0 gap-1 text-foreground flex overflow-x-auto scrollbar-hide flex-nowrap max-w-full justify-start">
           <TabsTrigger value="personal" className="px-4 py-2 rounded-lg text-sm font-semibold transition-all shrink-0">
             My Tracker
           </TabsTrigger>
@@ -467,14 +467,14 @@ export default function AttendancePage() {
         <TabsContent value="personal" className="flex-1 min-h-0 focus-visible:outline-none overflow-y-auto">
           {loadingDoc ? (
             <div className="h-full flex flex-col justify-center items-center text-foreground/60 font-medium gap-3">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               <span>Syncing with secure attendance terminal...</span>
             </div>
           ) : (
             <div className="grid lg:grid-cols-3 gap-6 pb-6">
               {/* Main Clock Section */}
               <div className="lg:col-span-2 flex flex-col h-full gap-6 min-w-0">
-                <Card className="flex-1 border-white/[0.08] bg-white/[0.02] shadow-card flex flex-col items-center justify-center relative overflow-hidden backdrop-blur-xl rounded-2xl min-h-[400px]">
+                <Card className="flex-1 border-border shadow-card flex flex-col items-center justify-center relative overflow-hidden rounded-2xl min-h-[400px]">
                   {/* Background animated rings based on status */}
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
                     {status === "in" && (
@@ -482,17 +482,17 @@ export default function AttendancePage() {
                         initial={{ scale: 0.8, opacity: 0 }}
                         animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.1, 0.3] }}
                         transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-                        className="w-[450px] h-[450px] rounded-full border-4 border-blue-500/20"
+                        className="w-[450px] h-[450px] rounded-full border-4 border-primary/20"
                       />
                     )}
                   </div>
 
                   <CardContent className="p-8 flex flex-col items-center z-10 w-full text-center">
                     <div className="mb-8 space-y-2">
-                      <Badge variant="outline" className={cn("text-xs font-bold uppercase tracking-widest border px-4 py-1.5 rounded-xl shadow-glow-blue", 
+                      <Badge variant="outline" className={cn("text-xs font-bold uppercase tracking-widest border px-4 py-1.5 rounded-xl shadow-sm", 
                         status === "in" ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/20" : 
                         status === "break" ? "bg-amber-500/10 text-amber-300 border-amber-500/20" : 
-                        "bg-muted/40 text-foreground/70 border-border"
+                        " text-foreground/70 border-border"
                       )}>
                         {status === "in" ? "Currently Clocked In" : status === "break" ? "On Lunch Break" : "Offline / Clocked Out"}
                       </Badge>
@@ -505,8 +505,8 @@ export default function AttendancePage() {
 
                     {/* Elapsed Time */}
                     <div className="flex items-center gap-2 text-foreground/50 font-bold text-xl mb-12">
-                      <Clock className="w-5 h-5 shrink-0 text-blue-400" />
-                      <span className="tabular-nums text-foreground/80">Worked Today: <strong className="text-blue-400 font-mono">{formatElapsed(tickingSeconds)}</strong></span>
+                      <Clock className="w-5 h-5 shrink-0 text-primary" />
+                      <span className="tabular-nums text-foreground/80">Worked Today: <strong className="text-primary font-mono">{formatElapsed(tickingSeconds)}</strong></span>
                     </div>
 
                     {/* Action Buttons */}
@@ -514,7 +514,7 @@ export default function AttendancePage() {
                       {status === "out" ? (
                         <Button 
                           size="lg" 
-                          className="w-full h-16 text-lg bg-blue-600 hover:bg-blue-700 text-foreground shadow-glow-blue transition-all rounded-xl font-bold border-0 cursor-pointer"
+                          className="w-full h-16 text-lg bg-primary hover:bg-blue-700 text-foreground shadow-sm transition-all rounded-xl font-bold border-0 cursor-pointer"
                           onClick={handleClockIn}
                         >
                           <Play className="w-6 h-6 mr-3 fill-white/20 animate-pulse" /> Clock In
@@ -526,7 +526,7 @@ export default function AttendancePage() {
                             className={cn("flex-1 h-16 text-lg transition-all rounded-xl font-bold border cursor-pointer", 
                               status === "break" 
                                 ? "bg-amber-500 hover:bg-amber-600 text-foreground shadow-glow-amber border-transparent" 
-                                : "bg-muted/40 text-amber-300 hover:bg-muted/80 border-border"
+                                : " text-amber-300 hover:bg-muted/80 border-border"
                             )}
                             onClick={status === "break" ? handleResume : handleTakeBreak}
                           >
@@ -548,13 +548,13 @@ export default function AttendancePage() {
                 </Card>
 
                 {/* Recharts Weekly Workload Bar Chart */}
-                <Card className="border-white/[0.08] bg-white/[0.02] shadow-card rounded-2xl p-6 backdrop-blur-xl shrink-0 flex flex-col justify-between">
-                  <CardHeader className="p-0 pb-4 border-b border-white/[0.06] flex flex-row items-center justify-between">
+                <Card className="border-border shadow-card rounded-2xl p-6 shrink-0 flex flex-col justify-between">
+                  <CardHeader className="p-0 pb-4 border-b border-border flex flex-row items-center justify-between">
                     <div>
                       <h3 className="font-bold text-foreground text-base">Weekly Workload</h3>
-                      <p className="text-[10px] text-foreground/40 mt-0.5">Hours logged per day over the past week</p>
+                      <p className="text-xs text-foreground/40 mt-0.5">Hours logged per day over the past week</p>
                     </div>
-                    <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-300 border-blue-500/20 font-bold px-3 py-1 rounded-full shadow-none">
+                    <Badge variant="outline" className="text-xs bg-primary/10 text-primary/80 border-primary/20 font-bold px-3 py-1 rounded-full shadow-none">
                       7 Days Activity
                     </Badge>
                   </CardHeader>
@@ -582,9 +582,9 @@ export default function AttendancePage() {
                               if (active && payload && payload.length) {
                                 const data = payload[0].payload;
                                 return (
-                                  <div className="bg-[#0b1329]/95 border border-border rounded-xl p-3 shadow-xl backdrop-blur-md">
-                                    <p className="text-[9px] text-foreground/40 font-bold uppercase tracking-wider">{new Date(data.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
-                                    <p className="text-xs font-black text-blue-400 mt-1">{data.hours} hours logged</p>
+                                  <div className="bg-[#0b1329]/95 border border-border rounded-xl p-3 shadow-xl">
+                                    <p className="text-xs text-foreground/40 font-bold uppercase tracking-wider">{new Date(data.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                                    <p className="text-xs font-black text-primary mt-1">{data.hours} hours logged</p>
                                   </div>
                                 );
                               }
@@ -622,31 +622,31 @@ export default function AttendancePage() {
               {/* Right Rail - Logs & Summary */}
               <div className="space-y-6 flex flex-col h-auto lg:h-full justify-start lg:justify-between">
                 {/* User Profile Summary */}
-                <Card className="border-white/[0.08] bg-white/[0.02] shadow-card rounded-2xl overflow-hidden backdrop-blur-xl shrink-0">
+                <Card className="border-border shadow-card rounded-2xl overflow-hidden shrink-0">
                   <CardContent className="p-6">
                     <div className="flex items-center gap-4 mb-6">
-                      <Avatar className="h-16 w-16 border border-border ring-2 ring-blue-500/20 bg-blue-950">
+                      <Avatar className="h-16 w-16 border border-border ring-2 ring-primary/20 bg-blue-950">
                         <AvatarImage src={user?.photoURL || undefined} />
-                        <AvatarFallback className="bg-blue-800 text-blue-200 text-xl font-bold">
+                        <AvatarFallback className="bg-primary/20 text-primary/70 text-xl font-bold">
                           {user?.displayName?.substring(0, 2).toUpperCase() || "JD"}
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
                         <h3 className="font-bold text-xl text-foreground truncate">{user?.displayName || "Mints Team Member"}</h3>
-                        <p className="text-blue-400 font-bold uppercase tracking-wider text-xs mt-0.5 truncate">
-                          {role?.replace("_", " ") || "EMPLOYEE"} {user?.role !== role && <span className="text-[10px] text-amber-400 font-bold ml-1 animate-pulse">(Simulated)</span>}
+                        <p className="text-primary font-bold uppercase tracking-wider text-xs mt-0.5 truncate">
+                          {role?.replace("_", " ") || "EMPLOYEE"} {user?.role !== role && <span className="text-xs text-amber-400 font-bold ml-1 animate-pulse">(Simulated)</span>}
                         </p>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 text-center">
-                      <div className="bg-muted/40 rounded-xl p-3 border border-white/[0.06]">
-                        <p className="text-[10px] text-foreground/40 uppercase tracking-wider font-bold mb-1">Shift Target</p>
+                      <div className="rounded-xl p-3 border border-border">
+                        <p className="text-xs text-foreground/40 uppercase tracking-wider font-bold mb-1">Shift Target</p>
                         <p className="text-lg font-black text-foreground/90 tabular-nums">8h 00m</p>
                       </div>
-                      <div className="bg-muted/40 rounded-xl p-3 border border-white/[0.06]">
-                        <p className="text-[10px] text-foreground/40 uppercase tracking-wider font-bold mb-1">Shift Total</p>
-                        <p className="text-lg font-black text-emerald-400 tabular-nums">
+                      <div className="rounded-xl p-3 border border-border">
+                        <p className="text-xs text-foreground/40 uppercase tracking-wider font-bold mb-1">Shift Total</p>
+                        <p className="text-lg font-black text-accent tabular-nums">
                           {formatTickingHours(tickingSeconds)}
                         </p>
                       </div>
@@ -661,9 +661,9 @@ export default function AttendancePage() {
                 </Card>
 
                 {/* Activity Log */}
-                <Card className="border-white/[0.08] bg-white/[0.02] shadow-card rounded-2xl overflow-hidden backdrop-blur-xl min-h-[300px]">
+                <Card className="border-border shadow-card rounded-2xl overflow-hidden min-h-[300px]">
                   <div>
-                    <CardHeader className="pb-4 border-b border-white/[0.06] flex flex-row items-center justify-between">
+                    <CardHeader className="pb-4 border-b border-border flex flex-row items-center justify-between">
                       <h3 className="font-bold text-foreground text-lg">Today's Log</h3>
                       
                       {/* Request Correction Dialog Form */}
@@ -672,15 +672,15 @@ export default function AttendancePage() {
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            className="h-8 px-2.5 bg-muted/40 border border-border hover:bg-muted/80 text-foreground/70 hover:text-foreground rounded-lg text-xs font-bold flex items-center justify-center gap-1 cursor-pointer"
+                            className="h-8 px-2.5 border border-border hover:bg-muted/80 text-foreground/70 hover:text-foreground rounded-lg text-xs font-bold flex items-center justify-center gap-1 cursor-pointer"
                           >
                             Request Correction
                           </Button>
                         }/>
-                        <DialogContent className="max-w-md bg-[#0a1628] border border-white/[0.08] text-foreground backdrop-blur-xl rounded-2xl shadow-2xl">
+                        <DialogContent className="max-w-md bg-card border border-border text-foreground rounded-2xl shadow-2xl">
                           <DialogHeader>
                             <DialogTitle className="text-xl font-bold flex items-center gap-2 text-foreground">
-                              <Send className="w-5 h-5 text-blue-400" />
+                              <Send className="w-5 h-5 text-primary" />
                               Time Correction Request
                             </DialogTitle>
                             <DialogDescription className="text-foreground/40 text-xs mt-1">
@@ -696,23 +696,23 @@ export default function AttendancePage() {
 
                           <form onSubmit={handleSubCorrection} className="space-y-4 mt-4">
                             <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest pl-1">Target Date</label>
+                              <label className="text-xs font-bold text-foreground/40 uppercase tracking-widest pl-1">Target Date</label>
                               <Input
                                 type="date"
                                 required
                                 value={corrDate}
                                 onChange={(e) => setCorrDate(e.target.value)}
                                 max={new Date().toISOString().split('T')[0]}
-                                className="glass-input h-10 text-xs border-border text-foreground focus:border-blue-500/60 focus:ring-0 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+                                className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-10 text-xs border-border text-foreground focus:border-primary/60 focus:ring-0 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
                               />
                             </div>
 
                             <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest pl-1">Adjustment Scope</label>
+                              <label className="text-xs font-bold text-foreground/40 uppercase tracking-widest pl-1">Adjustment Scope</label>
                               <select
                                 value={corrType}
                                 onChange={(e) => setCorrType(e.target.value as any)}
-                                className="w-full h-10 border border-border rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#0c1322] text-foreground cursor-pointer"
+                                className="w-full h-10 border border-border rounded-xl px-3 text-xs focus:border-primary/60 focus:ring-0 bg-card text-foreground cursor-pointer"
                               >
                                 <option value="both">Correct Entire Shift (In & Out)</option>
                                 <option value="in">Correct Clock-In Only</option>
@@ -723,39 +723,39 @@ export default function AttendancePage() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               {corrType !== "out" && (
                                 <div className="space-y-1.5">
-                                  <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest pl-1">Proposed Clock-In</label>
+                                  <label className="text-xs font-bold text-foreground/40 uppercase tracking-widest pl-1">Proposed Clock-In</label>
                                   <Input
                                     type="time"
                                     required
                                     value={corrIn}
                                     onChange={(e) => setCorrIn(e.target.value)}
-                                    className="glass-input h-10 text-xs border-border text-foreground focus:border-blue-500/60 focus:ring-0 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+                                    className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-10 text-xs border-border text-foreground focus:border-primary/60 focus:ring-0 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
                                   />
                                 </div>
                               )}
                               {corrType !== "in" && (
                                 <div className="space-y-1.5">
-                                  <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest pl-1">Proposed Clock-Out</label>
+                                  <label className="text-xs font-bold text-foreground/40 uppercase tracking-widest pl-1">Proposed Clock-Out</label>
                                   <Input
                                     type="time"
                                     required
                                     value={corrOut}
                                     onChange={(e) => setCorrOut(e.target.value)}
-                                    className="glass-input h-10 text-xs border-border text-foreground focus:border-blue-500/60 focus:ring-0 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+                                    className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-10 text-xs border-border text-foreground focus:border-primary/60 focus:ring-0 [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
                                   />
                                 </div>
                               )}
                             </div>
 
                             <div className="space-y-1.5">
-                              <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest pl-1">Explanation Reason</label>
+                              <label className="text-xs font-bold text-foreground/40 uppercase tracking-widest pl-1">Explanation Reason</label>
                               <textarea
                                 required
                                 rows={3}
                                 placeholder="State clearly why you need this manual adjustment (e.g. Forgot to clock out at the end of the shift)..."
                                 value={corrReason}
                                 onChange={(e) => setCorrReason(e.target.value)}
-                                className="w-full bg-[#0c1322] border border-border rounded-xl p-3 text-xs focus:border-blue-500/60 focus:ring-0 text-foreground placeholder:text-foreground/20 resize-none"
+                                className="w-full bg-card border border-border rounded-xl p-3 text-xs focus:border-primary/60 focus:ring-0 text-foreground placeholder:text-foreground/20 resize-none"
                               />
                             </div>
 
@@ -780,10 +780,10 @@ export default function AttendancePage() {
                       ) : (
                         <div className="divide-y divide-white/[0.04] max-h-[320px] overflow-y-auto">
                           {logs.map((log, idx) => (
-                            <div key={idx} className="p-4 flex gap-4 hover:bg-white/[0.02] transition-colors">
+                            <div key={idx} className="p-4 flex gap-4 hover: transition-colors">
                               <div className="shrink-0 pt-1">
                                 {log.type === "in" ? (
-                                  <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                                  <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-accent flex items-center justify-center">
                                     <Play className="w-4 h-4" />
                                   </div>
                                 ) : log.type === "break" ? (
@@ -799,25 +799,25 @@ export default function AttendancePage() {
                               <div className="flex-1 flex justify-between items-center">
                                 <div>
                                   <p className="font-bold text-foreground/90">{log.label}</p>
-                                  <p className="text-[10px] text-foreground/30 font-bold uppercase tracking-wider">Verified session</p>
+                                  <p className="text-xs text-foreground/30 font-bold uppercase tracking-wider">Verified session</p>
                                 </div>
-                                <span className="font-bold text-blue-400 text-sm tabular-nums">{log.time}</span>
+                                <span className="font-bold text-primary text-sm tabular-nums">{log.time}</span>
                               </div>
                             </div>
                           ))}
                           
                           {status === "in" && (
-                            <div className="p-4 flex gap-4 bg-white/[0.01]">
+                            <div className="p-4 flex gap-4">
                               <div className="shrink-0 pt-1">
-                                <div className="w-8 h-8 rounded-full border border-blue-500/30 border-dashed flex items-center justify-center animate-spin">
-                                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
+                                <div className="w-8 h-8 rounded-full border border-primary/30 border-dashed flex items-center justify-center animate-spin">
+                                  <div className="w-1.5 h-1.5 bg-primary rounded-full" />
                                 </div>
                               </div>
                               <div className="flex-1 flex justify-between items-center opacity-70">
                                 <div>
                                   <p className="font-bold text-foreground italic">Working shift active...</p>
                                 </div>
-                                <span className="font-bold text-blue-400 text-sm tabular-nums">{currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+                                <span className="font-bold text-primary text-sm tabular-nums">{currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
                               </div>
                             </div>
                           )}
@@ -829,25 +829,25 @@ export default function AttendancePage() {
 
                 {/* Standard Employee's Personal Correction Requests List */}
                 {myCorrections.length > 0 && (
-                  <Card className="border-white/[0.08] bg-white/[0.02] shadow-card rounded-2xl overflow-hidden backdrop-blur-xl shrink-0">
-                    <CardHeader className="pb-3 border-b border-white/[0.06] flex flex-row items-center gap-1.5">
-                      <History className="w-4 h-4 text-blue-400" />
+                  <Card className="border-border shadow-card rounded-2xl overflow-hidden shrink-0">
+                    <CardHeader className="pb-3 border-b border-border flex flex-row items-center gap-1.5">
+                      <History className="w-4 h-4 text-primary" />
                       <h3 className="font-bold text-foreground text-sm">My Correction Requests</h3>
                     </CardHeader>
                     <CardContent className="p-3 max-h-[220px] overflow-y-auto space-y-2">
                       {myCorrections.map(req => (
-                        <div key={req.id} className="bg-white/[0.01] border border-white/[0.04] p-3 rounded-xl flex items-center justify-between hover:bg-white/[0.02] transition-colors">
+                        <div key={req.id} className="border border-border p-3 rounded-xl flex items-center justify-between hover: transition-colors">
                           <div className="space-y-1">
                             <p className="text-xs font-bold text-foreground">{formattedDateLabel(req.date)}</p>
-                            <p className="text-[10px] text-foreground/50 leading-relaxed">
+                            <p className="text-xs text-foreground/50 leading-relaxed">
                               {req.requestType === "in" ? `In: ${formatTimeString(req.proposedClockIn)}` :
                                req.requestType === "out" ? `Out: ${formatTimeString(req.proposedClockOut)}` :
                                `In: ${formatTimeString(req.proposedClockIn)} | Out: ${formatTimeString(req.proposedClockOut)}`}
                             </p>
-                            <p className="text-[9px] text-foreground/30 italic truncate max-w-[150px]">"{req.reason}"</p>
+                            <p className="text-xs text-foreground/30 italic truncate max-w-[150px]">"{req.reason}"</p>
                           </div>
-                          <Badge variant="outline" className={cn("text-[9px] uppercase tracking-wider font-bold shadow-none",
-                            req.status === "approved" ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
+                          <Badge variant="outline" className={cn("text-xs uppercase tracking-wider font-bold shadow-none",
+                            req.status === "approved" ? "bg-emerald-500/10 text-accent border-emerald-500/20" :
                             req.status === "rejected" ? "bg-rose-500/10 text-rose-400 border-rose-500/20" :
                             "bg-amber-500/10 text-amber-400 border-amber-500/20"
                           )}>

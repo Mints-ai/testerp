@@ -9,6 +9,7 @@ import { canAccess } from "@/lib/permissions";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ShieldAlert, Search, FileText, CreditCard, UserX, RefreshCw,
@@ -75,7 +76,7 @@ const SEVERITY_STYLES: Record<SeverityLevel, string> = {
   critical: "bg-red-500/10 text-red-300 border-red-500/25",
   high:     "bg-amber-500/10 text-amber-300 border-amber-500/25",
   medium:   "bg-orange-500/10 text-orange-300 border-orange-500/25",
-  low:      "bg-blue-500/10 text-blue-300 border-blue-500/25",
+  low:      "bg-primary/10 text-primary/80 border-primary/25",
   info:     "bg-emerald-500/10 text-emerald-300 border-emerald-500/25",
 };
 
@@ -110,13 +111,13 @@ function formatTimestamp(ts: any): string {
 
 function SummaryCard({ label, value, icon: Icon, color }: { label: string; value: number; icon: React.ElementType; color: string }) {
   return (
-    <Card className="glass-card border-white/[0.08] bg-white/[0.02] overflow-hidden">
+    <Card className="bg-card border border-border shadow-sm rounded-lg border-border overflow-hidden">
       <CardContent className="p-5 flex items-center gap-4">
         <div className={cn("p-3 rounded-xl border", color)}>
           <Icon className="h-5 w-5" />
         </div>
         <div>
-          <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">{label}</p>
+          <p className="text-xs font-bold text-foreground/40 uppercase tracking-wider">{label}</p>
           <h3 className="text-2xl font-black text-foreground font-mono">{value}</h3>
         </div>
       </CardContent>
@@ -506,11 +507,11 @@ export default function SecurityAuditDashboard() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
+            <span className="flex items-center gap-1.5 text-xs font-bold text-accent uppercase tracking-wider">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
               Live
             </span>
-            <Badge variant="outline" className="text-[10px] font-bold border-border text-foreground/40">
+            <Badge variant="outline" className="text-xs font-bold border-border text-foreground/40">
               Last 200 events
             </Badge>
           </div>
@@ -518,14 +519,14 @@ export default function SecurityAuditDashboard() {
 
         {/* Summary Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <SummaryCard label="Total Events"     value={total}         icon={Activity}     color="bg-blue-500/10 text-blue-400 border-blue-500/20" />
+          <SummaryCard label="Total Events"     value={total}         icon={Activity}     color="bg-primary/10 text-primary border-primary/20" />
           <SummaryCard label="Critical Alerts"  value={criticalCount} icon={ShieldAlert}  color="bg-red-500/10 text-red-400 border-red-500/20" />
           <SummaryCard label="High Severity"    value={highCount}     icon={AlertTriangle} color="bg-amber-500/10 text-amber-400 border-amber-500/20" />
           <SummaryCard label="Filtered Results" value={filtered.length} icon={Filter}     color="bg-violet-500/10 text-violet-400 border-violet-500/20" />
         </div>
 
         {/* Tab Sub-Selectors */}
-        <div className="flex border-b border-white/[0.08] gap-4 pb-px overflow-x-auto">
+        <div className="flex border-b border-border gap-4 pb-px overflow-x-auto">
           {([
             { key: "audit", label: "Audit Stream", icon: null },
             { key: "telemetry", label: "Telemetry", icon: Activity },
@@ -538,15 +539,14 @@ export default function SecurityAuditDashboard() {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key as any)}
-              className={cn(
-                "pb-3 text-xs font-bold transition-all relative cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0",
+              className={cn("pb-3 text-xs font-bold transition-all relative cursor-pointer flex items-center gap-1.5 whitespace-nowrap shrink-0",
                 activeTab === tab.key ? "text-foreground" : "text-foreground/40 hover:text-foreground/60"
               )}
             >
               {tab.icon && <tab.icon className="h-3.5 w-3.5 text-red-400" />}
               {tab.label}
               {tab.key === "reactivations" && reactivations.filter(r => r.status === "pending").length > 0 && (
-                <span className="ml-1 bg-rose-500 text-foreground text-[8px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                <span className="ml-1 bg-rose-500 text-foreground text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center">
                   {reactivations.filter(r => r.status === "pending").length}
                 </span>
               )}
@@ -575,7 +575,7 @@ export default function SecurityAuditDashboard() {
                     placeholder="Search by action, actor, or details..."
                     value={search}
                     onChange={e => setSearch(e.target.value)}
-                    className="pl-9 glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-red-500/60 focus:ring-0"
+                    className="pl-9 bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-9 text-xs border-border placeholder:text-foreground/20 focus:border-red-500/60 focus:ring-0"
                   />
                 </div>
                 <div className="flex gap-2 flex-wrap">
@@ -583,8 +583,7 @@ export default function SecurityAuditDashboard() {
                     <button
                       key={sev}
                       onClick={() => setFilterSeverity(sev)}
-                      className={cn(
-                        "h-9 px-4 rounded-xl text-xs font-bold border transition-all cursor-pointer",
+                      className={cn("h-9 px-4 rounded-xl text-xs font-bold border transition-all cursor-pointer",
                         filterSeverity === sev
                           ? sev === "all"
                             ? "bg-muted/80 border-border/80 text-foreground"
@@ -599,8 +598,8 @@ export default function SecurityAuditDashboard() {
               </div>
 
               {/* Events Table */}
-              <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
-                <CardHeader className="border-b border-white/[0.04] p-4 bg-white/[0.01]">
+              <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border">
+                <CardHeader className="border-b border-border p-4">
                   <CardTitle className="text-xs uppercase font-bold text-foreground/50 tracking-wider flex items-center gap-2">
                     <Clock className="h-3.5 w-3.5" />
                     Audit Event Stream
@@ -619,7 +618,7 @@ export default function SecurityAuditDashboard() {
                     <div className="p-16 text-center flex flex-col items-center gap-3">
                       <ShieldAlert className="h-10 w-10 text-foreground/10" />
                       <p className="text-xs font-bold text-foreground/30 uppercase tracking-wider">No events match your filters</p>
-                      <p className="text-[11px] text-foreground/20">Try adjusting your search or severity filter.</p>
+                      <p className="text-xs text-foreground/20">Try adjusting your search or severity filter.</p>
                     </div>
                   ) : (
                     <div className="divide-y divide-white/[0.04]">
@@ -632,7 +631,7 @@ export default function SecurityAuditDashboard() {
                             initial={{ opacity: 0, y: 4 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: Math.min(i * 0.02, 0.3) }}
-                            className="flex items-start gap-4 px-5 py-3.5 hover:bg-white/[0.02] transition-colors group"
+                            className="flex items-start gap-4 px-5 py-3.5 hover: transition-colors group"
                           >
                             {/* Severity dot */}
                             <div className="pt-1 shrink-0">
@@ -650,22 +649,22 @@ export default function SecurityAuditDashboard() {
                                 <span className="text-xs font-bold text-foreground">{meta.label}</span>
                                 <Badge
                                   variant="outline"
-                                  className={cn("text-[9px] font-bold tracking-wider uppercase shadow-none w-fit", SEVERITY_STYLES[meta.severity])}
+                                  className={cn("text-xs font-bold tracking-wider uppercase shadow-none w-fit", SEVERITY_STYLES[meta.severity])}
                                 >
                                   {meta.severity}
                                 </Badge>
                                 {ev.targetCollection && (
-                                  <span className="text-[10px] text-foreground/30 font-mono">
+                                  <span className="text-xs text-foreground/30 font-mono">
                                     → {ev.targetCollection}{ev.targetId ? `/${ev.targetId.slice(0, 8)}…` : ""}
                                   </span>
                                 )}
                               </div>
                               {ev.details && (
-                                <p className="text-[11px] text-foreground/50 mt-0.5 leading-relaxed line-clamp-2 group-hover:line-clamp-none transition-all">
+                                <p className="text-xs text-foreground/50 mt-0.5 leading-relaxed line-clamp-2 group-hover:line-clamp-none transition-all">
                                   {ev.details}
                                 </p>
                               )}
-                              <div className="flex items-center gap-3 mt-1.5 text-[10px] text-foreground/25 font-mono">
+                              <div className="flex items-center gap-3 mt-1.5 text-xs text-foreground/25 font-mono">
                                 {ev.actorId && (
                                   <span className="flex items-center gap-1">
                                     <UserX className="h-3 w-3" />
@@ -680,7 +679,7 @@ export default function SecurityAuditDashboard() {
                             </div>
 
                             {/* Raw action code */}
-                            <span className="text-[9px] font-mono text-foreground/15 hidden lg:block shrink-0 pt-1">
+                            <span className="text-xs font-mono text-foreground/15 hidden lg:block shrink-0 pt-1">
                               {ev.action}
                             </span>
                           </motion.div>
@@ -703,14 +702,14 @@ export default function SecurityAuditDashboard() {
             >
               {/* Real-time Health Indicators */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <Card className="glass-card border-white/[0.08] bg-white/[0.02]">
+                <Card className="bg-card border border-border shadow-sm rounded-lg border-border">
                   <CardContent className="p-5 flex items-center justify-between">
                     <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Average API Latency</p>
+                      <p className="text-xs font-bold text-foreground/40 uppercase tracking-wider">Average API Latency</p>
                       <h4 className="text-2xl font-black text-foreground font-mono flex items-baseline gap-1">
                         248<span className="text-xs text-red-400 font-semibold">ms</span>
                       </h4>
-                      <p className="text-[9px] text-emerald-400 flex items-center gap-1">
+                      <p className="text-xs text-accent flex items-center gap-1">
                         <TrendingUp className="h-3 w-3" /> Optimum Operating State
                       </p>
                     </div>
@@ -720,33 +719,33 @@ export default function SecurityAuditDashboard() {
                   </CardContent>
                 </Card>
 
-                <Card className="glass-card border-white/[0.08] bg-white/[0.02]">
+                <Card className="bg-card border border-border shadow-sm rounded-lg border-border">
                   <CardContent className="p-5 flex items-center justify-between">
                     <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">IndexedDB Cache State</p>
+                      <p className="text-xs font-bold text-foreground/40 uppercase tracking-wider">IndexedDB Cache State</p>
                       <h4 className="text-2xl font-black text-foreground font-mono flex items-baseline gap-1">
-                        Synced<span className="text-xs text-blue-400 font-semibold font-sans">/Offline OK</span>
+                        Synced<span className="text-xs text-primary font-semibold font-sans">/Offline OK</span>
                       </h4>
-                      <p className="text-[9px] text-blue-300 flex items-center gap-1">
+                      <p className="text-xs text-primary/80 flex items-center gap-1">
                         <Database className="h-3 w-3" /> Multi-Tab Session Active
                       </p>
                     </div>
-                    <div className="p-3 rounded-xl border border-blue-500/10 bg-blue-500/5 text-blue-400 shrink-0">
+                    <div className="p-3 rounded-xl border border-primary/10 bg-primary/5 text-primary shrink-0">
                       <Database className="h-5 w-5" />
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="glass-card border-white/[0.08] bg-white/[0.02]">
+                <Card className="bg-card border border-border shadow-sm rounded-lg border-border">
                   <CardContent className="p-5 flex items-center justify-between">
                     <div className="space-y-1">
-                      <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Failed login alerts</p>
+                      <p className="text-xs font-bold text-foreground/40 uppercase tracking-wider">Failed login alerts</p>
                       <h4 className="text-2xl font-black text-foreground font-mono">
                         {failedLogins.length} <span className="text-xs font-semibold text-foreground/45 font-sans">Blocked</span>
                       </h4>
-                      <p className="text-[9px] text-foreground/40">Filtered in real-time</p>
+                      <p className="text-xs text-foreground/40">Filtered in real-time</p>
                     </div>
-                    <div className="p-3 rounded-xl border border-border bg-muted/40 text-foreground/60 shrink-0">
+                    <div className="p-3 rounded-xl border border-border text-foreground/60 shrink-0">
                       <ShieldAlert className="h-5 w-5" />
                     </div>
                   </CardContent>
@@ -756,13 +755,13 @@ export default function SecurityAuditDashboard() {
               {/* Telemetry Visual Charts */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* 1. Latency Metrics */}
-                <Card className="glass-card border border-white/[0.08] bg-white/[0.02] overflow-hidden">
-                  <CardHeader className="border-b border-white/[0.04] p-4 bg-white/[0.01]">
+                <Card className="bg-card border border-border shadow-sm rounded-lg border border-border overflow-hidden">
+                  <CardHeader className="border-b border-border p-4">
                     <CardTitle className="text-xs uppercase font-bold text-foreground/50 tracking-wider flex items-center gap-2">
                       <Cpu className="h-3.5 w-3.5 text-red-400" />
                       API Response Latencies
                     </CardTitle>
-                    <CardDescription className="text-[10px] text-foreground/30">
+                    <CardDescription className="text-xs text-foreground/30">
                       Pulsing response time tracking for OCR, Auth and Webhook APIs.
                     </CardDescription>
                   </CardHeader>
@@ -801,13 +800,13 @@ export default function SecurityAuditDashboard() {
                 </Card>
 
                 {/* 2. Firestore Reads and Writes */}
-                <Card className="glass-card border border-white/[0.08] bg-white/[0.02] overflow-hidden">
-                  <CardHeader className="border-b border-white/[0.04] p-4 bg-white/[0.01]">
+                <Card className="bg-card border border-border shadow-sm rounded-lg border border-border overflow-hidden">
+                  <CardHeader className="border-b border-border p-4">
                     <CardTitle className="text-xs uppercase font-bold text-foreground/50 tracking-wider flex items-center gap-2">
-                      <Database className="h-3.5 w-3.5 text-blue-400" />
+                      <Database className="h-3.5 w-3.5 text-primary" />
                       Firestore Load Distribution
                     </CardTitle>
-                    <CardDescription className="text-[10px] text-foreground/30">
+                    <CardDescription className="text-xs text-foreground/30">
                       Query read and write operational overheads distributed per active CRM cluster.
                     </CardDescription>
                   </CardHeader>
@@ -832,8 +831,8 @@ export default function SecurityAuditDashboard() {
               </div>
 
               {/* Failed Logins Visual Alert Monitor */}
-              <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
-                <CardHeader className="border-b border-white/[0.04] p-4 bg-white/[0.01]">
+              <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border">
+                <CardHeader className="border-b border-border p-4">
                   <CardTitle className="text-xs uppercase font-bold text-foreground/50 tracking-wider flex items-center gap-2">
                     <ShieldAlert className="h-3.5 w-3.5 text-red-400" />
                     Failed Sign-in Alerts board
@@ -842,24 +841,24 @@ export default function SecurityAuditDashboard() {
                 <CardContent className="p-0">
                   {failedLogins.length === 0 ? (
                     <div className="p-8 text-center flex flex-col items-center justify-center gap-2">
-                      <CheckCircle className="h-8 w-8 text-emerald-400/50" />
+                      <CheckCircle className="h-8 w-8 text-accent/50" />
                       <p className="text-xs font-bold text-foreground/40 uppercase tracking-wider">No authentication breaches recorded</p>
-                      <p className="text-[10px] text-foreground/20">All sign-ins were authorized successfully in the last 200 sessions.</p>
+                      <p className="text-xs text-foreground/20">All sign-ins were authorized successfully in the last 200 sessions.</p>
                     </div>
                   ) : (
                     <div className="divide-y divide-white/[0.04]">
                       {failedLogins.map((ev, i) => (
-                        <div key={ev.id} className="flex items-start gap-4 px-5 py-3.5 hover:bg-white/[0.02] transition-colors">
+                        <div key={ev.id} className="flex items-start gap-4 px-5 py-3.5 hover: transition-colors">
                           <div className="p-2 rounded-lg border border-red-500/20 bg-red-500/10 text-red-400 shrink-0">
                             <UserX className="h-3.5 w-3.5" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
                               <span className="text-xs font-bold text-foreground">Blocked Auth Breach</span>
-                              <Badge className="bg-red-500/10 text-red-300 border-red-500/20 text-[9px] shadow-none">CRITICAL</Badge>
+                              <Badge className="bg-red-500/10 text-red-300 border-red-500/20 text-xs shadow-none">CRITICAL</Badge>
                             </div>
-                            <p className="text-[11px] text-foreground/50 mt-0.5 leading-relaxed">{ev.details || "Failed credential login attempt."}</p>
-                            <p className="text-[10px] text-foreground/25 mt-1 font-mono">{formatTimestamp(ev.createdAt)}</p>
+                            <p className="text-xs text-foreground/50 mt-0.5 leading-relaxed">{ev.details || "Failed credential login attempt."}</p>
+                            <p className="text-xs text-foreground/25 mt-1 font-mono">{formatTimestamp(ev.createdAt)}</p>
                           </div>
                         </div>
                       ))}
@@ -879,9 +878,9 @@ export default function SecurityAuditDashboard() {
               className="space-y-6"
             >
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <SummaryCard label="Total Sessions" value={loginEvents.length} icon={LogIn} color="bg-blue-500/10 text-blue-400 border-blue-500/20" />
-                <SummaryCard label="Unique Users" value={new Set(loginEvents.map((e: any) => e.uid)).size} icon={User} color="bg-indigo-500/10 text-indigo-400 border-indigo-500/20" />
-                <SummaryCard label="Desktop Sessions" value={loginEvents.filter((e: any) => e.device === 'Desktop').length} icon={Monitor} color="bg-emerald-500/10 text-emerald-400 border-emerald-500/20" />
+                <SummaryCard label="Total Sessions" value={loginEvents.length} icon={LogIn} color="bg-primary/10 text-primary border-primary/20" />
+                <SummaryCard label="Unique Users" value={new Set(loginEvents.map((e: any) => e.uid)).size} icon={User} color="bg-primary/10 text-accent border-primary/20" />
+                <SummaryCard label="Desktop Sessions" value={loginEvents.filter((e: any) => e.device === 'Desktop').length} icon={Monitor} color="bg-emerald-500/10 text-accent border-emerald-500/20" />
                 <SummaryCard label="Mobile Sessions" value={loginEvents.filter((e: any) => e.device === 'Mobile').length} icon={Smartphone} color="bg-amber-500/10 text-amber-400 border-amber-500/20" />
               </div>
               <div className="relative">
@@ -890,13 +889,13 @@ export default function SecurityAuditDashboard() {
                   placeholder="Search by name, email, IP or browser..."
                   value={loginSearch}
                   onChange={e => setLoginSearch(e.target.value)}
-                  className="pl-9 glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0"
+                  className="pl-9 bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-9 text-xs border-border placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0"
                 />
               </div>
-              <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
-                <CardHeader className="border-b border-white/[0.04] p-4 bg-white/[0.01]">
+              <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border">
+                <CardHeader className="border-b border-border p-4">
                   <CardTitle className="text-xs uppercase font-bold text-foreground/50 tracking-wider flex items-center gap-2">
-                    <Globe className="h-3.5 w-3.5 text-blue-400" />
+                    <Globe className="h-3.5 w-3.5 text-primary" />
                     Login Session History
                     <span className="text-foreground/25">({loginEvents.length} sessions recorded)</span>
                   </CardTitle>
@@ -911,7 +910,7 @@ export default function SecurityAuditDashboard() {
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-xs border-collapse">
                         <thead>
-                          <tr className="border-b border-white/[0.06] bg-white/[0.02] text-foreground/40 font-bold uppercase tracking-wider text-[9px]">
+                          <tr className="border-b border-border text-foreground/40 font-bold uppercase tracking-wider text-xs">
                             <th className="p-3">Employee</th>
                             <th className="p-3">IP Address</th>
                             <th className="p-3">Browser / Device</th>
@@ -930,26 +929,26 @@ export default function SecurityAuditDashboard() {
                               (ev.browser || "").toLowerCase().includes(loginSearch.toLowerCase())
                             )
                             .map((ev: any) => (
-                              <tr key={ev.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
+                              <tr key={ev.id} className="border-b border-border hover: transition-colors">
                                 <td className="p-3">
                                   <div className="font-bold text-foreground">{ev.fullName || ev.email}</div>
-                                  <div className="text-[10px] text-foreground/40 font-mono">{ev.email}</div>
+                                  <div className="text-xs text-foreground/40 font-mono">{ev.email}</div>
                                 </td>
-                                <td className="p-3 font-mono text-[11px] text-blue-300">{ev.ip || '—'}</td>
+                                <td className="p-3 font-mono text-xs text-primary/80">{ev.ip || '—'}</td>
                                 <td className="p-3">
                                   <div className="flex items-center gap-1.5">
-                                    {ev.device === 'Mobile' ? <Smartphone className="w-3.5 h-3.5 text-amber-400" /> : <Monitor className="w-3.5 h-3.5 text-blue-400" />}
+                                    {ev.device === 'Mobile' ? <Smartphone className="w-3.5 h-3.5 text-amber-400" /> : <Monitor className="w-3.5 h-3.5 text-primary" />}
                                     <span className="font-semibold">{ev.browser || 'Unknown'}</span>
                                   </div>
-                                  <div className="text-[10px] text-foreground/30 mt-0.5">{ev.device}</div>
+                                  <div className="text-xs text-foreground/30 mt-0.5">{ev.device}</div>
                                 </td>
-                                <td className="p-3 text-foreground/60 text-[11px]">{ev.platform || '—'}</td>
+                                <td className="p-3 text-foreground/60 text-xs">{ev.platform || '—'}</td>
                                 <td className="p-3">
-                                  <Badge className={cn("text-[9px] font-bold uppercase tracking-wider shadow-none border",
+                                  <Badge className={cn("text-xs font-bold uppercase tracking-wider shadow-none border",
                                     ev.status === 'success' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' : 'bg-rose-500/10 text-rose-300 border-rose-500/20'
                                   )}>{ev.status || 'success'}</Badge>
                                 </td>
-                                <td className="p-3 font-mono text-[10px] text-foreground/40">{formatTimestamp(ev.createdAt)}</td>
+                                <td className="p-3 font-mono text-xs text-foreground/40">{formatTimestamp(ev.createdAt)}</td>
                               </tr>
                             ))}
                         </tbody>
@@ -972,8 +971,8 @@ export default function SecurityAuditDashboard() {
               className="space-y-6"
             >
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <SummaryCard label="Total Sessions" value={sessions.length} icon={Monitor} color="bg-blue-500/10 text-blue-400 border-blue-500/20" />
-                <SummaryCard label="Active" value={sessions.filter((s: any) => s.status === "active").length} icon={CheckCircle} color="bg-emerald-500/10 text-emerald-400 border-emerald-500/20" />
+                <SummaryCard label="Total Sessions" value={sessions.length} icon={Monitor} color="bg-primary/10 text-primary border-primary/20" />
+                <SummaryCard label="Active" value={sessions.filter((s: any) => s.status === "active").length} icon={CheckCircle} color="bg-emerald-500/10 text-accent border-emerald-500/20" />
                 <SummaryCard label="Revoked" value={sessions.filter((s: any) => s.status === "revoked").length} icon={Lock} color="bg-rose-500/10 text-rose-400 border-rose-500/20" />
                 <SummaryCard label="Unique Users" value={new Set(sessions.map((s: any) => s.uid)).size} icon={User} color="bg-violet-500/10 text-violet-400 border-violet-500/20" />
               </div>
@@ -984,14 +983,14 @@ export default function SecurityAuditDashboard() {
                   placeholder="Search sessions by name, email, or IP..."
                   value={sessionSearch}
                   onChange={e => setSessionSearch(e.target.value)}
-                  className="pl-9 glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-red-500/60 focus:ring-0"
+                  className="pl-9 bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-9 text-xs border-border placeholder:text-foreground/20 focus:border-red-500/60 focus:ring-0"
                 />
               </div>
 
-              <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
-                <CardHeader className="border-b border-white/[0.04] p-4 bg-white/[0.01]">
+              <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border">
+                <CardHeader className="border-b border-border p-4">
                   <CardTitle className="text-xs uppercase font-bold text-foreground/50 tracking-wider flex items-center gap-2">
-                    <Monitor className="h-3.5 w-3.5 text-blue-400" />
+                    <Monitor className="h-3.5 w-3.5 text-primary" />
                     Active Session Management
                     <span className="text-foreground/25">({sessions.length} sessions tracked)</span>
                   </CardTitle>
@@ -1006,7 +1005,7 @@ export default function SecurityAuditDashboard() {
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-xs border-collapse">
                         <thead>
-                          <tr className="border-b border-white/[0.06] bg-white/[0.02] text-foreground/40 font-bold uppercase tracking-wider text-[9px]">
+                          <tr className="border-b border-border text-foreground/40 font-bold uppercase tracking-wider text-xs">
                             <th className="p-3">Employee</th>
                             <th className="p-3">IP / Browser</th>
                             <th className="p-3">Device</th>
@@ -1024,32 +1023,32 @@ export default function SecurityAuditDashboard() {
                               (s.ip || "").includes(sessionSearch)
                             )
                             .map((s: any) => (
-                              <tr key={s.id} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
+                              <tr key={s.id} className="border-b border-border hover: transition-colors">
                                 <td className="p-3">
                                   <div className="font-bold text-foreground">{s.fullName || "Unknown"}</div>
-                                  <div className="text-[10px] text-foreground/40 font-mono">{s.email || "—"}</div>
+                                  <div className="text-xs text-foreground/40 font-mono">{s.email || "—"}</div>
                                 </td>
                                 <td className="p-3">
-                                  <div className="font-mono text-[11px] text-blue-300">{s.ip || "—"}</div>
-                                  <div className="text-[10px] text-foreground/30 mt-0.5">{s.browser || s.userAgent?.slice(0, 30) || "—"}</div>
+                                  <div className="font-mono text-xs text-primary/80">{s.ip || "—"}</div>
+                                  <div className="text-xs text-foreground/30 mt-0.5">{s.browser || s.userAgent?.slice(0, 30) || "—"}</div>
                                 </td>
                                 <td className="p-3">
                                   <div className="flex items-center gap-1.5">
-                                    {s.device === "Mobile" ? <Smartphone className="w-3.5 h-3.5 text-amber-400" /> : <Monitor className="w-3.5 h-3.5 text-blue-400" />}
-                                    <span className="text-[11px] text-foreground/60">{s.device || "Desktop"}</span>
+                                    {s.device === "Mobile" ? <Smartphone className="w-3.5 h-3.5 text-amber-400" /> : <Monitor className="w-3.5 h-3.5 text-primary" />}
+                                    <span className="text-xs text-foreground/60">{s.device || "Desktop"}</span>
                                   </div>
                                 </td>
                                 <td className="p-3">
-                                  <Badge className={cn("text-[9px] font-bold uppercase tracking-wider shadow-none border",
+                                  <Badge className={cn("text-xs font-bold uppercase tracking-wider shadow-none border",
                                     s.status === "active" ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/20" : "bg-rose-500/10 text-rose-300 border-rose-500/20"
                                   )}>{s.status || "active"}</Badge>
                                 </td>
-                                <td className="p-3 font-mono text-[10px] text-foreground/40">{formatTimestamp(s.lastActiveAt)}</td>
+                                <td className="p-3 font-mono text-xs text-foreground/40">{formatTimestamp(s.lastActiveAt)}</td>
                                 <td className="p-3 text-center">
                                   {s.status === "active" && (
                                     <button
                                       onClick={() => handleRevokeSession(s.id)}
-                                      className="px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 text-[9px] font-bold text-rose-400 transition-colors uppercase cursor-pointer"
+                                      className="px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 text-xs font-bold text-rose-400 transition-colors uppercase cursor-pointer"
                                     >
                                       Force Logout
                                     </button>
@@ -1077,13 +1076,13 @@ export default function SecurityAuditDashboard() {
               className="space-y-6"
             >
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <SummaryCard label="Total Requests" value={reactivations.length} icon={RefreshCw} color="bg-blue-500/10 text-blue-400 border-blue-500/20" />
+                <SummaryCard label="Total Requests" value={reactivations.length} icon={RefreshCw} color="bg-primary/10 text-primary border-primary/20" />
                 <SummaryCard label="Pending" value={reactivations.filter((r: any) => r.status === "pending").length} icon={Clock} color="bg-amber-500/10 text-amber-400 border-amber-500/20" />
-                <SummaryCard label="Approved" value={reactivations.filter((r: any) => r.status === "approved").length} icon={CheckCircle} color="bg-emerald-500/10 text-emerald-400 border-emerald-500/20" />
+                <SummaryCard label="Approved" value={reactivations.filter((r: any) => r.status === "approved").length} icon={CheckCircle} color="bg-emerald-500/10 text-accent border-emerald-500/20" />
               </div>
 
-              <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
-                <CardHeader className="border-b border-white/[0.04] p-4 bg-white/[0.01]">
+              <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border">
+                <CardHeader className="border-b border-border p-4">
                   <CardTitle className="text-xs uppercase font-bold text-foreground/50 tracking-wider flex items-center gap-2">
                     <RefreshCw className="h-3.5 w-3.5 text-amber-400" />
                     Account Reactivation Requests
@@ -1098,10 +1097,10 @@ export default function SecurityAuditDashboard() {
                   ) : (
                     <div className="divide-y divide-white/[0.04]">
                       {reactivations.map((req: any) => (
-                        <div key={req.id} className="flex items-start gap-4 px-5 py-4 hover:bg-white/[0.02] transition-colors">
+                        <div key={req.id} className="flex items-start gap-4 px-5 py-4 hover: transition-colors">
                           <div className={cn("p-2.5 rounded-lg border shrink-0",
                             req.status === "pending" ? "bg-amber-500/10 border-amber-500/20 text-amber-400" :
-                            req.status === "approved" ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" :
+                            req.status === "approved" ? "bg-emerald-500/10 border-emerald-500/20 text-accent" :
                             "bg-rose-500/10 border-rose-500/20 text-rose-400"
                           )}>
                             <RefreshCw className="h-4 w-4" />
@@ -1109,29 +1108,29 @@ export default function SecurityAuditDashboard() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-xs font-bold text-foreground">{req.fullName || "Unknown"}</span>
-                              <span className="text-[10px] font-mono text-foreground/30">{req.email}</span>
-                              <Badge className={cn("text-[9px] font-bold uppercase tracking-wider shadow-none border",
+                              <span className="text-xs font-mono text-foreground/30">{req.email}</span>
+                              <Badge className={cn("text-xs font-bold uppercase tracking-wider shadow-none border",
                                 req.status === "pending" ? "bg-amber-500/10 text-amber-300 border-amber-500/20" :
                                 req.status === "approved" ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/20" :
                                 "bg-rose-500/10 text-rose-300 border-rose-500/20"
                               )}>{req.status}</Badge>
                             </div>
-                            <p className="text-[11px] text-foreground/50 mt-1 leading-relaxed">
+                            <p className="text-xs text-foreground/50 mt-1 leading-relaxed">
                               <strong className="text-foreground/60">Reason:</strong> {req.reason || "No reason provided."}
                             </p>
-                            <p className="text-[10px] text-foreground/25 mt-1.5 font-mono">{formatTimestamp(req.createdAt)}</p>
+                            <p className="text-xs text-foreground/25 mt-1.5 font-mono">{formatTimestamp(req.createdAt)}</p>
                           </div>
                           {req.status === "pending" && (
                             <div className="flex gap-2 shrink-0">
                               <button
                                 onClick={() => handleApproveReactivation(req)}
-                                className="px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 text-[10px] font-bold text-emerald-400 transition-colors uppercase cursor-pointer"
+                                className="px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/25 text-xs font-bold text-accent transition-colors uppercase cursor-pointer"
                               >
                                 Approve
                               </button>
                               <button
                                 onClick={() => handleRejectReactivation(req)}
-                                className="px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 text-[10px] font-bold text-rose-400 transition-colors uppercase cursor-pointer"
+                                className="px-3 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 text-xs font-bold text-rose-400 transition-colors uppercase cursor-pointer"
                               >
                                 Reject
                               </button>
@@ -1156,8 +1155,8 @@ export default function SecurityAuditDashboard() {
               transition={{ duration: 0.15 }}
               className="space-y-6"
             >
-              <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
-                <CardHeader className="border-b border-white/[0.04] p-4 bg-white/[0.01] flex flex-row items-center justify-between">
+              <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border">
+                <CardHeader className="border-b border-border p-4 flex flex-row items-center justify-between">
                   <CardTitle className="text-xs uppercase font-bold text-foreground/50 tracking-wider flex items-center gap-2">
                     <ShieldAlert className="h-3.5 w-3.5 text-red-400" />
                     Dynamic RBAC Permission Matrix
@@ -1165,7 +1164,7 @@ export default function SecurityAuditDashboard() {
                   <button
                     onClick={handleSaveMatrix}
                     disabled={isSavingMatrix}
-                    className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-[10px] font-bold text-foreground transition-colors uppercase cursor-pointer shadow-glow-blue disabled:opacity-50"
+                    className="px-4 py-1.5 rounded-lg bg-primary hover:bg-primary text-xs font-bold text-foreground transition-colors uppercase cursor-pointer shadow-sm disabled:opacity-50"
                   >
                     {isSavingMatrix ? "Syncing..." : "Save Matrix"}
                   </button>
@@ -1174,10 +1173,10 @@ export default function SecurityAuditDashboard() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-xs border-collapse">
                       <thead>
-                        <tr className="border-b border-white/[0.06] bg-white/[0.02]">
-                          <th className="p-3 text-[9px] font-bold text-foreground/40 uppercase tracking-wider sticky left-0 bg-[#0a0e0b] z-10 min-w-[200px]">Permission</th>
+                        <tr className="border-b border-border">
+                          <th className="p-3 text-xs font-bold text-foreground/40 uppercase tracking-wider sticky left-0 bg-[#0a0e0b] z-10 min-w-[200px]">Permission</th>
                           {["founder", "system_admin", "c_suite", "manager", "team_lead", "employee", "intern"].map(r => (
-                            <th key={r} className="p-3 text-[9px] font-bold text-foreground/40 uppercase tracking-wider text-center min-w-[90px]">{r.replace("_", " ")}</th>
+                            <th key={r} className="p-3 text-xs font-bold text-foreground/40 uppercase tracking-wider text-center min-w-[90px]">{r.replace("_", " ")}</th>
                           ))}
                         </tr>
                       </thead>
@@ -1190,15 +1189,15 @@ export default function SecurityAuditDashboard() {
                           </tr>
                         ) : (
                           Object.entries(permMatrix).map(([permKey, roles]) => (
-                            <tr key={permKey} className="border-b border-white/[0.04] hover:bg-white/[0.015] transition-colors">
-                              <td className="p-3 text-[10px] font-bold text-foreground/70 font-mono sticky left-0 bg-[#0a0e0b] z-10">{permKey}</td>
+                            <tr key={permKey} className="border-b border-border hover: transition-colors">
+                              <td className="p-3 text-xs font-bold text-foreground/70 font-mono sticky left-0 bg-[#0a0e0b] z-10">{permKey}</td>
                               {["founder", "system_admin", "c_suite", "manager", "team_lead", "employee", "intern"].map(roleKey => (
                                 <td key={roleKey} className="p-3 text-center">
                                   <input
                                     type="checkbox"
                                     checked={(roles as string[])?.includes(roleKey) || false}
                                     onChange={(e) => handleMatrixCellChange(permKey, roleKey, e.target.checked)}
-                                    className="w-4 h-4 rounded border-border bg-transparent text-blue-500 focus:ring-blue-500/30 cursor-pointer accent-blue-500"
+                                    className="w-4 h-4 rounded border-border bg-transparent text-primary focus:ring-primary/30 cursor-pointer accent-blue-500"
                                   />
                                 </td>
                               ))}
@@ -1210,11 +1209,11 @@ export default function SecurityAuditDashboard() {
                   </div>
                 </CardContent>
               </Card>
-              <div className="flex items-start gap-2 text-[10px] text-foreground/25 bg-white/[0.01] border border-white/[0.05] rounded-xl p-4">
+              <div className="flex items-start gap-2 text-xs text-foreground/25 border border-border rounded-xl p-4">
                 <ShieldAlert className="h-3.5 w-3.5 shrink-0 mt-0.5 text-amber-400/60" />
                 <p>
                   <strong className="text-foreground/40">Live Sync.</strong>{" "}
-                  Changes to the permission matrix are synced in real-time across all connected clients via Firestore onSnapshot listeners. The matrix is stored in <code className="text-blue-400/60">settings/permissions</code>.
+                  Changes to the permission matrix are synced in real-time across all connected clients via Firestore onSnapshot listeners. The matrix is stored in <code className="text-primary/60">settings/permissions</code>.
                 </p>
               </div>
             </motion.div>
@@ -1232,8 +1231,8 @@ export default function SecurityAuditDashboard() {
             >
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Create Delegation Form */}
-                <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02] lg:col-span-1">
-                  <CardHeader className="border-b border-white/[0.04] p-4 bg-white/[0.01]">
+                <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border lg:col-span-1">
+                  <CardHeader className="border-b border-border p-4">
                     <CardTitle className="text-xs uppercase font-bold text-foreground/50 tracking-wider flex items-center gap-2">
                       <User className="h-3.5 w-3.5 text-violet-400" />
                       Create Authority Delegation
@@ -1242,53 +1241,68 @@ export default function SecurityAuditDashboard() {
                   <CardContent className="p-4">
                     <form onSubmit={handleAddDelegation} className="space-y-4">
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Delegate To</label>
-                        <select
-                          value={newDelegation.toUid}
-                          onChange={e => setNewDelegation({ ...newDelegation, toUid: e.target.value })}
-                          className="w-full h-9 border border-border rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-foreground"
-                          required
+                        <label className="text-xs font-bold text-foreground/40 uppercase tracking-wider">Delegate To</label>
+                        <Select 
+                          value={newDelegation.toUid} 
+                          onValueChange={(val) => setNewDelegation({ ...newDelegation, toUid: val as string })}
+                          items={employees.map((emp: any) => ({
+                            value: emp.id,
+                            label: `${emp.fullName} (${emp.email})`
+                          }))}
                         >
-                          <option value="">Select employee...</option>
-                          {employees.map((emp: any) => (
-                            <option key={emp.id} value={emp.id}>{emp.fullName} ({emp.email})</option>
-                          ))}
-                        </select>
+                          <SelectTrigger className="w-full h-9 border border-border rounded-xl px-3 text-xs bg-background text-foreground">
+                            <SelectValue placeholder="Select employee..." />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background border-border text-foreground max-h-60 overflow-y-auto">
+                            {employees.map((emp: any) => (
+                              <SelectItem key={emp.id} value={emp.id}>{emp.fullName} ({emp.email})</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Delegated Role</label>
-                        <select
-                          value={newDelegation.role}
-                          onChange={e => setNewDelegation({ ...newDelegation, role: e.target.value })}
-                          className="w-full h-9 border border-border rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-foreground"
-                          required
+                        <label className="text-xs font-bold text-foreground/40 uppercase tracking-wider">Delegated Role</label>
+                        <Select 
+                          value={newDelegation.role} 
+                          onValueChange={(val) => setNewDelegation({ ...newDelegation, role: val as string })}
+                          items={{
+                            founder: 'Founder',
+                            system_admin: 'System Admin',
+                            c_suite: 'C-Suite',
+                            manager: 'Manager',
+                            team_lead: 'Team Lead'
+                          }}
                         >
-                          <option value="">Select role...</option>
-                          <option value="founder">Founder</option>
-                          <option value="system_admin">System Admin</option>
-                          <option value="c_suite">C-Suite</option>
-                          <option value="manager">Manager</option>
-                          <option value="team_lead">Team Lead</option>
-                        </select>
+                          <SelectTrigger className="w-full h-9 border border-border rounded-xl px-3 text-xs bg-background text-foreground">
+                            <SelectValue placeholder="Select role..." />
+                          </SelectTrigger>
+                          <SelectContent className="bg-background border-border text-foreground">
+                            <SelectItem value="founder">Founder</SelectItem>
+                            <SelectItem value="system_admin">System Admin</SelectItem>
+                            <SelectItem value="c_suite">C-Suite</SelectItem>
+                            <SelectItem value="manager">Manager</SelectItem>
+                            <SelectItem value="team_lead">Team Lead</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
-                          <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Start</label>
+                          <label className="text-xs font-bold text-foreground/40 uppercase tracking-wider">Start</label>
                           <input
                             type="date"
                             value={newDelegation.startDate}
                             onChange={e => setNewDelegation({ ...newDelegation, startDate: e.target.value })}
-                            className="w-full h-9 border border-border rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-foreground [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+                            className="w-full h-9 border border-border rounded-xl px-3 text-xs focus:border-primary/60 focus:ring-0 bg-background text-foreground [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
                             required
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">End</label>
+                          <label className="text-xs font-bold text-foreground/40 uppercase tracking-wider">End</label>
                           <input
                             type="date"
                             value={newDelegation.endDate}
                             onChange={e => setNewDelegation({ ...newDelegation, endDate: e.target.value })}
-                            className="w-full h-9 border border-border rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-foreground [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
+                            className="w-full h-9 border border-border rounded-xl px-3 text-xs focus:border-primary/60 focus:ring-0 bg-background text-foreground [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert"
                             required
                           />
                         </div>
@@ -1296,7 +1310,7 @@ export default function SecurityAuditDashboard() {
                       <button
                         type="submit"
                         disabled={isSubmittingDelegation}
-                        className="w-full h-9 rounded-xl bg-blue-600 hover:bg-blue-500 text-xs font-bold text-foreground transition-colors uppercase cursor-pointer shadow-glow-blue disabled:opacity-50"
+                        className="w-full h-9 rounded-xl bg-primary hover:bg-primary text-xs font-bold text-foreground transition-colors uppercase cursor-pointer shadow-sm disabled:opacity-50"
                       >
                         {isSubmittingDelegation ? "Creating..." : "Create Delegation"}
                       </button>
@@ -1305,8 +1319,8 @@ export default function SecurityAuditDashboard() {
                 </Card>
 
                 {/* Delegation List */}
-                <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02] lg:col-span-2">
-                  <CardHeader className="border-b border-white/[0.04] p-4 bg-white/[0.01]">
+                <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border lg:col-span-2">
+                  <CardHeader className="border-b border-border p-4">
                     <CardTitle className="text-xs uppercase font-bold text-foreground/50 tracking-wider flex items-center gap-2">
                       Active & Historical Delegations
                       <span className="text-foreground/25">({delegations.length})</span>
@@ -1321,7 +1335,7 @@ export default function SecurityAuditDashboard() {
                     ) : (
                       <div className="divide-y divide-white/[0.04]">
                         {delegations.map((del: any) => (
-                          <div key={del.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-white/[0.02] transition-colors">
+                          <div key={del.id} className="flex items-center gap-4 px-5 py-3.5 hover: transition-colors">
                             <div className={cn("p-2 rounded-lg border shrink-0",
                               del.status === "active" ? "bg-violet-500/10 border-violet-500/20 text-violet-400" : "bg-foreground/5 border-border text-foreground/30"
                             )}>
@@ -1330,20 +1344,20 @@ export default function SecurityAuditDashboard() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className="text-xs font-bold text-foreground">{del.toName || "Deputy"}</span>
-                                <span className="text-[10px] text-foreground/25">←</span>
-                                <span className="text-[10px] text-foreground/40">{del.fromName || "Admin"}</span>
-                                <Badge className={cn("text-[9px] font-bold uppercase tracking-wider shadow-none border",
+                                <span className="text-xs text-foreground/25">←</span>
+                                <span className="text-xs text-foreground/40">{del.fromName || "Admin"}</span>
+                                <Badge className={cn("text-xs font-bold uppercase tracking-wider shadow-none border",
                                   del.status === "active" ? "bg-violet-500/10 text-violet-300 border-violet-500/20" : "bg-foreground/5 text-foreground/30 border-border"
                                 )}>{del.status}</Badge>
                               </div>
-                              <p className="text-[10px] text-foreground/40 mt-0.5 font-mono">
-                                Role: <span className="text-blue-300">{del.role}</span> • {del.startDate} → {del.endDate}
+                              <p className="text-xs text-foreground/40 mt-0.5 font-mono">
+                                Role: <span className="text-primary/80">{del.role}</span> • {del.startDate} → {del.endDate}
                               </p>
                             </div>
                             {del.status === "active" && (
                               <button
                                 onClick={() => handleRevokeDelegation(del.id)}
-                                className="px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 text-[9px] font-bold text-rose-400 transition-colors uppercase cursor-pointer shrink-0"
+                                className="px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 text-xs font-bold text-rose-400 transition-colors uppercase cursor-pointer shrink-0"
                               >
                                 Revoke
                               </button>
@@ -1360,7 +1374,7 @@ export default function SecurityAuditDashboard() {
         </AnimatePresence>
 
         {/* Footer Note */}
-        <div className="flex items-start gap-2 text-[10px] text-foreground/25 bg-white/[0.01] border border-white/[0.05] rounded-xl p-4">
+        <div className="flex items-start gap-2 text-xs text-foreground/25 border border-border rounded-xl p-4">
           <Lock className="h-3.5 w-3.5 shrink-0 mt-0.5 text-red-400/60" />
           <p>
             <strong className="text-foreground/40">Tamper-proof.</strong>{" "}

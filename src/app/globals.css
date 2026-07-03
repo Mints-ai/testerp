@@ -6,6 +6,34 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
   /* ─── Core palette (Curated Matte Olive-Forest Obsidian base with soft sage green highlights) ─── */
   --color-blue-950: #030504; /* Obsidian Matte Olive black */
   --color-blue-900: #0a0e0b; /* Deep Forest Charcoal */
@@ -25,87 +53,60 @@
   --color-electric-violet: #708238; /* Deep Matte Olive */
   --color-electric-teal:   #55663b; /* Rich Forest Olive */
 
-  /* ─── Aliases ─── */
-  --color-primary:   #708238;
-  --color-accent:    #8fa87b;
-
-  /* ─── Text ─── */
-  --color-text-primary:   #f0f4ee; /* Crisp soft white-grey with olive undertone */
-  --color-text-secondary: #96a899; /* Muted sage green */
-  --color-text-muted:     #596c5c; /* Darker matte olive slate */
-  --color-text-accent:    #8fa87b;
-
-  /* ─── Glass ─── */
-  --color-glass-10: rgba(255,255,255,0.02);
-  --color-glass-15: rgba(255,255,255,0.04);
-  --color-glass-20: rgba(255,255,255,0.06);
-  --color-glass-30: rgba(255,255,255,0.08);
-  --color-glass-border: rgba(255,255,255,0.05);
-
-  /* ─── Semantic ─── */
-  --color-success:    #708238; /* Success matches the beautiful primary Matte Olive */
-  --color-warning:    #d97706;
-  --color-danger:     #dc2626;
-  --color-info:       #8fa87b;
-  --color-success-bg: rgba(112,130,56,0.12);
-  --color-warning-bg: rgba(217,119,6,0.12);
-  --color-danger-bg:  rgba(220,38,38,0.12);
-  --color-info-bg:    rgba(143,168,123,0.12);
-
   /* ─── Typography ─── */
   --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
   --font-mono: 'DM Mono', monospace;
 
   /* ─── Radius ─── */
-  --radius-sm:  8px;
-  --radius-md:  12px;
-  --radius-lg:  16px;
-  --radius-xl:  20px;
-  --radius-2xl: 24px;
+  --radius-sm:  4px;
+  --radius-md:  6px;
+  --radius-lg:  8px;
+  --radius-xl:  12px;
+  --radius-2xl: 16px;
   --radius-pill: 9999px;
 
   /* ─── Shadows ─── */
-  --shadow-sm:  0 1px 3px rgba(0,0,0,0.3);
-  --shadow-md:  0 4px 16px rgba(0,0,0,0.35);
-  --shadow-lg:  0 8px 32px rgba(0,0,0,0.4);
-  --shadow-xl:  0 24px 64px rgba(0,0,0,0.5);
-  --shadow-glow-blue:   0 0 24px rgba(112,130,56,0.25);
-  --shadow-glow-cyan:   0 0 24px rgba(143,168,123,0.15);
+  --shadow-sm:  0 1px 2px rgba(0,0,0,0.1);
+  --shadow-md:  0 4px 6px rgba(0,0,0,0.1);
+  --shadow-lg:  0 10px 15px rgba(0,0,0,0.1);
+  --shadow-xl:  0 20px 25px rgba(0,0,0,0.1);
+  --shadow-glow-blue: none;
+  --shadow-glow-cyan: none;
 }
 
 :root {
   --background: #0a0e0b;
   --foreground: #f0f4ee;
-  --card: rgba(255,255,255,0.02);
+  --card: #121813;
   --card-foreground: #f0f4ee;
   --popover: #121813;
   --popover-foreground: #f0f4ee;
   --primary: #708238;
   --primary-foreground: #fcfdfb;
-  --secondary: rgba(255,255,255,0.04);
+  --secondary: #1c241e;
   --secondary-foreground: #8fa87b;
-  --muted: rgba(255,255,255,0.02);
+  --muted: #1c241e;
   --muted-foreground: #96a899;
-  --accent: rgba(255,255,255,0.04);
+  --accent: #1c241e;
   --accent-foreground: #f0f4ee;
   --destructive: #dc2626;
   --destructive-foreground: #FFFFFF;
-  --border: rgba(255,255,255,0.05);
-  --input: rgba(255,255,255,0.05);
+  --border: #253128;
+  --input: #1c241e;
   --ring: #708238;
   --chart-1: #708238;
   --chart-2: #8fa87b;
   --chart-3: #55663b;
   --chart-4: #a3bfa2;
   --chart-5: #d97706;
-  --radius: 12px;
+  --radius: 8px;
   --sidebar: #121813;
   --sidebar-foreground: #f0f4ee;
   --sidebar-primary: #708238;
   --sidebar-primary-foreground: #fcfdfb;
-  --sidebar-accent: rgba(255,255,255,0.04);
+  --sidebar-accent: #1c241e;
   --sidebar-accent-foreground: #f0f4ee;
-  --sidebar-border: rgba(255,255,255,0.04);
+  --sidebar-border: #253128;
   --sidebar-ring: #708238;
 }
 
@@ -123,35 +124,29 @@ html.light {
 
   --background: #f5f7f4;
   --foreground: #1a241b;
-  --card: rgba(255, 255, 255, 0.5);
+  --card: #ffffff;
   --card-foreground: #1a241b;
   --popover: #ffffff;
   --popover-foreground: #1a241b;
-  --secondary: rgba(0, 0, 0, 0.04);
+  --secondary: #e9ede8;
   --secondary-foreground: #55663b;
-  --muted: rgba(0, 0, 0, 0.02);
+  --muted: #e1e7e0;
   --muted-foreground: #596c5c;
-  --accent: rgba(0, 0, 0, 0.04);
+  --accent: #e9ede8;
   --accent-foreground: #1a241b;
-  --border: rgba(0, 0, 0, 0.08);
-  --input: rgba(0, 0, 0, 0.08);
+  --border: #cdd6cb;
+  --input: #ffffff;
   --ring: #708238;
 
-  --sidebar: #e9ede8;
+  --sidebar: #ffffff;
   --sidebar-foreground: #1a241b;
-  --sidebar-border: rgba(0, 0, 0, 0.06);
-  --sidebar-accent: rgba(0, 0, 0, 0.04);
+  --sidebar-border: #cdd6cb;
+  --sidebar-accent: #e9ede8;
   --sidebar-accent-foreground: #1a241b;
 
   --color-text-primary: #1a241b;
   --color-text-secondary: #4a5c4d;
   --color-text-muted: #738776;
-
-  --color-glass-10: rgba(0, 0, 0, 0.015);
-  --color-glass-15: rgba(0, 0, 0, 0.03);
-  --color-glass-20: rgba(0, 0, 0, 0.05);
-  --color-glass-30: rgba(0, 0, 0, 0.08);
-  --color-glass-border: rgba(0, 0, 0, 0.08);
 }
 
 /* ─── Base ─────────────────────────────────────────── */
@@ -166,44 +161,6 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   position: relative;
-}
-
-/* Aurora background — fixed decorative gradient */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background:
-    radial-gradient(ellipse 80% 60% at 20% -10%, rgba(143,168,123,0.12) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 90% 100%, rgba(112,130,56,0.06) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 40% at 50% 50%, rgba(85,102,59,0.04) 0%, transparent 70%),
-    linear-gradient(180deg, #0a0e0b 0%, #030504 100%);
-  pointer-events: none;
-}
-
-html.light body::before {
-  background:
-    radial-gradient(ellipse 80% 60% at 20% -10%, rgba(143,168,123,0.2) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 50% at 90% 100%, rgba(112,130,56,0.12) 0%, transparent 60%),
-    linear-gradient(180deg, #f5f7f4 0%, #e9ede8 100%);
-}
-
-/* Grid overlay background texture */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background-image: 
-    linear-gradient(to right, rgba(255,255,255,0.008) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255,255,255,0.008) 1px, transparent 1px);
-  background-size: 48px 48px;
-  pointer-events: none;
-}
-
-html.no-grid body::after {
-  display: none !important;
 }
 
 @layer base {
@@ -508,37 +465,6 @@ html.no-grid body::after {
 }
 
 /* ─── Light Mode Styles & Overrides ─── */
-html.light .glass {
-  background: rgba(255, 255, 255, 0.45);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-html.light .glass-dark {
-  background: rgba(233, 237, 232, 0.85);
-  border-right: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-html.light .glass-card {
-  background: rgba(255, 255, 255, 0.45);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-}
-html.light .glass-card:hover {
-  background: rgba(255, 255, 255, 0.75);
-  border-color: rgba(112, 130, 56, 0.3);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
-}
-
-html.light .glass-input {
-  background: rgba(0, 0, 0, 0.015);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  color: var(--foreground);
-}
-html.light .glass-input:focus {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(112, 130, 56, 0.6);
-  box-shadow: 0 0 0 3px rgba(112, 130, 56, 0.1);
-}
-
 html.light .stat-number {
   color: #1a241b;
 }

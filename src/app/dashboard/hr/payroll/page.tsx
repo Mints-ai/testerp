@@ -140,15 +140,15 @@ export default function PayrollDashboard() {
 
         {/* Overview Stats */}
         <div className="grid gap-6 md:grid-cols-3">
-          <div className="border border-white/[0.08] bg-white/[0.02] shadow-card rounded-2xl p-6 backdrop-blur-xl">
+          <div className="border border-border shadow-card rounded-2xl p-6">
             <div className="flex flex-row items-center justify-between pb-2">
               <span className="text-xs font-bold text-foreground/40 uppercase tracking-wider">Total Net Disbursements</span>
-              <Banknote className="h-4 w-4 text-blue-400 shadow-glow-blue" />
+              <Banknote className="h-4 w-4 text-primary shadow-sm" />
             </div>
             <div className="text-2xl font-black text-foreground mt-1 tabular-nums">{totalPayroll.toLocaleString()} AED</div>
           </div>
           
-          <div className="border border-white/[0.08] bg-white/[0.02] shadow-card rounded-2xl p-6 backdrop-blur-xl">
+          <div className="border border-border shadow-card rounded-2xl p-6">
             <div className="flex flex-row items-center justify-between pb-2">
               <span className="text-xs font-bold text-foreground/40 uppercase tracking-wider">Pending Approvals</span>
               <Banknote className="h-4 w-4 text-amber-400 shadow-glow-amber" />
@@ -158,7 +158,7 @@ export default function PayrollDashboard() {
             </div>
           </div>
 
-          <div className="border border-white/[0.08] bg-white/[0.02] shadow-card rounded-2xl p-6 backdrop-blur-xl">
+          <div className="border border-border shadow-card rounded-2xl p-6">
             <div className="flex flex-row items-center justify-between pb-2">
               <span className="text-xs font-bold text-foreground/40 uppercase tracking-wider">Active Deductions (Unpaid Leaves)</span>
               <Calculator className="h-4 w-4 text-rose-400 shadow-glow-rose" />
@@ -170,8 +170,8 @@ export default function PayrollDashboard() {
         </div>
 
         {/* Payroll Table */}
-        <div className="border border-white/[0.08] bg-white/[0.02] shadow-card rounded-2xl overflow-hidden backdrop-blur-xl">
-          <div className="p-6 pb-4 border-b border-white/[0.06] bg-white/[0.01]">
+        <div className="border border-border shadow-card rounded-2xl overflow-hidden">
+          <div className="p-6 pb-4 border-b border-border">
             <h2 className="text-lg font-bold text-foreground">Salary Disbursements Ledger</h2>
           </div>
           
@@ -187,12 +187,12 @@ export default function PayrollDashboard() {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left">
-                  <thead className="bg-white/[0.01] text-foreground/40 text-[10px] uppercase font-bold border-b border-white/[0.06]">
+                  <thead className="text-foreground/40 text-xs uppercase font-bold border-b border-border">
                     <tr>
                       <th className="px-6 py-4">Employee</th>
                       <th className="px-6 py-4">Base Salary</th>
                       <th className="px-6 py-4 text-rose-400">Deductions (Unpaid Leaves)</th>
-                      <th className="px-6 py-4 text-blue-400">Net Pay</th>
+                      <th className="px-6 py-4 text-primary">Net Pay</th>
                       <th className="px-6 py-4">Status</th>
                       <th className="px-6 py-4 text-right">Payslip</th>
                     </tr>
@@ -204,34 +204,30 @@ export default function PayrollDashboard() {
                         animate={{ opacity: 1 }}
                         transition={{ delay: i * 0.03 }}
                         key={record.userId} 
-                        className="hover:bg-white/[0.03] transition-colors"
+                        className="hover: transition-colors"
                       >
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <Avatar className="h-9 w-9 border border-border">
                               <AvatarImage src={record.avatar} />
-                              <AvatarFallback className="bg-blue-500/10 text-blue-300 text-xs font-bold">
+                              <AvatarFallback className="bg-primary/10 text-primary/80 text-xs font-bold">
                                 {getInitials(record.name)}
                               </AvatarFallback>
                             </Avatar>
                             <div>
                               <div className="font-bold text-foreground">{record.name}</div>
-                              <div className="text-[9px] text-foreground/40 uppercase tracking-wider font-bold mt-0.5">{record.role?.replace("_", " ")}</div>
+                              <div className="text-xs text-foreground/40 uppercase tracking-wider font-bold mt-0.5">{record.role?.replace("_", " ")}</div>
                             </div>
                           </div>
                         </td>
                         <td className="px-6 py-4 font-bold text-foreground/60 tabular-nums">{record.baseSalary.toLocaleString()} AED</td>
                         <td className="px-6 py-4 font-bold text-rose-400 tabular-nums">
                           {record.deductions > 0 ? `-${record.deductions.toLocaleString()} AED` : '0 AED'}
-                          {record.unpaidLeaves > 0 && <span className="block text-[10px] text-rose-400/60 font-bold mt-0.5">({record.unpaidLeaves} days Unpaid Leave)</span>}
+                          {record.unpaidLeaves > 0 && <span className="block text-xs text-rose-400/60 font-bold mt-0.5">({record.unpaidLeaves} days Unpaid Leave)</span>}
                         </td>
-                        <td className="px-6 py-4 font-black text-blue-400 tabular-nums">{record.netPay.toLocaleString()} AED</td>
+                        <td className="px-6 py-4 font-black text-primary tabular-nums">{record.netPay.toLocaleString()} AED</td>
                         <td className="px-6 py-4">
-                          <Badge variant="outline" className={`font-bold shadow-none border ${
-                            record.status === 'Paid' 
-                              ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' 
-                              : 'bg-amber-500/10 text-amber-300 border-amber-500/20'
-                          }`}>
+                          <Badge variant="outline" className={`font-bold shadow-none border ${ record.status === 'Paid' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' : 'bg-amber-500/10 text-amber-300 border-amber-500/20' }`}>
                             {record.status.toUpperCase()}
                           </Badge>
                         </td>
@@ -239,7 +235,7 @@ export default function PayrollDashboard() {
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            className="text-foreground/60 hover:text-foreground hover:bg-muted/40 rounded-xl cursor-pointer"
+                            className="text-foreground/60 hover:text-foreground hover: rounded-xl cursor-pointer"
                             onClick={() => handleGeneratePayslip(record)}
                           >
                             <Download className="h-4 w-4" />

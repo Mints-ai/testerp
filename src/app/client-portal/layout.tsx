@@ -42,7 +42,7 @@ export default function ClientPortalLayout({
   if (authLoading || checkingRole) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-slate-50">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }

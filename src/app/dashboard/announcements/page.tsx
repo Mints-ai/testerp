@@ -200,7 +200,7 @@ export default function Announcements() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2 text-foreground">
-            <Megaphone className="h-8 w-8 text-blue-400" />
+            <Megaphone className="h-8 w-8 text-primary" />
             Notice Board
           </h1>
           <p className="text-foreground/40 mt-1">Company-wide and department announcements.</p>
@@ -208,10 +208,10 @@ export default function Announcements() {
         
         {isManagerOrAbove && (
           <Dialog open={isPostOpen} onOpenChange={setIsPostOpen}>
-            <DialogTrigger className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold h-10 px-5 bg-blue-600 hover:bg-blue-700 text-foreground shadow-md transition-all hover:translate-y-[-1px]">
+            <DialogTrigger className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold h-10 px-5 bg-primary hover:bg-blue-700 text-foreground shadow-md transition-all hover:translate-y-[-1px]">
               Post Announcement
             </DialogTrigger>
-            <DialogContent className="max-w-3xl bg-[#121813] border-border rounded-2xl shadow-xl text-foreground">
+            <DialogContent className="max-w-3xl bg-background border-border rounded-2xl shadow-xl text-foreground">
               <DialogHeader>
                 <DialogTitle className="text-xl font-bold text-foreground">New Announcement</DialogTitle>
               </DialogHeader>
@@ -219,22 +219,22 @@ export default function Announcements() {
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label className="text-xs font-bold text-foreground/60 uppercase">Announcement Title</Label>
-                  <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="E.g. Q3 Town Hall Meeting" className="bg-muted/40 border-border rounded-xl text-foreground" />
+                  <Input value={title} onChange={e => setTitle(e.target.value)} placeholder="E.g. Q3 Town Hall Meeting" className="border-border rounded-xl text-foreground" />
                 </div>
                 
                 <div className="space-y-2">
                   <Label className="text-xs font-bold text-foreground/60 uppercase">Message Content</Label>
-                  <EditorContent editor={editor} className="bg-muted/40 border border-border rounded-xl text-foreground overflow-hidden" />
+                  <EditorContent editor={editor} className="border border-border rounded-xl text-foreground overflow-hidden" />
                 </div>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-xs font-bold text-foreground/60 uppercase">Target Audience</Label>
                     <Select value={audience} onValueChange={(val) => setAudience(val || "all")}>
-                      <SelectTrigger className="bg-muted/40 border-border rounded-xl text-foreground">
+                      <SelectTrigger className="border-border rounded-xl text-foreground">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-[#121813] border-border text-foreground">
+                      <SelectContent className="bg-background border-border text-foreground">
                         <SelectItem value="all">All Staff</SelectItem>
                         <SelectItem value="department">Specific Department</SelectItem>
                         <SelectItem value="role">Specific Role</SelectItem>
@@ -246,8 +246,8 @@ export default function Announcements() {
                     <div className="space-y-2">
                       <Label className="text-xs font-bold text-foreground/60 uppercase">Select Department</Label>
                       <Select value={targetValue} onValueChange={(val) => setTargetValue(val || "")}>
-                        <SelectTrigger className="bg-muted/40 border-border rounded-xl text-foreground"><SelectValue placeholder="Choose department" /></SelectTrigger>
-                        <SelectContent className="bg-[#121813] border-border text-foreground">
+                        <SelectTrigger className="border-border rounded-xl text-foreground"><SelectValue placeholder="Choose department" /></SelectTrigger>
+                        <SelectContent className="bg-background border-border text-foreground">
                           {DEPARTMENTS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                         </SelectContent>
                       </Select>
@@ -258,8 +258,8 @@ export default function Announcements() {
                     <div className="space-y-2">
                       <Label className="text-xs font-bold text-foreground/60 uppercase">Select Role</Label>
                       <Select value={targetValue} onValueChange={(val) => setTargetValue(val || "")}>
-                        <SelectTrigger className="bg-muted/40 border-border rounded-xl text-foreground"><SelectValue placeholder="Choose role" /></SelectTrigger>
-                        <SelectContent className="bg-[#121813] border-border text-foreground">
+                        <SelectTrigger className="border-border rounded-xl text-foreground"><SelectValue placeholder="Choose role" /></SelectTrigger>
+                        <SelectContent className="bg-background border-border text-foreground">
                           {Object.entries(ROLE_META).map(([key, meta]) => (
                             <SelectItem key={key} value={key}>{meta.label}</SelectItem>
                           ))}
@@ -271,19 +271,19 @@ export default function Announcements() {
                 
                 <div className="flex gap-6 pt-4 border-t border-border/30">
                   <div className="flex items-center space-x-2">
-                    <Checkbox id="pin" checked={isPinned} onCheckedChange={(c) => setIsPinned(!!c)} className="border-border/80 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
+                    <Checkbox id="pin" checked={isPinned} onCheckedChange={(c) => setIsPinned(!!c)} className="border-border/80 data-[state=checked]:bg-primary data-[state=checked]:border-blue-600" />
                     <Label htmlFor="pin" className="cursor-pointer text-xs font-semibold text-foreground/60 uppercase">Pin to top</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Checkbox id="email" checked={sendEmail} onCheckedChange={(c) => setSendEmail(!!c)} className="border-border/80 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" />
+                    <Checkbox id="email" checked={sendEmail} onCheckedChange={(c) => setSendEmail(!!c)} className="border-border/80 data-[state=checked]:bg-primary data-[state=checked]:border-blue-600" />
                     <Label htmlFor="email" className="cursor-pointer text-xs font-semibold text-foreground/60 uppercase">Send Email Notification</Label>
                   </div>
                 </div>
               </div>
               
               <DialogFooter className="gap-2 sm:gap-0">
-                <Button variant="outline" onClick={() => setIsPostOpen(false)} className="rounded-xl border-border text-foreground bg-transparent hover:bg-muted/40">Cancel</Button>
-                <Button onClick={handlePost} disabled={isSubmitting || !title} className="bg-blue-600 hover:bg-blue-700 text-foreground rounded-xl font-semibold">
+                <Button variant="outline" onClick={() => setIsPostOpen(false)} className="rounded-xl border-border text-foreground bg-transparent hover:">Cancel</Button>
+                <Button onClick={handlePost} disabled={isSubmitting || !title} className="bg-primary hover:bg-blue-700 text-foreground rounded-xl font-semibold">
                   {isSubmitting ? "Posting..." : "Publish Announcement"}
                 </Button>
               </DialogFooter>
@@ -296,7 +296,7 @@ export default function Announcements() {
         {loading ? (
           <div className="text-center py-12 text-foreground/40">Loading announcements...</div>
         ) : announcements.length === 0 ? (
-          <div className="text-center py-16 glass rounded-2xl shadow-xl flex flex-col items-center border-dashed border-border bg-white/[0.01] p-12">
+          <div className="text-center py-16 bg-card border border-border shadow-sm rounded-2xl shadow-xl flex flex-col items-center border-dashed border-border p-12">
              <Megaphone className="h-12 w-12 text-foreground/20 mb-4" />
              <h3 className="text-lg font-bold text-foreground">No Announcements</h3>
              <p className="text-sm text-foreground/40 mt-1">Check back later for updates from management.</p>
@@ -306,15 +306,15 @@ export default function Announcements() {
             const isRead = ann.readBy?.includes(user?.uid);
             
             return (
-              <Card key={ann.id} className={`overflow-hidden border-border bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-300 rounded-2xl shadow-sm hover:shadow-md ${ann.isPinned ? 'border-l-4 border-l-blue-500' : ''}`}>
-                <CardHeader className="pb-2 bg-white/[0.01] flex flex-row items-start justify-between">
+              <Card key={ann.id} className={`overflow-hidden border-border hover: transition-all duration-300 rounded-2xl shadow-sm hover:shadow-md ${ann.isPinned ? 'border-l-4 border-l-blue-500' : ''}`}>
+                <CardHeader className="pb-2 flex flex-row items-start justify-between">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      {ann.isPinned && <Pin className="h-4 w-4 text-blue-400 fill-blue-400" />}
+                      {ann.isPinned && <Pin className="h-4 w-4 text-primary fill-blue-400" />}
                       <CardTitle className="text-xl font-bold text-foreground">{ann.title}</CardTitle>
                       
                       {ann.audience !== "all" && (
-                        <Badge variant="outline" className="ml-2 bg-muted/40 border-border text-foreground/60 font-medium text-xs rounded-lg">
+                        <Badge variant="outline" className="ml-2 border-border text-foreground/60 font-medium text-xs rounded-lg">
                           {ann.audience === "department" ? "Dept: " : "Role: "} 
                           {ann.audience === "role" ? ROLE_META[ann.targetValue]?.label : ann.targetValue}
                         </Badge>
@@ -328,11 +328,11 @@ export default function Announcements() {
                   </div>
                   
                   {isRead ? (
-                    <Badge variant="secondary" className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10 shadow-none rounded-lg font-semibold">
+                    <Badge variant="secondary" className="bg-emerald-500/10 border border-emerald-500/20 text-accent hover:bg-emerald-500/10 shadow-none rounded-lg font-semibold">
                       <CheckCircle2 className="h-3 w-3 mr-1" /> Read
                     </Badge>
                   ) : (
-                    <Badge className="bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/10 shadow-none group cursor-pointer transition-colors rounded-lg font-semibold"
+                    <Badge className="bg-primary/10 border border-primary/20 text-primary hover:bg-primary/10 shadow-none group cursor-pointer transition-colors rounded-lg font-semibold"
                            onClick={() => markAsRead(ann.id)}>
                       <AlertCircle className="h-3 w-3 mr-1 fill-blue-500 text-[#121813]" /> 
                       <span className="group-hover:underline">Mark as Read</span>

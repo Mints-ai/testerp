@@ -15,9 +15,9 @@ export default function DashboardLayout({
   return (
     <RouteGuard>
       <ToastProvider>
-        <div className="min-h-screen bg-gradient-olive selection:bg-olive-300">
+        <div className="min-h-screen bg-background text-foreground transition-colors selection:bg-primary/30">
           <Sidebar />
-          <div className="lg:pl-64 flex flex-col min-h-screen">
+          <div className="lg:pl-[68px] flex flex-col min-h-screen transition-all duration-300">
             <TopNav />
             <main className="flex-1 p-4 md:p-8 overflow-y-auto relative">
               {children}

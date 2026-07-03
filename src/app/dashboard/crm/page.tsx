@@ -216,7 +216,7 @@ export default function CRMDashboard() {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-foreground/40" />
               <Input
                 placeholder="Search leads..."
-                className="pl-9 glass-card border-border text-foreground placeholder:text-foreground/30 w-full animate-none"
+                className="pl-9 bg-card border border-border shadow-sm rounded-lg border-border text-foreground placeholder:text-foreground/30 w-full animate-none"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -226,15 +226,15 @@ export default function CRMDashboard() {
               <Button
                 onClick={handleExportCSV}
                 variant="outline"
-                className="glass-card border-border hover:bg-muted/40 hover:text-foreground text-foreground/80 rounded-xl font-semibold h-10 px-4 flex-1 sm:flex-none cursor-pointer"
+                className="bg-card border border-border shadow-sm rounded-lg border-border hover: hover:text-foreground text-foreground/80 rounded-xl font-semibold h-10 px-4 flex-1 sm:flex-none cursor-pointer"
               >
-                <Download className="mr-2 h-4 w-4 text-emerald-400 shrink-0" /> Export CSV
+                <Download className="mr-2 h-4 w-4 text-accent shrink-0" /> Export CSV
               </Button>
 
               <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
                 <DialogTrigger 
                   render={
-                    <Button className="bg-blue-600 hover:bg-blue-700 text-foreground shadow-md rounded-xl font-semibold h-10 px-5 flex-1 sm:flex-none cursor-pointer">
+                    <Button className="bg-primary hover:bg-blue-700 text-foreground shadow-md rounded-xl font-semibold h-10 px-5 flex-1 sm:flex-none cursor-pointer">
                       <Plus className="mr-2 h-4 w-4 shrink-0" /> New Lead
                     </Button>
                   }
@@ -262,7 +262,7 @@ export default function CRMDashboard() {
                   </div>
                   <DialogFooter className="pt-4">
                     <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>Cancel</Button>
-                    <Button type="submit" disabled={isSubmitting} className="bg-blue-600 text-foreground">Save Lead</Button>
+                    <Button type="submit" disabled={isSubmitting} className="bg-primary text-foreground">Save Lead</Button>
                   </DialogFooter>
                 </form>
               </DialogContent>
@@ -278,16 +278,13 @@ export default function CRMDashboard() {
               const stageLeads = filteredLeads.filter(l => l.stage === stage);
               
               return (
-                <div key={stage} className="w-80 flex flex-col h-full bg-white/[0.02] border border-white/[0.06] rounded-2xl p-3">
+                <div key={stage} className="w-80 flex flex-col h-full border border-border rounded-2xl p-3">
                   <div className="flex items-center justify-between mb-4 px-2">
                     <h3 className="font-bold text-foreground tracking-tight uppercase text-sm flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${
-                        stage === 'Won' ? 'bg-green-500' : 
-                        stage === 'Lost' ? 'bg-red-500' : 'bg-blue-400'
-                      }`} />
+                      <div className={`w-2 h-2 rounded-full ${ stage === 'Won' ? 'bg-green-500' : stage === 'Lost' ? 'bg-red-500' : 'bg-blue-400' }`} />
                       {stage}
                     </h3>
-                    <Badge variant="secondary" className="bg-muted/40 text-foreground/80 border-border">{stageLeads.length}</Badge>
+                    <Badge variant="secondary" className="text-foreground/80 border-border">{stageLeads.length}</Badge>
                   </div>
 
                   <div className="flex-1 overflow-y-auto space-y-3 pr-1">
@@ -299,7 +296,7 @@ export default function CRMDashboard() {
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, scale: 0.95 }}
                           key={lead.id}
-                          className="glass-card p-4 rounded-xl group hover:border-blue-500/30 transition-colors relative cursor-pointer"
+                          className="bg-card border border-border shadow-sm rounded-lg p-4 rounded-xl group hover:border-primary/30 transition-colors relative cursor-pointer"
                           onClick={() => setSelectedLead(lead)}
                         >
                           <div className="flex justify-between items-start mb-2">
@@ -308,12 +305,12 @@ export default function CRMDashboard() {
                             {/* Action Menu */}
                             <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
                               <DropdownMenu>
-                                <DropdownMenuTrigger className="p-1 hover:bg-muted/40 rounded-md">
+                                <DropdownMenuTrigger className="p-1 hover: rounded-md">
                                   <MoreHorizontal className="h-4 w-4 text-foreground/60" />
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                   <DropdownMenuItem onClick={() => handleGenerateQuote(lead)}>
-                                    <FileText className="mr-2 h-4 w-4 text-blue-400" /> Generate Quote
+                                    <FileText className="mr-2 h-4 w-4 text-primary" /> Generate Quote
                                   </DropdownMenuItem>
                                   {STAGES.map(s => s !== stage && (
                                     <DropdownMenuItem key={s} onClick={(e) => { e.stopPropagation(); updateLeadStage(lead, s); }}>
@@ -339,8 +336,8 @@ export default function CRMDashboard() {
                                 <Mail className="h-3 w-3 text-foreground/40" /> <span className="truncate">{lead.email}</span>
                               </p>
                             )}
-                            <p className="flex items-center gap-1.5 font-semibold text-blue-300 mt-2">
-                              <DollarSign className="h-3 w-3 text-emerald-400" /> 
+                            <p className="flex items-center gap-1.5 font-semibold text-primary/80 mt-2">
+                              <DollarSign className="h-3 w-3 text-accent" /> 
                               {lead.value ? `${lead.value.toLocaleString()} AED` : 'TBD'}
                             </p>
                           </div>
@@ -356,17 +353,17 @@ export default function CRMDashboard() {
       </div>
       {/* Lead Detail Sheet */}
       <Sheet open={!!selectedLead} onOpenChange={(open) => !open && setSelectedLead(null)}>
-        <SheetContent side="right" className="w-[400px] p-6 border-l border-white/[0.08] bg-[#121813] text-foreground flex flex-col h-full overflow-y-auto">
+        <SheetContent side="right" className="w-[400px] p-6 border-l border-border bg-background text-foreground flex flex-col h-full overflow-y-auto">
           {selectedLead && (
             <>
-              <SheetHeader className="border-b border-white/[0.06] pb-4 mb-4 shrink-0">
+              <SheetHeader className="border-b border-border pb-4 mb-4 shrink-0">
                 <SheetTitle className="text-xl font-bold text-foreground flex items-center gap-2">
-                  <Building className="h-5 w-5 text-blue-400" />
+                  <Building className="h-5 w-5 text-primary" />
                   {selectedLead.company}
                 </SheetTitle>
                 <div className="flex items-center gap-4 text-xs text-foreground/60 mt-2">
                   <span className="flex items-center gap-1.5"><User className="h-3 w-3" /> {selectedLead.contactName}</span>
-                  <span className="flex items-center gap-1.5"><DollarSign className="h-3 w-3 text-emerald-400" /> {selectedLead.value} AED</span>
+                  <span className="flex items-center gap-1.5"><DollarSign className="h-3 w-3 text-accent" /> {selectedLead.value} AED</span>
                 </div>
               </SheetHeader>
               
@@ -378,10 +375,10 @@ export default function CRMDashboard() {
                       <p className="text-xs text-foreground/40 italic text-center py-4">No activity logged yet.</p>
                     ) : (
                       leadEmails.map(msg => (
-                        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} key={msg.id} className="bg-white/[0.03] border border-white/[0.06] p-3 rounded-xl text-xs">
+                        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} key={msg.id} className="border border-border p-3 rounded-xl text-xs">
                           <div className="flex justify-between items-center mb-1">
-                            <span className="font-bold text-blue-300">{msg.sender}</span>
-                            <span className="text-[9px] text-foreground/40 uppercase font-mono tracking-wider">
+                            <span className="font-bold text-primary/80">{msg.sender}</span>
+                            <span className="text-xs text-foreground/40 uppercase font-mono tracking-wider">
                               {msg.createdAt?.toDate().toLocaleDateString() || 'Just now'}
                             </span>
                           </div>
@@ -392,14 +389,14 @@ export default function CRMDashboard() {
                   </AnimatePresence>
                 </div>
                 
-                <form onSubmit={handleLogEmail} className="shrink-0 space-y-3 bg-white/[0.02] p-3 rounded-xl border border-white/[0.05]">
+                <form onSubmit={handleLogEmail} className="shrink-0 space-y-3 p-3 rounded-xl border border-border">
                   <Textarea 
                     placeholder="Log an email or meeting note..." 
                     className="text-xs bg-black/20 border-border resize-none h-20 text-foreground placeholder:text-foreground/30"
                     value={emailText}
                     onChange={(e) => setEmailText(e.target.value)}
                   />
-                  <Button type="submit" disabled={!emailText} className="w-full bg-blue-600 hover:bg-blue-700 text-xs h-8">
+                  <Button type="submit" disabled={!emailText} className="w-full bg-primary hover:bg-blue-700 text-xs h-8">
                     <Plus className="h-3 w-3 mr-1.5" /> Log Activity
                   </Button>
                 </form>

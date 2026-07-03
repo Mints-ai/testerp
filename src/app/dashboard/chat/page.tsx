@@ -497,33 +497,32 @@ export default function Chat() {
 
   const activeChannelObj = channels.find(c => c.id === activeChannel);
   const activeInfo = resolveChannelInfo(activeChannelObj);
-
   return (
-    <div className="h-[calc(100vh-120px)] flex bg-white/50 backdrop-blur-xl border border-slate-200 rounded-xl overflow-hidden shadow-card text-slate-800">
+    <div className="h-[calc(100vh-120px)] flex bg-card border border-border rounded-xl overflow-hidden shadow-sm text-foreground">
       
       {/* Sidebar Channels */}
-      <div className="w-72 bg-slate-50 border-r border-slate-200 flex flex-col shrink-0">
-        <div className="p-4 border-b border-slate-200 flex items-center justify-between">
-          <h2 className="font-extrabold text-slate-900 tracking-tight">Team Hub Chat</h2>
+      <div className="w-72 bg-card border-r border-border flex flex-col shrink-0">
+        <div className="p-4 border-b border-border flex items-center justify-between">
+          <h2 className="font-bold text-foreground text-lg tracking-tight">Chat</h2>
         </div>
         
         <div className="p-3 space-y-6 flex-1 overflow-y-auto hide-scrollbar">
           
           {/* Section 1: Global / Announcement Channels */}
           <div>
-            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 px-2">Company Channels</div>
+            <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2 px-2">Company Channels</div>
             <div className="space-y-0.5">
               {channels.filter(c => c.type === 'global').map(channel => (
                 <button
                   key={channel.id}
                   onClick={() => setActiveChannel(channel.id)}
-                  className={cn("w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-left",
+                  className={cn("w-full flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors text-left",
                     activeChannel === channel.id 
-                      ? 'bg-indigo-100 text-indigo-700 font-bold' 
-                      : 'text-slate-600 hover:bg-slate-100'
+                      ? 'bg-muted text-primary font-semibold' 
+                      : 'text-foreground/80 hover:bg-muted/50'
                   )}
                 >
-                  <Hash className="h-4 w-4 shrink-0 text-slate-400" />
+                  <Hash className="h-4 w-4 shrink-0 text-muted-foreground" />
                   <span className="truncate">{channel.name}</span>
                 </button>
               ))}
@@ -532,7 +531,7 @@ export default function Chat() {
 
           {/* Section 2: Department channels */}
           <div>
-            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 px-2">Departments</div>
+            <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-2 px-2">Departments</div>
             <div className="space-y-0.5">
               {(() => {
                 const seenDepts = new Set<string>();
@@ -553,13 +552,13 @@ export default function Chat() {
                     <button
                       key={channel.id}
                       onClick={() => setActiveChannel(channel.id)}
-                      className={cn("w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-left",
+                      className={cn("w-full flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors text-left",
                         activeChannel === channel.id 
-                          ? 'bg-indigo-100 text-indigo-700 font-bold' 
-                          : 'text-slate-600 hover:bg-slate-100'
+                          ? 'bg-muted text-primary font-semibold' 
+                          : 'text-foreground/80 hover:bg-muted/50'
                       )}
                     >
-                      <Building2 className="h-4 w-4 shrink-0 text-slate-400" />
+                      <Building2 className="h-4 w-4 shrink-0 text-muted-foreground" />
                       <span className="truncate">{channel.name}</span>
                     </button>
                   ));
@@ -570,12 +569,12 @@ export default function Chat() {
           {/* Section 3: Custom Group Chats */}
           <div>
             <div className="flex items-center justify-between mb-2 px-2">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Custom Groups</span>
+              <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Custom Groups</span>
               <Dialog open={isGroupModalOpen} onOpenChange={setIsGroupModalOpen}>
-                <DialogTrigger render={<Button variant="ghost" size="icon" className="h-5 w-5 rounded-full p-0 text-slate-400 hover:text-slate-900" />}>
+                <DialogTrigger render={<Button variant="ghost" size="icon" className="h-5 w-5 rounded-full p-0 text-muted-foreground hover:text-foreground" />}>
                   <Plus className="h-3.5 w-3.5" />
                 </DialogTrigger>
-                <DialogContent className="bg-[#0f172a] border-border text-foreground max-w-md">
+                <DialogContent className="bg-card border-border text-foreground max-w-md">
                   <DialogHeader>
                     <DialogTitle>Create Group Chat</DialogTitle>
                     <DialogDescription className="text-foreground/40">Gather your team members into a private custom group chat.</DialogDescription>
@@ -583,25 +582,25 @@ export default function Chat() {
                   <form onSubmit={handleCreateGroup} className="space-y-4 pt-4">
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase text-foreground/60">Group Name</label>
-                      <Input value={groupName} onChange={e => setGroupName(e.target.value)} placeholder="e.g. Project Apollo Sprint" className="bg-muted/40 border-border text-foreground" required />
+                      <Input value={groupName} onChange={e => setGroupName(e.target.value)} placeholder="e.g. Project Apollo Sprint" className="border-border text-foreground" required />
                     </div>
                     
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase text-foreground/60">Add Members</label>
-                      <div className="max-h-48 overflow-y-auto space-y-1.5 border border-border rounded-lg p-2 bg-muted/40">
+                      <div className="max-h-48 overflow-y-auto space-y-1.5 border border-border rounded-lg p-2">
                         {employees.map(emp => {
                           const name = emp.fullName || emp.name || "Team Member";
                           return (
-                            <label key={emp.id} className="flex items-center gap-2.5 p-1.5 hover:bg-muted/40 rounded cursor-pointer">
+                            <label key={emp.id} className="flex items-center gap-2.5 p-1.5 hover: rounded cursor-pointer">
                               <input 
                                 type="checkbox" 
                                 checked={selectedMembers.includes(emp.id)} 
                                 onChange={() => toggleMemberSelection(emp.id)}
-                                className="accent-indigo-500 rounded"
+                                className="accent-primary rounded"
                               />
                               <Avatar className="h-6 w-6">
                                 <AvatarImage src={emp.profilePhotoURL} />
-                                <AvatarFallback className="bg-muted/80 text-[9px] font-bold text-foreground">{name[0]}</AvatarFallback>
+                                <AvatarFallback className="bg-muted/80 text-xs font-bold text-foreground">{name[0]}</AvatarFallback>
                               </Avatar>
                               <span className="text-xs text-foreground/90">{name}</span>
                             </label>
@@ -610,7 +609,7 @@ export default function Chat() {
                       </div>
                     </div>
                     
-                    <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 text-foreground" disabled={!groupName.trim() || selectedMembers.length === 0}>Create Group</Button>
+                    <Button type="submit" className="w-full bg-primary hover:bg-primary/80 text-foreground" disabled={!groupName.trim() || selectedMembers.length === 0}>Create Group</Button>
                   </form>
                 </DialogContent>
               </Dialog>
@@ -620,13 +619,13 @@ export default function Chat() {
                 <button
                   key={channel.id}
                   onClick={() => setActiveChannel(channel.id)}
-                  className={cn("w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-left",
+                  className={cn("w-full flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors text-left",
                     activeChannel === channel.id 
-                      ? 'bg-indigo-100 text-indigo-700 font-bold' 
-                      : 'text-slate-600 hover:bg-slate-100'
+                      ? 'bg-muted text-primary font-semibold' 
+                      : 'text-foreground/80 hover:bg-muted/50'
                   )}
                 >
-                  <Users className="h-4 w-4 shrink-0 text-slate-400" />
+                  <Users className="h-4 w-4 shrink-0 text-muted-foreground" />
                   <span className="truncate">{channel.name}</span>
                 </button>
               ))}
@@ -636,12 +635,12 @@ export default function Chat() {
           {/* Section 4: Direct Messages */}
           <div>
             <div className="flex items-center justify-between mb-2 px-2">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Direct Messages</span>
+              <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Direct Messages</span>
               <Dialog open={isDMModalOpen} onOpenChange={setIsDMModalOpen}>
-                <DialogTrigger render={<Button variant="ghost" size="icon" className="h-5 w-5 rounded-full p-0 text-slate-400 hover:text-slate-900" />}>
+                <DialogTrigger render={<Button variant="ghost" size="icon" className="h-5 w-5 rounded-full p-0 text-muted-foreground hover:text-foreground" />}>
                   <Plus className="h-3.5 w-3.5" />
                 </DialogTrigger>
-                <DialogContent className="bg-[#0f172a] border-border text-foreground max-w-sm">
+                <DialogContent className="bg-card border-border text-foreground max-w-sm">
                   <DialogHeader>
                     <DialogTitle>Direct Message</DialogTitle>
                     <DialogDescription className="text-foreground/40">Select a team member to start a private chat.</DialogDescription>
@@ -652,7 +651,7 @@ export default function Chat() {
                       placeholder="Search colleagues..." 
                       value={userSearchQuery}
                       onChange={e => setUserSearchQuery(e.target.value)}
-                      className="pl-9 bg-muted/40 border-border text-foreground" 
+                      className="pl-9 border-border text-foreground" 
                     />
                   </div>
                   <div className="max-h-60 overflow-y-auto space-y-1 pr-1">
@@ -662,17 +661,17 @@ export default function Chat() {
                         <button 
                           key={emp.id} 
                           onClick={() => handleStartDM(emp)}
-                          className="w-full flex items-center gap-3 p-2 hover:bg-muted/40 rounded-lg text-left"
+                          className="w-full flex items-center gap-3 p-2 hover: rounded-lg text-left"
                         >
                           <Avatar className="h-8 w-8">
                             <AvatarImage src={emp.profilePhotoURL} />
-                            <AvatarFallback className="bg-indigo-600 text-xs font-bold text-foreground">
+                            <AvatarFallback className="bg-primary text-xs font-bold text-foreground">
                               {name.split(" ").map((n: any) => n[0]).join("")}
                             </AvatarFallback>
                           </Avatar>
                           <div>
                             <p className="text-sm font-bold text-foreground">{name}</p>
-                            <p className="text-[10px] text-foreground/40">{emp.jobTitle || "Employee"}</p>
+                            <p className="text-xs text-foreground/40">{emp.jobTitle || "Employee"}</p>
                           </div>
                         </button>
                       );
@@ -688,15 +687,15 @@ export default function Chat() {
                   <button
                     key={channel.id}
                     onClick={() => setActiveChannel(channel.id)}
-                    className={cn("w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors text-left",
+                    className={cn("w-full flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors text-left",
                       activeChannel === channel.id 
-                        ? 'bg-indigo-100 text-indigo-700 font-bold' 
-                        : 'text-slate-600 hover:bg-slate-100'
+                        ? 'bg-muted text-primary font-semibold' 
+                        : 'text-foreground/80 hover:bg-muted/50'
                     )}
                   >
                     <Avatar className="h-5 w-5 shrink-0">
                       <AvatarImage src={info.photoURL} />
-                      <AvatarFallback className="bg-indigo-50 text-[9px] font-bold text-indigo-600">{info.initials}</AvatarFallback>
+                      <AvatarFallback className="bg-primary/10 text-xs font-bold text-primary">{info.initials}</AvatarFallback>
                     </Avatar>
                     <span className="truncate">{info.name}</span>
                   </button>
@@ -709,39 +708,42 @@ export default function Chat() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-white overflow-hidden">
+      <div className="flex-1 flex flex-col bg-card overflow-hidden">
         
         {/* Chat Header */}
-        <div className="h-16 border-b border-slate-200 flex items-center justify-between px-6 bg-white shrink-0">
-          <div className="flex items-center gap-2 min-w-0">
+        <div className="h-14 border-b border-border flex items-center justify-between px-4 bg-card shrink-0 shadow-sm z-10">
+          <div className="flex items-center gap-3 min-w-0">
             {activeInfo.type === 'dm' ? (
-              <Avatar className="h-6 w-6">
-                <AvatarImage src={activeInfo.photoURL} />
-                <AvatarFallback className="bg-indigo-100 text-indigo-700 text-xs font-bold">{activeInfo.initials}</AvatarFallback>
-              </Avatar>
+              <div className="relative">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={activeInfo.photoURL} />
+                  <AvatarFallback className="bg-primary/20 text-primary text-xs font-bold">{activeInfo.initials}</AvatarFallback>
+                </Avatar>
+                <div className="absolute bottom-0 right-0 h-2.5 w-2.5 bg-green-500 border-2 border-card rounded-full"></div>
+              </div>
             ) : activeInfo.type === 'custom_group' ? (
-              <Users className="h-5 w-5 text-slate-400 shrink-0" />
+              <Users className="h-5 w-5 text-muted-foreground shrink-0" />
             ) : activeInfo.type === 'department' ? (
-              <Building2 className="h-5 w-5 text-slate-400 shrink-0" />
+              <Building2 className="h-5 w-5 text-muted-foreground shrink-0" />
             ) : (
-              <Hash className="h-5 w-5 text-slate-400 shrink-0" />
+              <Hash className="h-5 w-5 text-muted-foreground shrink-0" />
             )}
-            <h2 className="font-extrabold text-slate-900 text-md truncate">{activeInfo.name}</h2>
+            <h2 className="font-bold text-foreground text-lg truncate">{activeInfo.name}</h2>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {/* Admin Privilege to Add/Manage Members in department/custom_group chat */}
             {canAccess(role, "MANAGE_USERS") && (activeChannelObj?.type === 'department' || activeChannelObj?.type === 'custom_group') && (
               <Dialog open={isManageMembersOpen} onOpenChange={setIsManageMembersOpen}>
                 <DialogTrigger render={
                   <Button 
                     variant="outline" 
-                    className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 font-bold flex items-center gap-1.5 shadow-sm rounded-lg text-xs h-8 cursor-pointer"
+                    className="border-primary/30 text-primary hover:bg-primary/10 font-bold flex items-center gap-1.5 shadow-sm rounded-lg text-xs h-8 cursor-pointer"
                   >
                     <Users className="h-3.5 w-3.5" />
                     Manage Members
                   </Button>
                 } />
-                <DialogContent className="bg-[#0f172a] border-border text-foreground max-w-md">
+                <DialogContent className="bg-card border-border text-foreground max-w-md">
                   <DialogHeader>
                     <DialogTitle>Manage Channel Members</DialogTitle>
                     <DialogDescription className="text-foreground/40">
@@ -755,7 +757,7 @@ export default function Chat() {
                       placeholder="Search colleagues..." 
                       value={memberSearchQuery}
                       onChange={e => setMemberSearchQuery(e.target.value)}
-                      className="pl-9 bg-muted/40 border-border text-foreground text-xs" 
+                      className="pl-9 border-border text-foreground text-xs" 
                     />
                   </div>
 
@@ -770,18 +772,18 @@ export default function Chat() {
                         return (
                           <div 
                             key={emp.id} 
-                            className="w-full flex items-center justify-between p-2 hover:bg-muted/40 rounded-lg text-left"
+                            className="w-full flex items-center justify-between p-2 hover: rounded-lg text-left"
                           >
                             <div className="flex items-center gap-3">
                               <Avatar className="h-8 w-8">
                                 <AvatarImage src={emp.profilePhotoURL} />
-                                <AvatarFallback className="bg-indigo-600 text-xs font-bold text-foreground">
+                                <AvatarFallback className="bg-primary text-xs font-bold text-foreground">
                                   {name.split(" ").map((n: any) => n[0]).join("")}
                                 </AvatarFallback>
                               </Avatar>
                               <div>
                                 <p className="text-sm font-bold text-foreground leading-none">{name}</p>
-                                <p className="text-[10px] text-foreground/40 mt-1">
+                                <p className="text-xs text-foreground/40 mt-1">
                                   {emp.jobTitle || "Employee"} • {emp.departments?.join(", ") || "No Department"}
                                 </p>
                               </div>
@@ -789,7 +791,7 @@ export default function Chat() {
 
                             <div className="flex items-center gap-2">
                               {isDeptMember ? (
-                                <span className="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-bold uppercase tracking-wider">
+                                <span className="text-xs bg-emerald-500/10 text-accent border border-emerald-500/20 px-2 py-0.5 rounded font-bold uppercase tracking-wider">
                                   Dept Member
                                 </span>
                               ) : (
@@ -797,7 +799,7 @@ export default function Chat() {
                                   onClick={() => handleToggleChannelMember(emp.id, !!isExplicitMember)}
                                   size="xs"
                                   variant={isExplicitMember ? "destructive" : "default"}
-                                  className={isExplicitMember ? "bg-rose-600 hover:bg-rose-500 text-foreground h-7 px-3 text-xs cursor-pointer" : "bg-indigo-600 hover:bg-indigo-500 text-foreground h-7 px-3 text-xs cursor-pointer border-none shadow-sm"}
+                                  className={isExplicitMember ? "bg-destructive hover:bg-destructive/80 text-foreground h-7 px-3 text-xs cursor-pointer" : "bg-primary hover:bg-primary/80 text-foreground h-7 px-3 text-xs cursor-pointer border-none shadow-sm"}
                                 >
                                   {isExplicitMember ? "Remove" : "Add to Chat"}
                                 </Button>
@@ -814,14 +816,14 @@ export default function Chat() {
             {!inCall && (
               <Button 
                 onClick={startCall} 
-                variant="outline" 
-                className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 font-bold flex items-center gap-1.5 shadow-sm rounded-lg text-xs h-8"
+                variant="ghost" 
+                size="icon"
+                className="text-muted-foreground hover:text-foreground h-9 w-9 rounded-md transition-colors"
               >
-                <Video className="h-3.5 w-3.5" />
-                Video Call
+                <Video className="h-5 w-5" />
               </Button>
             )}
-            <Button variant="ghost" size="icon" className="text-slate-500 hover:text-slate-900 hover:bg-slate-100">
+            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground hover:bg-muted h-9 w-9 rounded-md transition-colors">
               <MoreVertical className="h-5 w-5" />
             </Button>
           </div>
@@ -837,7 +839,7 @@ export default function Chat() {
                 {isVideoOff ? (
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-900 text-foreground/40">
                     <Avatar className="h-16 w-16 mb-2 border border-border">
-                      <AvatarFallback className="bg-indigo-600 text-foreground text-lg font-bold">
+                      <AvatarFallback className="bg-primary text-foreground text-lg font-bold">
                         {user?.fullName ? user.fullName[0] : (user?.displayName ? user.displayName[0] : "Me")}
                       </AvatarFallback>
                     </Avatar>
@@ -853,7 +855,7 @@ export default function Chat() {
                   />
                 )}
                 
-                <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-foreground border border-border flex items-center gap-1.5">
+                <div className="absolute bottom-3 left-3 bg-black/60 px-3 py-1 rounded-full text-xs font-bold text-foreground border border-border flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                   {user?.displayName || "Me"} (You)
                 </div>
@@ -863,21 +865,21 @@ export default function Chat() {
               <div className="aspect-video bg-slate-900 rounded-xl overflow-hidden relative border border-slate-800 group shadow-md flex items-center justify-center">
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-slate-900 to-indigo-950/20 text-foreground/50">
                   <div className="flex items-center gap-1 mb-4 h-8">
-                    <span className="w-1 bg-indigo-500 rounded-full h-6 animate-pulse" />
-                    <span className="w-1 bg-indigo-400 rounded-full h-8 animate-pulse delay-75" />
-                    <span className="w-1 bg-indigo-500 rounded-full h-4 animate-pulse delay-150" />
-                    <span className="w-1 bg-indigo-300 rounded-full h-7 animate-pulse delay-200" />
-                    <span className="w-1 bg-indigo-500 rounded-full h-5 animate-pulse delay-300" />
+                    <span className="w-1 bg-primary rounded-full h-6 animate-pulse" />
+                    <span className="w-1 bg-primary/80 rounded-full h-8 animate-pulse delay-75" />
+                    <span className="w-1 bg-primary rounded-full h-4 animate-pulse delay-150" />
+                    <span className="w-1 bg-primary/60 rounded-full h-7 animate-pulse delay-200" />
+                    <span className="w-1 bg-primary rounded-full h-5 animate-pulse delay-300" />
                   </div>
                   <Avatar className="h-16 w-16 mb-2 border border-border shadow-lg">
                     <AvatarFallback className="bg-purple-600 text-foreground text-lg font-bold">
                       SA
                     </AvatarFallback>
                   </Avatar>
-                  <span className="text-xs font-bold uppercase tracking-wider font-mono text-indigo-300">System Administrator</span>
+                  <span className="text-xs font-bold uppercase tracking-wider font-mono text-primary/70">System Administrator</span>
                 </div>
                 
-                <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-foreground border border-border flex items-center gap-1.5">
+                <div className="absolute bottom-3 left-3 bg-black/60 px-3 py-1 rounded-full text-xs font-bold text-foreground border border-border flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                   Remote Host
                 </div>
@@ -916,7 +918,7 @@ export default function Chat() {
                 variant="outline" 
                 className={cn("h-11 w-11 rounded-full p-0 border border-slate-850", 
                   isScreenSharing 
-                    ? "bg-indigo-600 border-indigo-500 text-foreground hover:bg-indigo-500" 
+                    ? "bg-primary border-primary/80 text-foreground hover:bg-primary/90" 
                     : "bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-foreground"
                 )}
               >
@@ -935,24 +937,24 @@ export default function Chat() {
         )}
 
         {/* Messages List */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-1">
           {messages.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-3">
+            <div className="h-full flex flex-col items-center justify-center text-muted-foreground space-y-3">
               <MessageSquare className="h-12 w-12 opacity-20" />
               <p className="font-bold text-sm">No messages in {activeInfo.name} yet.</p>
               <p className="text-xs">Be the first to say hello!</p>
             </div>
           ) : (
             messages.map((msg, idx) => {
-              const isMe = msg.userId === user?.uid;
               const showAvatar = idx === 0 || messages[idx - 1].userId !== msg.userId;
+              const msgTime = msg.createdAt?.seconds ? format(new Date(msg.createdAt.seconds * 1000), 'h:mm a') : 'Just now';
               
               return (
-                <div key={msg.id} className={cn("flex gap-3", isMe ? 'flex-row-reverse' : 'flex-row', !showAvatar ? 'mt-1' : 'mt-4')}>
+                <div key={msg.id} className={cn("flex gap-3 hover: p-2 px-4 -mx-4 rounded-md transition-colors", !showAvatar ? 'mt-0' : 'mt-4')}>
                   {showAvatar ? (
                     <Avatar className="h-9 w-9 shrink-0">
                       <AvatarImage src={msg.userAvatar} />
-                      <AvatarFallback className="bg-indigo-100 text-indigo-700 font-bold text-xs">
+                      <AvatarFallback className="bg-primary/20 text-primary font-bold text-xs">
                         {msg.userName ? msg.userName.split(" ").map((n: any) => n[0]).join("") : "U"}
                       </AvatarFallback>
                     </Avatar>
@@ -960,20 +962,14 @@ export default function Chat() {
                     <div className="w-9 shrink-0" />
                   )}
                   
-                  <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[70%]`}>
+                  <div className="flex flex-col min-w-0 flex-1">
                     {showAvatar && (
-                      <div className="flex items-baseline gap-2 mb-1">
-                        <span className="text-xs font-bold text-slate-900">{msg.userName}</span>
-                        <span className="text-[9px] font-mono text-slate-400">
-                          {msg.createdAt?.seconds ? format(new Date(msg.createdAt.seconds * 1000), 'h:mm a') : 'Just now'}
-                        </span>
+                      <div className="flex items-baseline gap-2 mb-0.5">
+                        <span className="text-sm font-bold text-foreground">{msg.userName}</span>
+                        <span className="text-xs font-medium text-muted-foreground">{msgTime}</span>
                       </div>
                     )}
-                    <div className={cn("px-4 py-2 rounded-2xl text-xs shadow-sm font-medium leading-relaxed whitespace-pre-wrap",
-                      isMe 
-                        ? 'bg-indigo-600 text-foreground rounded-tr-sm' 
-                        : 'bg-slate-100 text-slate-900 rounded-tl-sm'
-                    )}>
+                    <div className="text-sm text-foreground/90 font-medium whitespace-pre-wrap leading-relaxed">
                       {msg.text}
                     </div>
                   </div>
@@ -985,37 +981,48 @@ export default function Chat() {
 
         {/* Typing Indicators */}
         {typingUsers.length > 0 && (
-          <div className="px-6 py-1.5 bg-slate-50 text-[10px] text-indigo-600 font-bold flex items-center gap-1.5 animate-pulse shrink-0 border-t border-slate-100">
+          <div className="px-6 py-1.5 text-xs text-primary font-bold flex items-center gap-1.5 animate-pulse shrink-0 border-t border-border">
             <span className="flex gap-0.5">
-              <span className="w-1 h-1 rounded-full bg-indigo-500 animate-bounce delay-100" style={{ animationDuration: '0.6s' }} />
-              <span className="w-1 h-1 rounded-full bg-indigo-500 animate-bounce delay-200" style={{ animationDuration: '0.6s' }} />
-              <span className="w-1 h-1 rounded-full bg-indigo-500 animate-bounce delay-300" style={{ animationDuration: '0.6s' }} />
+              <span className="w-1 h-1 rounded-full bg-primary animate-bounce delay-100" style={{ animationDuration: '0.6s' }} />
+              <span className="w-1 h-1 rounded-full bg-primary animate-bounce delay-200" style={{ animationDuration: '0.6s' }} />
+              <span className="w-1 h-1 rounded-full bg-primary animate-bounce delay-300" style={{ animationDuration: '0.6s' }} />
             </span>
             {typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"} typing...
           </div>
         )}
 
         {/* Message Input */}
-        <div className="p-4 bg-white border-t border-slate-200">
-          <form onSubmit={handleSendMessage} className="flex items-center gap-2">
-            <Button type="button" variant="ghost" size="icon" className="text-slate-400 hover:text-slate-600 shrink-0">
-              <ImageIcon className="h-5 w-5" />
-            </Button>
-            <Input
+        <div className="p-4 bg-card pr-[17rem]">
+          <form onSubmit={handleSendMessage} className="flex flex-col border border-border rounded-md focus-within:border-primary/50 focus-within:shadow-sm overflow-hidden transition-colors">
+            <textarea
               value={newMessage}
               onChange={(e) => {
                 setNewMessage(e.target.value);
                 handleTyping();
               }}
-              placeholder={`Message ${activeInfo.name}...`}
-              className="flex-1 bg-slate-50 border-slate-200 focus-visible:ring-indigo-500 rounded-full px-4 text-slate-950 font-medium text-xs h-9"
+              placeholder={`Type a new message in ${activeInfo.name}...`}
+              className="flex-1 bg-transparent border-none focus:ring-0 focus:outline-none resize-none min-h-[60px] p-3 text-sm text-foreground font-medium placeholder:text-muted-foreground/60 w-full"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage(e as any);
+                }
+              }}
             />
-            <Button type="button" variant="ghost" size="icon" className="text-slate-400 hover:text-slate-600 shrink-0">
-              <Smile className="h-5 w-5" />
-            </Button>
-            <Button type="submit" disabled={!newMessage.trim()} className="bg-indigo-600 hover:bg-indigo-700 text-foreground rounded-full h-9 w-9 p-0 shrink-0 shadow-md transition-transform active:scale-95 border-none flex items-center justify-center">
-              <Send className="h-4 w-4 ml-0.5" />
-            </Button>
+            <div className="flex items-center justify-between p-2 bg-transparent">
+              <div className="flex items-center gap-1">
+                <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                  <ImageIcon className="h-4 w-4" />
+                </Button>
+                <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                  <Smile className="h-4 w-4" />
+                </Button>
+              </div>
+              <Button type="submit" disabled={!newMessage.trim()} size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground h-8 px-4 rounded text-xs font-bold shadow-sm transition-transform active:scale-95 border-none">
+                <Send className="h-3.5 w-3.5 mr-1.5" />
+                Send
+              </Button>
+            </div>
           </form>
         </div>
       </div>

@@ -80,7 +80,7 @@ function SidebarContent({ isExpanded, onNavigate }: { isExpanded: boolean; onNav
     <div className="flex flex-col h-full overflow-hidden">
       {/* Logo */}
       <div className="h-16 flex items-center px-4 gap-3 shrink-0 border-b border-sidebar-border">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white shadow-glow-blue shrink-0">
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white shadow-sm shrink-0">
           <Zap className="h-4.5 w-4.5 text-white fill-white/20 animate-pulse" />
         </div>
         {isExpanded && (
@@ -90,7 +90,7 @@ function SidebarContent({ isExpanded, onNavigate }: { isExpanded: boolean; onNav
             className="flex flex-col"
           >
             <span className="font-bold text-sm tracking-tight text-sidebar-foreground leading-tight">Mints Global</span>
-            <span className="text-[10px] font-semibold text-blue-400 uppercase tracking-widest leading-none">ERP Platform</span>
+            <span className="text-xs font-semibold text-primary uppercase tracking-widest leading-none">ERP Platform</span>
           </motion.div>
         )}
       </div>
@@ -105,7 +105,7 @@ function SidebarContent({ isExpanded, onNavigate }: { isExpanded: boolean; onNav
           return (
             <div key={gi} className="space-y-1.5">
               {isExpanded && (
-                <div className="px-3 text-[10px] font-bold uppercase tracking-[0.15em] text-sidebar-foreground/30 mb-2">
+                <div className="px-3 text-xs font-bold uppercase tracking-[0.15em] text-sidebar-foreground/50 mb-2">
                   {group.label}
                 </div>
               )}
@@ -118,23 +118,21 @@ function SidebarContent({ isExpanded, onNavigate }: { isExpanded: boolean; onNav
                       href={item.href}
                       onClick={onNavigate}
                       title={!isExpanded ? item.name : undefined}
-                      className={cn(
-                        "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group relative border border-transparent",
+                      className={cn("flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 group relative border border-transparent",
                         active
-                          ? "bg-blue-600/20 text-blue-350 dark:text-blue-300 border-blue-500/25 shadow-sm"
-                          : "text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+                          ? "bg-primary/20 text-primary/90 dark:text-primary/80 border-primary/25 shadow-sm"
+                          : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
                       )}
                     >
                       {active && (
                         <motion.div
                           layoutId="activeNavIndicator"
-                          className="absolute left-0 top-2 bottom-2 w-1 bg-blue-500 rounded-r-full"
+                          className="absolute left-0 top-2 bottom-2 w-1 bg-primary rounded-r-full"
                         />
                       )}
                       <item.icon
-                        className={cn(
-                          "h-5 w-5 shrink-0 relative z-10",
-                          active ? "text-blue-550 dark:text-blue-400" : "text-sidebar-foreground/45 group-hover:text-sidebar-foreground"
+                        className={cn("h-5 w-5 shrink-0 relative z-10",
+                          active ? "text-primary dark:text-primary" : "text-sidebar-foreground/60 group-hover:text-sidebar-foreground"
                         )}
                       />
                       {isExpanded && (
@@ -152,9 +150,9 @@ function SidebarContent({ isExpanded, onNavigate }: { isExpanded: boolean; onNav
       {/* User Footer */}
       <div className="p-4 border-t border-sidebar-border bg-sidebar-accent/40 shrink-0">
         <div className="flex items-center gap-3">
-          <Avatar className="h-9 w-9 border border-sidebar-border ring-2 ring-blue-500/20 ring-offset-2 ring-offset-transparent shrink-0">
+          <Avatar className="h-9 w-9 border border-sidebar-border ring-2 ring-primary/20 ring-offset-2 ring-offset-transparent shrink-0">
             <AvatarImage src={user?.photoURL || undefined} alt={user?.fullName || user?.displayName || "User"} />
-            <AvatarFallback className="bg-blue-800 text-blue-200 text-[10px] font-bold">
+            <AvatarFallback className="bg-primary/20 text-primary/70 text-xs font-bold">
               {getInitials(user?.fullName || user?.displayName || "")}
             </AvatarFallback>
           </Avatar>
@@ -166,8 +164,8 @@ function SidebarContent({ isExpanded, onNavigate }: { isExpanded: boolean; onNav
               className="flex-1 min-w-0"
             >
               <p className="text-xs font-bold text-sidebar-foreground truncate leading-tight">{user?.fullName || user?.displayName || "User"}</p>
-              <p className="text-[10px] text-blue-400/80 font-medium capitalize truncate leading-none mt-0.5">
-                {user?.jobTitle || roleMeta?.label || role} {user?.role !== role && <span className="text-[9px] text-amber-400 font-bold ml-1 animate-pulse">(Sim)</span>}
+              <p className="text-xs text-primary/80 font-medium capitalize truncate leading-none mt-0.5">
+                {user?.jobTitle || roleMeta?.label || role} {user?.role !== role && <span className="text-xs text-amber-400 font-bold ml-1 animate-pulse">(Sim)</span>}
               </p>
             </motion.div>
           )}
@@ -202,7 +200,10 @@ export function Sidebar() {
         transition={{ type: "spring", stiffness: 400, damping: 35 }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className="fixed inset-y-0 left-0 z-50 glass-dark hidden lg:flex flex-col overflow-hidden"
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 bg-sidebar border-r border-border hidden lg:flex flex-col overflow-hidden transition-shadow",
+          isHovered ? "shadow-2xl" : "shadow-none"
+        )}
       >
         <SidebarContent isExpanded={isHovered} />
       </motion.aside>
@@ -210,7 +211,7 @@ export function Sidebar() {
       {/* Mobile hamburger */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 flex items-center justify-center glass rounded-xl text-white/60 hover:text-white cursor-pointer"
+        className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 flex items-center justify-center bg-card border border-border shadow-sm rounded-xl text-muted-foreground hover:text-foreground cursor-pointer"
       >
         <Menu className="h-5 w-5" />
       </button>
