@@ -251,7 +251,7 @@ export function GlobalTimer() {
         className={cn("flex items-center gap-2 rounded-full px-4 py-3 font-bold shadow-lg transition-all transform hover:scale-105 active:scale-95 border cursor-pointer",
           isRunning 
             ? "bg-primary text-primary-foreground border-0 shadow-[0_0_24px_rgba(112,130,56,0.3)] hover:bg-primary/80 animate-pulse-slow" 
-            : " text-foreground border-border hover: shadow-card "
+            : " text-foreground border-border hover:shadow-card "
         )}
       >
         {isRunning ? (

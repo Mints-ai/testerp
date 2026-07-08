@@ -122,7 +122,7 @@ export function TopNav() {
 
           <button 
             onClick={() => setCmdOpen(true)}
-            className="hidden md:flex relative w-full max-w-sm items-center gap-2 rounded-xl bg-card border border-border shadow-sm border border-border px-4 py-2 text-xs text-muted-foreground/80 hover:text-foreground hover:border-border transition-all cursor-text group"
+            className="hidden md:flex relative w-full max-w-sm items-center gap-2 rounded-xl bg-card border border-border shadow-sm px-4 py-2 text-xs text-muted-foreground/80 hover:text-foreground hover:border-border transition-all cursor-text group"
           >
             <Search className="h-3.5 w-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
             <span>Search workspace...</span>

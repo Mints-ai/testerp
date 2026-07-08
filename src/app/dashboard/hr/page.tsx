@@ -230,7 +230,7 @@ export default function EmployeeDirectory() {
                         <div className="relative">
                           <Avatar className="h-16 w-16 border-2 border-border shadow-sm bg-blue-950">
                             <AvatarImage src={emp.profilePhotoURL} alt={emp.fullName} />
-                            <AvatarFallback className="bg-primary/20 text-primary/70 text-base font-bold">
+                            <AvatarFallback>
                               {getInitials(emp.fullName)}
                             </AvatarFallback>
                           </Avatar>
@@ -278,13 +278,28 @@ export default function EmployeeDirectory() {
                         </div>
                         
                         {emp.role === "intern" && (
-                          <div className="mt-3 pt-3 border-t border-border w-full text-left">
-                            <div className="flex justify-between text-xs text-foreground/40 font-bold mb-1 uppercase tracking-wider">
-                              <span>Intern Progress</span>
-                              <span>65%</span>
-                            </div>
-                            <div className="bg-card border border-border shadow-sm-progress w-full">
-                              <div className="bg-card border border-border shadow-sm-progress-fill" style={{ width: "65%" }}></div>
+                          <div className="mt-4 w-full flex items-center justify-between p-3 bg-secondary/30 rounded-xl border border-border/50 shadow-sm">
+                            <span className="text-xs text-foreground/50 font-bold uppercase tracking-wider">Intern Progress</span>
+                            <div className="relative h-10 w-10 flex items-center justify-center">
+                              <svg className="h-full w-full -rotate-90 transform" viewBox="0 0 36 36">
+                                <path
+                                  className="text-border"
+                                  strokeWidth="3"
+                                  stroke="currentColor"
+                                  fill="none"
+                                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                />
+                                <path
+                                  className="text-primary transition-all duration-1000 ease-in-out drop-shadow-md"
+                                  strokeDasharray="65, 100"
+                                  strokeWidth="3"
+                                  strokeLinecap="round"
+                                  stroke="currentColor"
+                                  fill="none"
+                                  d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                />
+                              </svg>
+                              <span className="absolute text-[9px] font-bold text-foreground">65%</span>
                             </div>
                           </div>
                         )}

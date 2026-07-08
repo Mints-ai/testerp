@@ -188,7 +188,11 @@ export default function DashboardHome() {
               <CheckCircle2 className="h-5 w-5 text-primary" />
             </CardHeader>
             <CardContent className="z-10 relative pb-8">
-              <div className="stat-number">{stats.openTasks}</div>
+              {stats.openTasks > 0 ? (
+                <div className="stat-number">{stats.openTasks}</div>
+              ) : (
+                <div className="text-3xl font-light text-muted-foreground/30 border-2 border-dashed border-border/50 rounded-lg px-4 py-1 inline-block">0</div>
+              )}
               <p className="text-xs text-foreground/50 mt-1">Live operational tasks</p>
             </CardContent>
             <div className="absolute bottom-0 left-0 right-0 h-14 opacity-20 group-hover:opacity-40 transition-opacity">
@@ -216,7 +220,11 @@ export default function DashboardHome() {
                   <Briefcase className="h-5 w-5 text-accent" />
                 </CardHeader>
                 <CardContent className="z-10 relative pb-8">
-                  <div className="stat-number">{stats.activeProjects}</div>
+                  {stats.activeProjects > 0 ? (
+                    <div className="stat-number">{stats.activeProjects}</div>
+                  ) : (
+                    <div className="text-3xl font-light text-muted-foreground/30 border-2 border-dashed border-border/50 rounded-lg px-4 py-1 inline-block">0</div>
+                  )}
                   <p className="text-xs text-foreground/50 mt-1">Actively loaded projects</p>
                 </CardContent>
                 <div className="absolute bottom-0 left-0 right-0 h-14 opacity-20 group-hover:opacity-40 transition-opacity">
@@ -236,8 +244,12 @@ export default function DashboardHome() {
                   <Users className="h-5 w-5 text-primary" />
                 </CardHeader>
                 <CardContent className="z-10 relative pb-8">
-                  <div className="stat-number flex items-baseline gap-2">
-                    <span>{stats.teamSize}</span>
+                  <div className="flex items-baseline gap-2">
+                    {stats.teamSize > 0 ? (
+                      <div className="stat-number">{stats.teamSize}</div>
+                    ) : (
+                      <div className="text-3xl font-light text-muted-foreground/30 border-2 border-dashed border-border/50 rounded-lg px-4 py-1 inline-block">0</div>
+                    )}
                     {stats.onlineCount > 0 && (
                       <span className="text-xs text-primary font-bold bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full flex items-center gap-1 animate-pulse">
                         <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>

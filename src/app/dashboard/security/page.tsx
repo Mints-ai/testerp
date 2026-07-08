@@ -608,11 +608,22 @@ export default function SecurityAuditDashboard() {
                 </CardHeader>
                 <CardContent className="p-0">
                   {loading ? (
-                    <div className="p-16 text-center">
-                      <div className="inline-flex items-center gap-3 text-xs text-foreground/30 font-bold uppercase tracking-wider">
-                        <RefreshCw className="h-4 w-4 animate-spin text-red-400" />
-                        Loading security events...
-                      </div>
+                    <div className="divide-y divide-white/[0.04]">
+                      {[1, 2, 3, 4, 5].map((idx) => (
+                        <div key={idx} className="flex items-start gap-4 px-5 py-3.5">
+                          <div className="pt-1 shrink-0">
+                            <div className="w-2 h-2 rounded-full bg-border animate-pulse" />
+                          </div>
+                          <div className="flex-1 space-y-2">
+                            <div className="flex justify-between items-center">
+                              <div className="h-4 bg-secondary w-32 rounded animate-pulse" />
+                              <div className="h-3 bg-secondary w-20 rounded animate-pulse" />
+                            </div>
+                            <div className="h-3 bg-secondary w-3/4 rounded animate-pulse" />
+                            <div className="h-3 bg-secondary w-1/4 rounded animate-pulse" />
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   ) : filtered.length === 0 ? (
                     <div className="p-16 text-center flex flex-col items-center gap-3">

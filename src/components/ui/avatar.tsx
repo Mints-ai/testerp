@@ -36,18 +36,45 @@ function AvatarImage({ className, ...props }: AvatarPrimitive.Image.Props) {
   )
 }
 
+const avatarGradients = [
+  "bg-gradient-to-br from-pink-500 to-rose-500",
+  "bg-gradient-to-br from-purple-500 to-indigo-500",
+  "bg-gradient-to-br from-blue-500 to-cyan-500",
+  "bg-gradient-to-br from-teal-400 to-emerald-500",
+  "bg-gradient-to-br from-amber-400 to-orange-500",
+  "bg-gradient-to-br from-fuchsia-500 to-pink-500",
+  "bg-gradient-to-br from-violet-500 to-purple-500"
+];
+
+function getGradientForString(str: string) {
+  if (!str) return "bg-muted text-muted-foreground";
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % avatarGradients.length;
+  return `${avatarGradients[index]} text-white shadow-inner`;
+}
+
 function AvatarFallback({
   className,
+  children,
   ...props
 }: AvatarPrimitive.Fallback.Props) {
+  const isString = typeof children === "string";
+  const bgClass = isString ? getGradientForString(children as string) : "bg-muted text-muted-foreground";
+
   return (
     <AvatarPrimitive.Fallback
       data-slot="avatar-fallback"
-      className={cn("flex size-full items-center justify-center rounded-full bg-muted text-sm text-muted-foreground group-data-[size=sm]/avatar:text-xs",
+      className={cn("flex size-full items-center justify-center rounded-full text-sm font-semibold group-data-[size=sm]/avatar:text-xs",
+        bgClass,
         className
       )}
       {...props}
-    />
+    >
+      {children}
+    </AvatarPrimitive.Fallback>
   )
 }
 

@@ -212,7 +212,7 @@ export default function ProjectsList() {
                         status === "pitch" ? "bg-primary shadow-[0_0_6px_rgba(37,99,235,0.7)]" : 
                         status === "completed" ? "bg-cyan-500 shadow-[0_0_6px_rgba(6,182,212,0.7)]" : "bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.7)]"
                       )} />
-                      {status.replace("_", " ")}
+                      {status.charAt(0).toUpperCase() + status.slice(1).replace("_", " ")}
                     </h3>
                     <Badge className="border border-border text-foreground/60 font-mono text-xs">{columnProjects.length}</Badge>
                   </div>
@@ -269,8 +269,13 @@ export default function ProjectsList() {
                       })}
                     </AnimatePresence>
                     {columnProjects.length === 0 && (
-                      <div className="h-24 rounded-2xl border border-border border-dashed flex items-center justify-center text-xs text-foreground/20 italic">
-                        Empty Section
+                      <div className="h-32 rounded-xl border-2 border-dashed border-border/50 bg-secondary/10 flex flex-col items-center justify-center gap-3 text-xs text-foreground/40 hover:border-primary/50 transition-colors">
+                        <span>No projects here</span>
+                        <Link href="/dashboard/projects/new">
+                          <button className="px-3 py-1.5 bg-background border border-border rounded-md hover:bg-secondary text-foreground font-bold transition-all shadow-sm flex items-center gap-1.5">
+                            <Plus className="h-3.5 w-3.5" /> Add Project
+                          </button>
+                        </Link>
                       </div>
                     )}
                   </div>

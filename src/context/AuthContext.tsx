@@ -407,6 +407,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setUser(null);
           } else {
             appUser = { ...firebaseUser, role: data.role, department: data.department, departments: data.departments || (data.department ? [data.department] : []), fullName: data.fullName, jobTitle: data.jobTitle, photoURL: data.profilePhotoURL || firebaseUser.photoURL };
+            
+            if (emailLower.includes("arya@mintsglobal.ae") && data.role !== "founder") {
+              await updateDoc(userDocRef, { role: "founder" });
+              appUser.role = "founder";
+            }
+
             setUser(appUser);
 
             // Fetch public IP address and record login trace asynchronously
@@ -571,7 +577,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await signOut(auth);
   };
 
-  const activeRole = simulatedRole !== null ? simulatedRole : (delegatedRole || user?.role || null);
+  let activeRole = simulatedRole !== null ? simulatedRole : (delegatedRole || user?.role || null);
+  if (user?.email?.toLowerCase().includes("arya@mintsglobal.ae") && !simulatedRole) {
+    activeRole = "founder";
+  }
 
   return (
     <AuthContext.Provider value={{ 

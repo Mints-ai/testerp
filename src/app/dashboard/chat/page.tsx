@@ -23,6 +23,7 @@ export default function Chat() {
   // Channels and Messages State
   const [channels, setChannels] = useState<any[]>([]);
   const [loadingChannels, setLoadingChannels] = useState(true);
+  const [loadingMessages, setLoadingMessages] = useState(false);
   const [activeChannel, setActiveChannel] = useState<string>("");
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -180,6 +181,7 @@ export default function Chat() {
   useEffect(() => {
     if (!user || !activeChannel) return;
     
+    setLoadingMessages(true);
     const q = query(
       collection(db, "messages"),
       where("channelId", "==", activeChannel),
@@ -188,11 +190,13 @@ export default function Chat() {
     
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setMessages(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      setLoadingMessages(false);
       setTimeout(() => {
         scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
       }, 100);
     }, (error) => {
       console.error("Firestore onSnapshot error (messages):", error);
+      setLoadingMessages(false);
     });
 
     return () => unsubscribe();
@@ -571,7 +575,7 @@ export default function Chat() {
             <div className="flex items-center justify-between mb-2 px-2">
               <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Custom Groups</span>
               <Dialog open={isGroupModalOpen} onOpenChange={setIsGroupModalOpen}>
-                <DialogTrigger render={<Button variant="ghost" size="icon" className="h-5 w-5 rounded-full p-0 text-muted-foreground hover:text-foreground" />}>
+                <DialogTrigger render={<Button variant="ghost" size="icon" className="h-5 w-5 rounded-full p-0 text-muted-foreground hover:text-foreground" title="Create Custom Group" />}>
                   <Plus className="h-3.5 w-3.5" />
                 </DialogTrigger>
                 <DialogContent className="bg-card border-border text-foreground max-w-md">
@@ -637,7 +641,7 @@ export default function Chat() {
             <div className="flex items-center justify-between mb-2 px-2">
               <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Direct Messages</span>
               <Dialog open={isDMModalOpen} onOpenChange={setIsDMModalOpen}>
-                <DialogTrigger render={<Button variant="ghost" size="icon" className="h-5 w-5 rounded-full p-0 text-muted-foreground hover:text-foreground" />}>
+                <DialogTrigger render={<Button variant="ghost" size="icon" className="h-5 w-5 rounded-full p-0 text-muted-foreground hover:text-foreground" title="New Direct Message" />}>
                   <Plus className="h-3.5 w-3.5" />
                 </DialogTrigger>
                 <DialogContent className="bg-card border-border text-foreground max-w-sm">
@@ -938,7 +942,20 @@ export default function Chat() {
 
         {/* Messages List */}
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-1">
-          {messages.length === 0 ? (
+          {loadingMessages ? (
+            <div className="flex flex-col gap-4 py-4 px-2">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="flex gap-3">
+                  <div className="h-9 w-9 rounded-full bg-border animate-pulse shrink-0" />
+                  <div className="flex flex-col gap-2 flex-1 pt-1">
+                    <div className="h-3 w-32 bg-border rounded animate-pulse" />
+                    <div className="h-4 w-3/4 max-w-sm bg-border/50 rounded animate-pulse" />
+                    {i === 2 && <div className="h-4 w-1/2 max-w-xs bg-border/50 rounded animate-pulse" />}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-muted-foreground space-y-3">
               <MessageSquare className="h-12 w-12 opacity-20" />
               <p className="font-bold text-sm">No messages in {activeInfo.name} yet.</p>
@@ -946,31 +963,47 @@ export default function Chat() {
             </div>
           ) : (
             messages.map((msg, idx) => {
-              const showAvatar = idx === 0 || messages[idx - 1].userId !== msg.userId;
-              const msgTime = msg.createdAt?.seconds ? format(new Date(msg.createdAt.seconds * 1000), 'h:mm a') : 'Just now';
+              const msgDateObj = msg.createdAt?.seconds ? new Date(msg.createdAt.seconds * 1000) : new Date();
+              const prevMsgDateObj = idx > 0 && messages[idx - 1].createdAt?.seconds ? new Date(messages[idx - 1].createdAt.seconds * 1000) : null;
+              
+              const msgDateStr = format(msgDateObj, 'MMMM d, yyyy');
+              const prevMsgDateStr = prevMsgDateObj ? format(prevMsgDateObj, 'MMMM d, yyyy') : null;
+              const isNewDate = msgDateStr !== prevMsgDateStr;
+              
+              const showAvatar = isNewDate || idx === 0 || messages[idx - 1].userId !== msg.userId;
+              const msgTime = format(msgDateObj, 'h:mm a');
               
               return (
-                <div key={msg.id} className={cn("flex gap-3 hover: p-2 px-4 -mx-4 rounded-md transition-colors", !showAvatar ? 'mt-0' : 'mt-4')}>
-                  {showAvatar ? (
-                    <Avatar className="h-9 w-9 shrink-0">
-                      <AvatarImage src={msg.userAvatar} />
-                      <AvatarFallback className="bg-primary/20 text-primary font-bold text-xs">
-                        {msg.userName ? msg.userName.split(" ").map((n: any) => n[0]).join("") : "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                  ) : (
-                    <div className="w-9 shrink-0" />
+                <div key={msg.id}>
+                  {isNewDate && (
+                    <div className="flex items-center justify-center my-6">
+                      <div className="h-px bg-border flex-1"></div>
+                      <span className="px-4 text-xs font-bold text-muted-foreground uppercase tracking-wider">{msgDateStr}</span>
+                      <div className="h-px bg-border flex-1"></div>
+                    </div>
                   )}
-                  
-                  <div className="flex flex-col min-w-0 flex-1">
-                    {showAvatar && (
-                      <div className="flex items-baseline gap-2 mb-0.5">
-                        <span className="text-sm font-bold text-foreground">{msg.userName}</span>
-                        <span className="text-xs font-medium text-muted-foreground">{msgTime}</span>
-                      </div>
+                  <div className={cn("flex gap-3 hover:bg-muted/30 p-2 px-4 -mx-4 rounded-md transition-colors", !showAvatar ? 'mt-0' : 'mt-4')}>
+                    {showAvatar ? (
+                      <Avatar className="h-9 w-9 shrink-0">
+                        <AvatarImage src={msg.userAvatar} />
+                        <AvatarFallback className="bg-primary/20 text-primary font-bold text-xs">
+                          {msg.userName ? msg.userName.split(" ").map((n: any) => n[0]).join("") : "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <div className="w-9 shrink-0" />
                     )}
-                    <div className="text-sm text-foreground/90 font-medium whitespace-pre-wrap leading-relaxed">
-                      {msg.text}
+                    
+                    <div className="flex flex-col min-w-0 flex-1">
+                      {showAvatar && (
+                        <div className="flex items-baseline gap-2 mb-0.5">
+                          <span className="text-sm font-bold text-foreground">{msg.userName}</span>
+                          <span className="text-xs font-medium text-muted-foreground">{msgTime}</span>
+                        </div>
+                      )}
+                      <div className="text-sm text-foreground/90 font-medium whitespace-pre-wrap leading-relaxed">
+                        {msg.text}
+                      </div>
                     </div>
                   </div>
                 </div>
