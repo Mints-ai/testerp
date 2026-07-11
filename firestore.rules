@@ -123,6 +123,12 @@ service cloud.firestore {
     }
 
     // Settings Collection Rules
+    // settings/permissions is readable publicly so the permissions listener
+    // can initialize before Firebase Auth state is confirmed on page load.
+    match /settings/permissions {
+      allow read: if true;
+      allow write: if isAuth() && isManagerOrAbove();
+    }
     match /settings/{settingId} {
       allow read: if isAuth();
       allow write: if isAuth() && isManagerOrAbove();

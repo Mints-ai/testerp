@@ -48,17 +48,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [delegatedRole, setDelegatedRole] = useState<string | null>(null);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
-  // Dynamic Permissions sync
+  // Dynamic Permissions sync — only after a user is authenticated to avoid
+  // Firestore "client is offline" errors that block the loading state from resolving.
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, "settings", "permissions"), (docSnap) => {
-      if (docSnap.exists()) {
-        setDynamicPermissions(docSnap.data() as Record<string, string[]>);
-      }
-    }, (err) => {
-      console.warn("Failed to load dynamic permissions from Firestore, using static defaults:", err);
-    });
+    if (!user) return;
+    let unsub: () => void = () => {};
+    try {
+      unsub = onSnapshot(doc(db, "settings", "permissions"), (docSnap) => {
+        if (docSnap.exists()) {
+          setDynamicPermissions(docSnap.data() as Record<string, string[]>);
+        }
+      }, (err) => {
+        console.warn("Failed to load dynamic permissions from Firestore, using static defaults:", err);
+      });
+    } catch (err) {
+      console.warn("Could not attach permissions listener:", err);
+    }
     return () => unsub();
-  }, []);
+  }, [user]);
 
   // Session Tracking & Revocation & Delegations listener
   useEffect(() => {
