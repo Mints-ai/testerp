@@ -35,7 +35,6 @@ export const CHAT_TOOLS = [
             },
         },
     },
-
     {
         type: "function",
         function: {
@@ -73,6 +72,10 @@ export const CHAT_TOOLS = [
         },
     },
 ] as const;
+
+
+
+
 
 // ---------------------------------------------------------------------------
 // Entity resolution: turns a model-extracted label (e.g. "Acme") into a real
