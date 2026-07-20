@@ -35,6 +35,7 @@ export const CHAT_TOOLS = [
             },
         },
     },
+
     {
         type: "function",
         function: {
