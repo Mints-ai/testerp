@@ -76,11 +76,6 @@ export const CHAT_TOOLS = [
         },
     },
 ] as const;
-
-
-
-
-
 // ---------------------------------------------------------------------------
 // Entity resolution: turns a model-extracted label (e.g. "Acme") into a real
 // Firestore record. This string is untrusted input -- it is used only to
