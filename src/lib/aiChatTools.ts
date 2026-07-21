@@ -8,8 +8,8 @@ import { canAccess } from "@/lib/permissions";
 // by anything in the chat message itself.
 // ---------------------------------------------------------------------------
 export interface ChatSession {
-  uid: string;
-  role: string;
+    uid: string;
+    role: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -19,23 +19,23 @@ export interface ChatSession {
 // only ever call what's listed in this array.
 // ---------------------------------------------------------------------------
 export const CHAT_TOOLS = [
-  {
-    type: "function",
-    function: {
-      name: "getEmployeeDetails",
-      description:
-        "Get details about an employee: job title, department, email, and the project(s) they are currently working on. Defaults to the requester's own record if no name is given.",
-      parameters: {
-        type: "object",
-        properties: {
-          employeeName: {
-            type: "string",
-            description: "Full or partial name of the employee. Omit to mean 'myself'.",
-          },
+    {
+        type: "function",
+        function: {
+            name: "getEmployeeDetails",
+            description:
+                "Get details about an employee: job title, department, email, and the project(s) they are currently working on. Defaults to the requester's own record if no name is given.",
+            parameters: {
+                type: "object",
+                properties: {
+                    employeeName: {
+                        type: "string",
+                        description: "Full or partial name of the employee. Omit to mean 'myself'.",
+                    },
+                },
+            },
         },
-      },
     },
-  },
 ] as const;
 
 // ---------------------------------------------------------------------------
@@ -44,16 +44,16 @@ export const CHAT_TOOLS = [
 // decide *what* to look up, never *who is asking* or *what is allowed*.
 // ---------------------------------------------------------------------------
 function fuzzyFind<T extends Record<string, any>>(
-  items: T[],
-  field: string,
-  search: string
+    items: T[],
+    field: string,
+    search: string
 ): T | null {
-  const lower = search.toLowerCase();
-  return (
-    items.find((i) => i[field]?.toLowerCase() === lower) ||
-    items.find((i) => i[field]?.toLowerCase().includes(lower)) ||
-    null
-  );
+    const lower = search.toLowerCase();
+    return (
+        items.find((i) => i[field]?.toLowerCase() === lower) ||
+        items.find((i) => i[field]?.toLowerCase().includes(lower)) ||
+        null
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -66,14 +66,14 @@ function fuzzyFind<T extends Record<string, any>>(
 // your actual `projects` collection).
 // ---------------------------------------------------------------------------
 async function getCurrentProjectsForEmployee(employeeId: string) {
-  const snap = await getDocs(
-    query(
-      collection(db, "projects"),
-      where("memberIds", "array-contains", employeeId),
-      where("status", "==", "active")
-    )
-  );
-  return snap.docs.map((d) => d.data().name).filter(Boolean);
+    const snap = await getDocs(
+        query(
+            collection(db, "projects"),
+            where("memberIds", "array-contains", employeeId),
+            where("status", "==", "active")
+        )
+    );
+    return snap.docs.map((d) => d.data().name).filter(Boolean);
 }
 
 // ---------------------------------------------------------------------------
@@ -84,37 +84,38 @@ async function getCurrentProjectsForEmployee(employeeId: string) {
 //   the model was told during the conversation.
 // ---------------------------------------------------------------------------
 export async function getEmployeeDetails(session: ChatSession, employeeName?: string) {
-  if (!employeeName) {
-    const selfDoc = await getDoc(doc(db, "employees", session.uid));
-    if (!selfDoc.exists()) return { error: "not_found" };
-    const d = selfDoc.data();
-    const currentProjects = await getCurrentProjectsForEmployee(session.uid);
+    if (!employeeName) {
+        const selfDoc = await getDoc(doc(db, "employees", session.uid));
+        if (!selfDoc.exists()) return { error: "not_found" };
+        const d = selfDoc.data();
+        const currentProjects = await getCurrentProjectsForEmployee(session.uid);
+        return {
+            fullName: d.fullName,
+            jobTitle: d.jobTitle,
+            department: d.department,
+            email: d.email,
+            currentProjects,
+        };
+    }
+
+    if (!canAccess(session.role, "VIEW_ALL_EMPLOYEES")) {
+        return { error: "not_authorized" };
+    }
+
+    const snap = await getDocs(
+        query(collection(db, "employees"), where("isActive", "==", true))
+    );
+    const employees = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as any[];
+    const match = fuzzyFind(employees, "fullName", employeeName);
+    if (!match) return { error: "not_found" };
+
+    const currentProjects = await getCurrentProjectsForEmployee(match.id);
     return {
-      fullName: d.fullName,
-      jobTitle: d.jobTitle,
-      department: d.department,
-      email: d.email,
-      currentProjects,
+        fullName: match.fullName,
+        jobTitle: match.jobTitle,
+        department: match.department,
+        email: match.email,
+        currentProjects,
     };
-  }
-
-  if (!canAccess(session.role, "VIEW_ALL_EMPLOYEES")) {
-    return { error: "not_authorized" };
-  }
-
-  const snap = await getDocs(
-    query(collection(db, "employees"), where("isActive", "==", true))
-  );
-  const employees = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as any[];
-  const match = fuzzyFind(employees, "fullName", employeeName);
-  if (!match) return { error: "not_found" };
-
-  const currentProjects = await getCurrentProjectsForEmployee(match.id);
-  return {
-    fullName: match.fullName,
-    jobTitle: match.jobTitle,
-    department: match.department,
-    email: match.email,
-    currentProjects,
-  };
 }
+
