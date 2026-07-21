@@ -110,6 +110,7 @@ export async function getEmployeeDetails(session: ChatSession, employeeName?: st
             fullName: d.fullName,
             jobTitle: d.jobTitle,
             department: d.department,
+            projectDetails: d.projectDetails,
             email: d.email,
         };
     }
@@ -129,66 +130,9 @@ export async function getEmployeeDetails(session: ChatSession, employeeName?: st
         fullName: match.fullName,
         jobTitle: match.jobTitle,
         department: match.department,
+        projectDetails: match.projectDetails,
         email: match.email,
     };
 }
 
 // ---------------------------------------------------------------------------
-// Tool 2: project details
-// - Visible to anyone with VIEW_ALL_FINANCE (matches the permission your
-//   existing projects/page.tsx already uses to gate "see all projects"),
-//   or to anyone listed in the project's memberIds array.
-// ---------------------------------------------------------------------------
-export async function getProjectDetails(session: ChatSession, projectName: string) {
-    const canViewAll = canAccess(session.role, "VIEW_ALL_FINANCE");
-
-    const snap = await getDocs(collection(db, "projects"));
-    const projects = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as any[];
-    const match = fuzzyFind(projects, "name", projectName);
-
-    if (!match) return { error: "not_found" };
-
-    const isMember = match.memberIds?.includes(session.uid);
-    if (!canViewAll && !isMember) {
-        return { error: "not_authorized" };
-    }
-
-    return {
-        name: match.name,
-        status: match.status,
-        serviceType: match.serviceType,
-        startDate: match.startDate,
-        endDate: match.endDate,
-        progress: match.progress ?? null,
-    };
-}
-
-// ---------------------------------------------------------------------------
-// Tool 3: client updates
-// - Basic info (company, services, health score) visible to any employee.
-// - CRM notes are more sensitive and gated behind VIEW_DEPT_FINANCE
-//   (manager and above). NOTE: there is no dedicated VIEW_CLIENTS permission
-//   in permissions.ts today -- this reuses VIEW_DEPT_FINANCE as the closest
-//   fit. Confirm this is the intended gate before relying on it in
-//   production; add a dedicated permission if the CRM notes need finer-
-//   grained control.
-// ---------------------------------------------------------------------------
-export async function getClientUpdates(session: ChatSession, clientName: string) {
-    const snap = await getDocs(collection(db, "clients"));
-    const clients = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as any[];
-    const match = fuzzyFind(clients, "companyName", clientName);
-
-    if (!match) return { error: "not_found" };
-
-    const basicInfo = {
-        companyName: match.companyName,
-        servicesSubscribed: match.servicesSubscribed,
-        healthScore: match.healthScore,
-    };
-
-    if (!canAccess(session.role, "VIEW_DEPT_FINANCE")) {
-        return basicInfo;
-    }
-
-    return { ...basicInfo, notes: match.notes ?? null };
-}
