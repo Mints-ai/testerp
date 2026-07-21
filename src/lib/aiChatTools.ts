@@ -1,5 +1,4 @@
-import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { adminDb } from "@/lib/firebaseAdmin";
 import { canAccess } from "@/lib/permissions";
 
 // ---------------------------------------------------------------------------
@@ -61,18 +60,16 @@ function fuzzyFind<T extends Record<string, any>>(
 // document -- each project has a memberIds array of employee uids.
 // So "what is this employee currently working on" means: search the
 // projects collection for any project whose memberIds array contains this
-// employee's uid, and whose status is "active" (adjust the status value
-// below if your data uses different status strings -- confirm against
-// your actual `projects` collection).
+// employee's uid, and whose status is "active" (confirm this string matches
+// your actual `projects` collection's status values).
 // ---------------------------------------------------------------------------
 async function getCurrentProjectsForEmployee(employeeId: string) {
-    const snap = await getDocs(
-        query(
-            collection(db, "projects"),
-            where("memberIds", "array-contains", employeeId),
-            where("status", "==", "active")
-        )
-    );
+    const snap = await adminDb
+        .collection("projects")
+        .where("memberIds", "array-contains", employeeId)
+        .where("status", "==", "active")
+        .get();
+
     return snap.docs.map((d) => d.data().name).filter(Boolean);
 }
 
@@ -85,9 +82,9 @@ async function getCurrentProjectsForEmployee(employeeId: string) {
 // ---------------------------------------------------------------------------
 export async function getEmployeeDetails(session: ChatSession, employeeName?: string) {
     if (!employeeName) {
-        const selfDoc = await getDoc(doc(db, "employees", session.uid));
-        if (!selfDoc.exists()) return { error: "not_found" };
-        const d = selfDoc.data();
+        const selfDoc = await adminDb.collection("employees").doc(session.uid).get();
+        if (!selfDoc.exists) return { error: "not_found" };
+        const d = selfDoc.data()!;
         const currentProjects = await getCurrentProjectsForEmployee(session.uid);
         return {
             fullName: d.fullName,
@@ -102,9 +99,11 @@ export async function getEmployeeDetails(session: ChatSession, employeeName?: st
         return { error: "not_authorized" };
     }
 
-    const snap = await getDocs(
-        query(collection(db, "employees"), where("isActive", "==", true))
-    );
+    const snap = await adminDb
+        .collection("employees")
+        .where("isActive", "==", true)
+        .get();
+
     const employees = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as any[];
     const match = fuzzyFind(employees, "fullName", employeeName);
     if (!match) return { error: "not_found" };
@@ -118,4 +117,3 @@ export async function getEmployeeDetails(session: ChatSession, employeeName?: st
         currentProjects,
     };
 }
-
