@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { collection, query, where, onSnapshot, doc, updateDoc, addDoc, serverTimestamp, getDocs, deleteDoc } from "firebase/firestore";
+import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Clock, MessageSquare, CheckSquare, Target, Lock, Play, Kanban as KanbanIcon, Trash2, Download, Send, Hourglass, CheckCircle2, RotateCcw, AlertTriangle, Paperclip } from "lucide-react";
+import { Plus, Clock, MessageSquare, CheckSquare, Target, Lock, Play, Kanban as KanbanIcon, Trash2, Download, Send, Hourglass, CheckCircle2, RotateCcw, AlertTriangle, Paperclip, Check, Pause, X, StickyNote, ListChecks, LogOut } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -16,6 +17,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGr
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { downloadCSV } from "@/lib/exportUtils";
+
+const storage = getStorage();
 
 type TaskStatus = "backlog" | "in_progress" | "review" | "done"; 
 type TaskPriority = "low" | "normal" | "high" | "urgent";
@@ -26,6 +29,40 @@ interface TaskRemark {
   authorName: string;
   authorId: string;
   createdAt: string;
+}
+
+interface TaskAttachment {
+  name: string;
+  url: string;
+  contentType: string;
+  uploadedAt: string;
+  uploadedBy: string;
+}
+
+interface FocusChecklistItem {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
+/** Live session state for Focus Mode. Persisted directly on the task document
+ * so every connected client (assignee + anyone else viewing the board) sees
+ * the same state through the existing realtime listeners. */
+interface FocusSession {
+  startedBy: string;
+  startedByName: string;
+  /** ISO timestamp the session was first created. */
+  startedAt: string;
+  /** ISO timestamp of the most recent start/resume — used with `status` to
+   * compute the live elapsed time without writing every second. */
+  resumedAt: string;
+  status: "running" | "paused";
+  /** Banked seconds accumulated across previous running periods. */
+  elapsedSeconds: number;
+  checklist: FocusChecklistItem[];
+  notes: string;
+  breakCount: number;
+  durationMinutes: number | null;
 }
 
 interface Task {
@@ -46,7 +83,10 @@ interface Task {
   /** Feedback provided by admin when sending back for recheck. */
   feedback?: string | null;
   timeSpent?: string;
-  attachments?: string[];
+  /** Strings are supported for existing tasks; new uploads use TaskAttachment. */
+  attachments?: Array<TaskAttachment | string>;
+  /** Present while the assignee has an active or paused Focus Mode session on this task. */
+  focusSession?: FocusSession | null;
 }
 
 const COLUMNS: { id: TaskStatus; title: string }[] = [
@@ -101,6 +141,37 @@ function StatusBadge({ status }: { status: TaskStatus }) {
   );
 }
 
+/** Live elapsed seconds for a session, computed from stored timestamps so we
+ * never need to write to Firestore every second. */
+function getSessionElapsedSeconds(session: FocusSession, now: number) {
+  if (session.status === "running") {
+    const resumedAtMs = new Date(session.resumedAt).getTime();
+    return session.elapsedSeconds + Math.max(0, Math.floor((now - resumedAtMs) / 1000));
+  }
+  return session.elapsedSeconds;
+}
+
+/** Compact "12m" / "1h 4m" style duration, for card badges. */
+function formatFocusDuration(totalSeconds: number) {
+  const mins = Math.floor(totalSeconds / 60);
+  const hours = Math.floor(mins / 60);
+  const remMins = mins % 60;
+  if (hours > 0) return `${hours}h ${remMins}m`;
+  if (mins > 0) return `${mins}m`;
+  return `${Math.max(0, Math.floor(totalSeconds))}s`;
+}
+
+/** Large "MM:SS" / "H:MM:SS" timer for the Focus Workspace. */
+function formatFocusTimer(totalSeconds: number) {
+  const safeSeconds = Math.max(0, Math.floor(totalSeconds));
+  const h = Math.floor(safeSeconds / 3600);
+  const m = Math.floor((safeSeconds % 3600) / 60);
+  const s = safeSeconds % 60;
+  const mm = String(m).padStart(2, "0");
+  const ss = String(s).padStart(2, "0");
+  return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+}
+
 export default function TaskBoard() {
   const { user, role } = useAuth();
 
@@ -142,6 +213,8 @@ export default function TaskBoard() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [newRemark, setNewRemark] = useState("");
   const [isSubmittingRemark, setIsSubmittingRemark] = useState(false);
+  const [isUploadingAttachment, setIsUploadingAttachment] = useState(false);
+  const [attachmentError, setAttachmentError] = useState("");
 
   // Submit-for-Review confirmation dialog (Employee)
   const [isSubmitReviewOpen, setIsSubmitReviewOpen] = useState(false);
@@ -153,6 +226,27 @@ export default function TaskBoard() {
   const [recheckError, setRecheckError] = useState(false);
   const [isSubmittingRecheck, setIsSubmittingRecheck] = useState(false);
 
+  // FOCUS MODE — Screen 1: single-select ticked task on the "today's focus" list
+  const [selectedFocusTaskId, setSelectedFocusTaskId] = useState<string | null>(null);
+
+  // FOCUS MODE — Screen 2: Start Focus dialog
+  const [isStartFocusOpen, setIsStartFocusOpen] = useState(false);
+  const [focusDurationChoice, setFocusDurationChoice] = useState<"25" | "50" | "none">("25");
+  const [focusStartNotes, setFocusStartNotes] = useState("");
+  const [isStartingFocus, setIsStartingFocus] = useState(false);
+
+  // FOCUS MODE — Screen 3: full-takeover workspace
+  const [focusWorkspaceTaskId, setFocusWorkspaceTaskId] = useState<string | null>(null);
+  const [workspaceNotes, setWorkspaceNotes] = useState("");
+  const [workspaceChecklist, setWorkspaceChecklist] = useState<FocusChecklistItem[]>([]);
+  const [newChecklistText, setNewChecklistText] = useState("");
+  const [exitFocusTarget, setExitFocusTarget] = useState<Task | null>(null);
+
+  // Ticks to keep the timer / card badges live. Fine-grained only while the
+  // full workspace is open; coarse otherwise so we're not re-rendering the
+  // whole board every second.
+  const [nowTick, setNowTick] = useState(() => Date.now());
+
   // Reactive lookup of active task to keep remarks/details modal real-time responsive
   const activeTask = selectedTask ?
     Object.values(tasks).flat().find(t => t.id === selectedTask.id) :
@@ -161,13 +255,242 @@ export default function TaskBoard() {
   // Task locking: ALL drag-and-drop is locked for non-admins.
   // Employees MUST use the Start Task / Completed Task buttons to progress tasks.
   const isLocked = (t: Task) => !isCSuiteOrAdmin;
-  const isOwner = (t: Task) => !!user && t.assignedTo === user.uid;
+  // A simulator may change `role` while keeping the signed-in admin in `user`.
+  // Prefer its explicit simulated identity when available; otherwise use the
+  // employee record for the selected role instead of silently assigning to the
+  // underlying system-admin account.
+  const normaliseRole = (value?: string) => (value || "").toLowerCase().trim().replace(/[\s-]+/g, "_");
+  const authenticatedEmployee = employeesList.find(emp => emp.id === user?.uid);
+  const simulatedUserId = (user as any)?.simulatedUserId || (user as any)?.simulationUserId;
+  const selectedRoleEmployee = employeesList.find(emp => normaliseRole(emp.role || emp.userRole) === userRole)
+    // Older employee documents may not have a role yet. The title fallback is
+    // intentionally limited to the simulated senior role so it cannot select
+    // an administrator as the senior employee.
+    || (userRole === "senior_employee"
+      ? employeesList.find(emp => !normaliseRole(emp.role || emp.userRole) && /\bsenior\b/i.test(emp.jobTitle || emp.designation || ""))
+      : undefined);
+  const currentAssigneeId = simulatedUserId || (
+    authenticatedEmployee && normaliseRole(authenticatedEmployee.role || authenticatedEmployee.userRole) === userRole
+      ? user?.uid
+      : selectedRoleEmployee?.id || user?.uid
+  );
+
+  const isOwner = (t: Task) => !!currentAssigneeId && t.assignedTo === currentAssigneeId;
 
   // Filter juniors for Senior Employees / Managers
-  const juniorEmployees = employeesList.filter(emp => {
-    const r = (emp.role || "").toLowerCase();
-    return r === "intern" || r === "employee" || !r;
-  });
+  const juniorEmployees = useMemo(() => employeesList
+    .filter(emp => {
+      const employeeRole = normaliseRole(emp.role || emp.userRole);
+      if (employeeRole) return employeeRole === "intern" || employeeRole === "employee";
+
+      // Compatibility for legacy employee records: keep unclassified regular
+      // staff, but never place a senior/manager/admin title in the junior list.
+      const title = `${emp.jobTitle || ""} ${emp.designation || ""}`;
+      return !/\b(senior|manager|lead|admin|founder|chief|director)\b/i.test(title);
+    })
+    .sort((a, b) => (a.fullName || "").localeCompare(b.fullName || "")), [employeesList]);
+
+  // "Team" is a permitted visibility scope, never an unrestricted task feed.
+  const canViewTask = useCallback((task: Task) => {
+    if (task.assignedTo === currentAssigneeId) return true;
+    if (isCSuiteOrAdmin) return true;
+    return isManagerOrSenior && juniorEmployees.some(employee => employee.id === task.assignedTo);
+  }, [currentAssigneeId, isCSuiteOrAdmin, isManagerOrSenior, juniorEmployees]);
+
+  // The task (if any) currently open in the full Focus Workspace.
+  const focusWorkspaceTask = focusWorkspaceTaskId
+    ? Object.values(tasks).flat().find(t => t.id === focusWorkspaceTaskId) || null
+    : null;
+
+  // A user may only have one active/paused focus session at a time.
+  const myFocusSessionTask = useMemo(
+    () => Object.values(tasks).flat().find(t => t.focusSession && t.focusSession.startedBy === currentAssigneeId) || null,
+    [tasks, currentAssigneeId]
+  );
+
+  // Keep the live timer / card badges ticking. Fine-grained (1s) while the
+  // workspace is open, coarse (30s) otherwise — no Firestore writes needed.
+  useEffect(() => {
+    const intervalMs = focusWorkspaceTaskId ? 1000 : 30000;
+    const id = setInterval(() => setNowTick(Date.now()), intervalMs);
+    return () => clearInterval(id);
+  }, [focusWorkspaceTaskId]);
+
+  // Screen 1 selection resets whenever the "today's focus" screen is entered/exited.
+  useEffect(() => {
+    setSelectedFocusTaskId(null);
+  }, [focusMode]);
+
+  // Seed the workspace's local editable fields whenever a (different) task is opened.
+  useEffect(() => {
+    if (focusWorkspaceTask?.focusSession) {
+      setWorkspaceNotes(focusWorkspaceTask.focusSession.notes || "");
+      setWorkspaceChecklist(focusWorkspaceTask.focusSession.checklist || []);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusWorkspaceTaskId]);
+
+  // Debounced persistence of Quick Notes while the workspace is open.
+  useEffect(() => {
+    if (!focusWorkspaceTask?.focusSession) return;
+    if (workspaceNotes === focusWorkspaceTask.focusSession.notes) return;
+    const timeoutId = setTimeout(() => {
+      updateDoc(doc(db, "tasks", focusWorkspaceTask.id), { "focusSession.notes": workspaceNotes }).catch(err =>
+        console.error("Error saving focus notes:", err)
+      );
+    }, 700);
+    return () => clearTimeout(timeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workspaceNotes, focusWorkspaceTaskId]);
+
+  /** Opens Screen 2, unless the user already has a live session — in which
+   * case we either jump straight back into it (same task) or block with a
+   * clear message (different task). */
+  const openStartFocusDialog = (task: Task) => {
+    const existing = task.focusSession;
+    if (existing && existing.startedBy === currentAssigneeId) {
+      if (existing.status === "paused") {
+        resumeFocusSession(task);
+      } else {
+        setFocusWorkspaceTaskId(task.id);
+      }
+      return;
+    }
+    if (myFocusSessionTask && myFocusSessionTask.id !== task.id) {
+      alert(`You already have a focus session running on "${myFocusSessionTask.title}". Finish or exit it before starting a new one.`);
+      return;
+    }
+    setFocusDurationChoice("25");
+    setFocusStartNotes("");
+    setIsStartFocusOpen(true);
+  };
+
+  /** Screen 2 confirm: creates the session record on the task doc and opens the workspace. */
+  const handleConfirmStartFocus = async () => {
+    const task = focusTasks.find(t => t.id === selectedFocusTaskId);
+    if (!task || !user) return;
+    setIsStartingFocus(true);
+    try {
+      const nowIso = new Date().toISOString();
+      const session: FocusSession = {
+        startedBy: currentAssigneeId || user.uid,
+        startedByName: user.fullName || user.displayName || "Team Member",
+        startedAt: nowIso,
+        resumedAt: nowIso,
+        status: "running",
+        elapsedSeconds: 0,
+        checklist: [],
+        notes: focusStartNotes.trim(),
+        breakCount: 0,
+        durationMinutes: focusDurationChoice === "none" ? null : parseInt(focusDurationChoice, 10),
+      };
+      await updateDoc(doc(db, "tasks", task.id), {
+        status: "in_progress",
+        focusSession: session,
+      });
+      setIsStartFocusOpen(false);
+      setSelectedFocusTaskId(null);
+      setFocusWorkspaceTaskId(task.id);
+    } catch (err) {
+      console.error("Error starting focus session:", err);
+    } finally {
+      setIsStartingFocus(false);
+    }
+  };
+
+  /** Reopens the workspace exactly where a paused (or still-running) session left off. */
+  const resumeFocusSession = async (task: Task) => {
+    if (!task.focusSession) return;
+    try {
+      await updateDoc(doc(db, "tasks", task.id), {
+        focusSession: {
+          ...task.focusSession,
+          status: "running",
+          resumedAt: new Date().toISOString(),
+        },
+      });
+      setFocusWorkspaceTaskId(task.id);
+    } catch (err) {
+      console.error("Error resuming focus session:", err);
+    }
+  };
+
+  /** Pause: banks elapsed time, closes the workspace, returns to the normal board. */
+  const handlePauseFocusSession = async (task: Task) => {
+    if (!task.focusSession) return;
+    try {
+      const banked = getSessionElapsedSeconds(task.focusSession, Date.now());
+      await updateDoc(doc(db, "tasks", task.id), {
+        focusSession: {
+          ...task.focusSession,
+          notes: workspaceNotes,
+          checklist: workspaceChecklist,
+          status: "paused",
+          elapsedSeconds: banked,
+          breakCount: (task.focusSession.breakCount || 0) + 1,
+        },
+      });
+      setFocusWorkspaceTaskId(null);
+      setFocusMode(false);
+    } catch (err) {
+      console.error("Error pausing focus session:", err);
+    }
+  };
+
+  /** Complete Task: ends the session and hands off to the normal review flow. */
+  const handleCompleteFocusTask = async (task: Task) => {
+    try {
+      await updateDoc(doc(db, "tasks", task.id), {
+        status: "review",
+        submittedAt: new Date().toISOString(),
+        focusSession: null,
+      });
+      setFocusWorkspaceTaskId(null);
+    } catch (err) {
+      console.error("Error completing focused task:", err);
+    }
+  };
+
+  /** Exit Focus Mode: discards the session. Status stays In Progress. */
+  const handleExitFocusSession = async (task: Task) => {
+    try {
+      await updateDoc(doc(db, "tasks", task.id), {
+        focusSession: null,
+      });
+      setFocusWorkspaceTaskId(null);
+      setExitFocusTarget(null);
+    } catch (err) {
+      console.error("Error exiting focus session:", err);
+    }
+  };
+
+  const handleAddChecklistItem = async () => {
+    if (!newChecklistText.trim() || !focusWorkspaceTask?.focusSession) return;
+    const item: FocusChecklistItem = {
+      id: Math.random().toString(36).substring(2, 9),
+      text: newChecklistText.trim(),
+      done: false,
+    };
+    const updated = [...workspaceChecklist, item];
+    setWorkspaceChecklist(updated);
+    setNewChecklistText("");
+    try {
+      await updateDoc(doc(db, "tasks", focusWorkspaceTask.id), { "focusSession.checklist": updated });
+    } catch (err) {
+      console.error("Error adding checklist item:", err);
+    }
+  };
+
+  const handleToggleChecklistItem = async (itemId: string) => {
+    if (!focusWorkspaceTask?.focusSession) return;
+    const updated = workspaceChecklist.map(i => (i.id === itemId ? { ...i, done: !i.done } : i));
+    setWorkspaceChecklist(updated);
+    try {
+      await updateDoc(doc(db, "tasks", focusWorkspaceTask.id), { "focusSession.checklist": updated });
+    } catch (err) {
+      console.error("Error updating checklist item:", err);
+    }
+  };
 
   const handleAddRemark = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -194,19 +517,64 @@ export default function TaskBoard() {
     }
   };
 
+  const handleAttachmentUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user || !activeTask || activeTask.status !== "in_progress" || !isOwner(activeTask)) return;
+
+    const allowedExtensions = [".pdf", ".docx", ".xlsx"];
+    const extension = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
+    if (!allowedExtensions.includes(extension)) {
+      setAttachmentError("Only PDF, DOCX, and XLSX files can be attached.");
+      event.target.value = "";
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setAttachmentError("Attachments must be 10 MB or smaller.");
+      event.target.value = "";
+      return;
+    }
+
+    setAttachmentError("");
+    setIsUploadingAttachment(true);
+    try {
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const storageRef = ref(storage, `task_attachments/${activeTask.id}/${Date.now()}-${safeName}`);
+      await uploadBytes(storageRef, file, { contentType: file.type });
+      const url = await getDownloadURL(storageRef);
+      const attachment: TaskAttachment = {
+        name: file.name,
+        url,
+        contentType: file.type,
+        uploadedAt: new Date().toISOString(),
+        uploadedBy: currentAssigneeId || user.uid,
+      };
+      await updateDoc(doc(db, "tasks", activeTask.id), {
+        attachments: [...(activeTask.attachments || []), attachment],
+      });
+    } catch (error) {
+      console.error("Error uploading task attachment:", error);
+      setAttachmentError("Upload failed. Please try again.");
+    } finally {
+      setIsUploadingAttachment(false);
+      event.target.value = "";
+    }
+  };
+
   const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !newTask.title.trim()) return;
 
     setIsSubmitting(true);
     try {
-      let assigneeId = user.uid;
+    let assigneeId = currentAssigneeId || user.uid;
       if (isCSuiteOrAdmin) {
-        assigneeId = newTask.assignedTo || user.uid;
+      assigneeId = newTask.assignedTo || currentAssigneeId || user.uid;
       } else if (isManagerOrSenior) {
-        assigneeId = newTask.assignedTo || user.uid;
+      const isPermittedJunior = juniorEmployees.some(emp => emp.id === newTask.assignedTo);
+      assigneeId = isPermittedJunior ? newTask.assignedTo : (currentAssigneeId || user.uid);
       } else {
-        assigneeId = user.uid;
+      assigneeId = currentAssigneeId || user.uid;
       }
 
       const assigneeEmp = employeesList.find(emp => emp.id === assigneeId) || {
@@ -236,7 +604,7 @@ export default function TaskBoard() {
         receiverName: assigneeEmp.fullName || "Employee",
         receiverEmail: assigneeEmp.email || "",
         subject: `📋 Task Assigned: ${newTask.title.trim()}`,
-        body: `Hello ${assigneeEmp.fullName || "Team Member"},\n\nYou have been assigned a new task on the Mints Global ERP:\n\nTask: ${newTask.title.trim()}\nPriority: ${newTask.priority.toUpperCase()}\nDue Date: ${newTask.dueDate || "No due date set"}\n\nPlease head to your Tasks Kanban Board to manage this task.\n\nBest regards,\n${user.fullName || user.displayName || "Mints Project Management"}`,
+        body: `Hello ${assigneeEmp.fullName || "Team Member"},\\n\\nYou have been assigned a new task on the Mints Global ERP:\\n\\nTask: ${newTask.title.trim()}\\nPriority: ${newTask.priority.toUpperCase()}\\nDue Date: ${newTask.dueDate || "No due date set"}\\n\\nPlease head to your Tasks Kanban Board to manage this task.\\n\\nBest regards,\\n${user.fullName || user.displayName || "Mints Project Management"}`,
         priority: newTask.priority === "urgent" || newTask.priority === "high" ? "urgent" : "normal",
         readStatus: false,
         createdAt: serverTimestamp()
@@ -255,13 +623,13 @@ export default function TaskBoard() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            content: `📋 **New Task Assigned**\n**Task:** ${newTask.title.trim()}\n**Assigned To ID:** ${assigneeId}`
+            content: `📋 **New Task Assigned**\\n**Task:** ${newTask.title.trim()}\\n**Assigned To ID:** ${assigneeId}`
           })
         }).catch(err => console.error("Discord error:", err));
       }
 
       setIsAddOpen(false);
-      setNewTask({ title: "", description: "", priority: "normal", dueDate: "", assignedTo: user.uid });
+    setNewTask({ title: "", description: "", priority: "normal", dueDate: "", assignedTo: currentAssigneeId || user.uid });
     } catch (error) {
       console.error("Error adding task:", error);
     } finally {
@@ -386,7 +754,7 @@ export default function TaskBoard() {
         q = query(
           collection(db, "tasks"),
           where("status", "==", col.id),
-          where("assignedTo", "==", user.uid)
+          where("assignedTo", "==", currentAssigneeId || user.uid)
         );
       } else {
         q = query(
@@ -398,6 +766,9 @@ export default function TaskBoard() {
       const unsubscribe = onSnapshot(q, (snapshot) => {
         let columnTasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Task[];
 
+        if (!myTasksOnly) {
+          columnTasks = columnTasks.filter(canViewTask);
+        }
         if (employeeFilter !== "all" && isCSuiteOrAdmin && !myTasksOnly) {
           columnTasks = columnTasks.filter(t => t.assignedTo === employeeFilter);
         }
@@ -421,7 +792,7 @@ export default function TaskBoard() {
     return () => {
       unsubscribes.forEach(unsub => unsub());
     };
-  }, [user, myTasksOnly, employeeFilter, isCSuiteOrAdmin]);
+  }, [user, myTasksOnly, employeeFilter, isCSuiteOrAdmin, currentAssigneeId, canViewTask]);
 
   const onDragEnd = async (result: DropResult) => {
     const { destination, source, draggableId } = result;
@@ -468,30 +839,92 @@ export default function TaskBoard() {
     }
   };
 
-  const isOverdue = (dateString?: string) => {
-    if (!dateString) return false;
-    return new Date(dateString) < new Date(new Date().setHours(0,0,0,0));
-  };
+/** "YYYY-MM-DD" strings parse as UTC midnight in native Date, which can
+ * shift the calendar day depending on the viewer's timezone offset.
+ * Parse the components directly so "today"/"overdue" match the
+ * viewer's actual local date. */
+const parseLocalDate = (dateString: string) => {
+  const [year, month, day] = dateString.split("-").map(Number);
+  return new Date(year, (month || 1) - 1, day || 1);
+};
 
-  const isToday = (dateString?: string) => {
-    if (!dateString) return false;
-    const date = new Date(dateString);
-    const today = new Date();
-    return date.getDate() === today.getDate() &&
-           date.getMonth() === today.getMonth() &&
-           date.getFullYear() === today.getFullYear();
-  };
+const isOverdue = (dateString?: string) => {
+  if (!dateString) return false;
+  return parseLocalDate(dateString) < new Date(new Date().setHours(0,0,0,0));
+};
 
+const isToday = (dateString?: string) => {
+  if (!dateString) return false;
+  const date = parseLocalDate(dateString);
+  const today = new Date();
+  return date.getDate() === today.getDate() &&
+         date.getMonth() === today.getMonth() &&
+         date.getFullYear() === today.getFullYear();
+};
   const focusTasks = [
     ...tasks.backlog,
     ...tasks.in_progress,
     ...tasks.review
-  ].filter(t => (isToday(t.dueDate) || isOverdue(t.dueDate) || t.priority === "urgent") && t.assignedTo === user?.uid)
+  ].filter(t =>
+    (isToday(t.dueDate) || isOverdue(t.dueDate) || t.priority === "urgent") &&
+    t.assignedTo === (currentAssigneeId || user?.uid)
+  )
    .sort((a, b) => {
      if (a.priority === "urgent" && b.priority !== "urgent") return -1;
      if (b.priority === "urgent" && a.priority !== "urgent") return 1;
      return 0;
    });
+
+  /** Renders on any card whose task has an active/paused focus session.
+   * The assignee gets Resume/Complete/Exit controls; everyone else gets a
+   * read-only status badge naming who is focusing and for how long. */
+  const renderFocusCardBlock = (task: Task) => {
+    if (!task.focusSession) return null;
+    const session = task.focusSession;
+    const elapsed = getSessionElapsedSeconds(session, nowTick);
+    const isMine = session.startedBy === currentAssigneeId;
+    const focuserName = employeesList.find(e => e.id === session.startedBy)?.fullName || session.startedByName || "A teammate";
+
+    if (!isMine) {
+      return (
+        <div className="mt-3 pt-2 border-t border-border/40 flex items-center gap-1.5 text-[11px] font-bold text-foreground/60">
+          <Target className="w-3 h-3 text-primary shrink-0" />
+          <span className="truncate">
+            {focuserName} is in Focus Mode · {session.status === "running" ? "Active" : "Paused"} · {formatFocusDuration(elapsed)}
+          </span>
+        </div>
+      );
+    }
+
+    return (
+      <div className="mt-3 pt-2 border-t border-border/40 space-y-2" onClick={(e) => e.stopPropagation()}>
+        <div className="text-[11px] font-bold text-primary flex items-center gap-1.5">
+          <Target className="w-3 h-3" />
+          Focus Mode · {session.status === "running" ? "Active" : "Paused"} · {formatFocusDuration(elapsed)}
+        </div>
+        <div className="grid grid-cols-3 gap-1.5">
+          <button
+            onClick={() => resumeFocusSession(task)}
+            className="h-7 rounded-lg border border-primary/40 text-primary hover:bg-primary/10 text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer transition-colors"
+          >
+            <Play className="w-3 h-3 fill-current" /> Resume
+          </button>
+          <button
+            onClick={() => handleCompleteFocusTask(task)}
+            className="h-7 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer transition-colors"
+          >
+            <Send className="w-3 h-3" /> Complete
+          </button>
+          <button
+            onClick={() => setExitFocusTarget(task)}
+            className="h-7 rounded-lg border border-rose-500/40 text-rose-400 hover:bg-rose-500/10 text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer transition-colors"
+          >
+            <LogOut className="w-3 h-3" /> Exit
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   const handleExportCSV = () => {
     const flatList = Object.values(tasks).flat();
@@ -508,6 +941,172 @@ export default function TaskBoard() {
       "Mints_Global_Tasks_Kanban.csv"
     );
   };
+
+  // SCREEN 3 — FOCUS WORKSPACE (full takeover). Hides all normal board/nav UI
+  // for this view; only the timer, checklist, and quick notes are shown.
+  if (focusWorkspaceTask && focusWorkspaceTask.focusSession) {
+    const session = focusWorkspaceTask.focusSession;
+    const elapsedSeconds = getSessionElapsedSeconds(session, nowTick);
+    const targetSeconds = session.durationMinutes ? session.durationMinutes * 60 : null;
+    const checklistDone = workspaceChecklist.filter(i => i.done).length;
+    const progressPct = targetSeconds
+      ? Math.min(100, Math.round((elapsedSeconds / targetSeconds) * 100))
+      : Math.min(100, Math.round((checklistDone / Math.max(1, workspaceChecklist.length)) * 100));
+
+    return (
+      <div className="flex flex-col h-[calc(100vh-8rem)] text-foreground">
+        <div className="flex-1 border border-border rounded-2xl overflow-y-auto flex flex-col items-center p-6 sm:p-10">
+          <div className="max-w-xl w-full">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <span className="badge bg-primary/10 border border-primary/20 text-primary font-bold text-xs py-0.5 px-2.5 uppercase tracking-wider inline-flex items-center gap-1.5">
+                <Target className="w-3 h-3" /> Focus Mode
+              </span>
+              <h1 className="text-lg font-extrabold text-foreground mt-3 leading-snug">{focusWorkspaceTask.title}</h1>
+              <div className="flex items-center justify-center gap-2 mt-2">
+                <div className={`w-1.5 h-1.5 rounded-full ${PRIORITY_COLORS[focusWorkspaceTask.priority]}`} />
+                <span className="text-xs font-bold uppercase text-foreground/40">{focusWorkspaceTask.priority} Priority</span>
+                <StatusBadge status={focusWorkspaceTask.status} />
+              </div>
+            </div>
+
+            {/* Live Timer */}
+            <div className="text-center mb-6">
+              <div className="text-5xl sm:text-6xl font-extrabold text-foreground tabular-nums tracking-tight">
+                {formatFocusTimer(elapsedSeconds)}
+              </div>
+              {targetSeconds && (
+                <p className="text-xs text-foreground/40 mt-1 font-bold uppercase tracking-wider">Goal: {session.durationMinutes} Minutes</p>
+              )}
+            </div>
+
+            {/* Today's Progress bar (visual only) */}
+            <div className="mb-8">
+              <div className="flex justify-between items-center mb-1.5 text-xs font-bold uppercase tracking-wider text-foreground/50">
+                <span>Today's Progress</span>
+                <span>{progressPct}%</span>
+              </div>
+              <div className="h-2 rounded-full bg-muted/60 border border-border overflow-hidden">
+                <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${progressPct}%` }} />
+              </div>
+            </div>
+
+            {/* Checklist */}
+            <div className="mb-8 border border-border rounded-xl p-4">
+              <h3 className="text-xs font-bold text-foreground/70 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <ListChecks className="w-3.5 h-3.5 text-primary" /> Checklist
+              </h3>
+              <div className="space-y-2 mb-3">
+                {workspaceChecklist.length === 0 ? (
+                  <p className="text-xs text-foreground/30 font-medium py-2">No checklist items yet — add one below.</p>
+                ) : (
+                  workspaceChecklist.map(item => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleToggleChecklistItem(item.id)}
+                      className="w-full flex items-center gap-2.5 text-left cursor-pointer group"
+                    >
+                      <span className={cn("w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors",
+                        item.done ? "bg-primary border-primary" : "border-border group-hover:border-primary/50"
+                      )}>
+                        {item.done && <Check className="w-2.5 h-2.5 text-foreground" />}
+                      </span>
+                      <span className={cn("text-xs font-medium", item.done ? "text-foreground/40 line-through" : "text-foreground/80")}>
+                        {item.text}
+                      </span>
+                    </button>
+                  ))
+                )}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  placeholder="Add a checklist item..."
+                  value={newChecklistText}
+                  onChange={(e) => setNewChecklistText(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddChecklistItem(); } }}
+                  className="flex-grow h-9 rounded-lg border border-border px-3 py-1 text-xs text-foreground placeholder:text-foreground/30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddChecklistItem}
+                  disabled={!newChecklistText.trim()}
+                  className="px-3 h-9 bg-primary hover:bg-primary disabled:opacity-50 text-foreground rounded-lg text-xs font-bold transition-colors cursor-pointer flex items-center gap-1"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Add
+                </button>
+              </div>
+            </div>
+
+            {/* Quick Notes */}
+            <div className="mb-8">
+              <h3 className="text-xs font-bold text-foreground/70 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <StickyNote className="w-3.5 h-3.5 text-primary" /> Quick Notes
+              </h3>
+              <Textarea
+                placeholder="Jot down anything worth remembering..."
+                value={workspaceNotes}
+                onChange={(e) => setWorkspaceNotes(e.target.value)}
+                className="border-border text-foreground placeholder:text-foreground/30 min-h-[100px] text-xs"
+              />
+            </div>
+
+            {/* Actions */}
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => handlePauseFocusSession(focusWorkspaceTask)}
+                className="btn-ghost h-11 text-sm font-bold flex items-center justify-center gap-2 border-border text-foreground/70 hover:text-foreground cursor-pointer"
+              >
+                <Pause className="w-4 h-4" /> Pause
+              </button>
+              <button
+                onClick={() => handleCompleteFocusTask(focusWorkspaceTask)}
+                className="btn-primary h-11 text-sm font-bold flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Send className="w-4 h-4" /> Complete Task
+              </button>
+            </div>
+            <button
+              onClick={() => setExitFocusTarget(focusWorkspaceTask)}
+              className="w-full mt-3 h-9 text-xs font-bold text-rose-400 hover:bg-rose-500/10 rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+            >
+              <LogOut className="w-3.5 h-3.5" /> Exit Focus Mode
+            </button>
+          </div>
+        </div>
+
+        {/* EXIT FOCUS MODE CONFIRMATION */}
+        <Dialog open={!!exitFocusTarget} onOpenChange={(o) => !o && setExitFocusTarget(null)}>
+          <DialogContent className="bg-card/95 border-border text-foreground sm:max-w-sm backdrop-blur-md shadow-2xl">
+            <DialogHeader>
+              <DialogTitle className="text-rose-400 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" /> Exit Focus Mode?
+              </DialogTitle>
+            </DialogHeader>
+            <p className="text-xs text-foreground/60 mt-2 leading-relaxed">
+              This session's progress will be discarded. The task will stay in In Progress, with no focus stats attached.
+            </p>
+            <DialogFooter className="mt-6 border-t-0 pt-2">
+              <button
+                type="button"
+                onClick={() => setExitFocusTarget(null)}
+                className="px-4 py-2 text-sm font-bold text-foreground/70 hover:text-foreground transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => exitFocusTarget && handleExitFocusSession(exitFocusTarget)}
+                className="px-4 py-2 text-sm font-bold bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors flex items-center justify-center gap-1.5"
+              >
+                <LogOut className="w-3.5 h-3.5" /> Exit Focus Mode
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)] text-foreground">
@@ -581,7 +1180,7 @@ export default function TaskBoard() {
           <button
             onClick={() => {
               setAddingToStatus("backlog");
-              setNewTask(prev => ({ ...prev, assignedTo: user?.uid || "" }));
+              setNewTask(prev => ({ ...prev, assignedTo: currentAssigneeId || user?.uid || "" }));
               setIsAddOpen(true);
             }}
             className="btn-primary h-9 py-0 px-4 text-xs font-bold flex items-center justify-center cursor-pointer"
@@ -637,103 +1236,146 @@ export default function TaskBoard() {
         <motion.div
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="flex-1 border border-border rounded-2xl p-6 flex flex-col items-center overflow-y-auto"
+          className="flex-1 border border-border rounded-2xl flex flex-col overflow-hidden"
         >
-          <div className="max-w-2xl w-full">
-            <div className="text-center mb-8">
-              <h2 className="text-base font-bold text-foreground">Your Focus for Today</h2>
-              <p className="text-xs text-foreground/40 mt-1">Complete these {focusTasks.length} high-priority items.</p>
-            </div>
+          <div className="flex-1 overflow-y-auto p-6 flex flex-col items-center">
+            <div className="max-w-2xl w-full">
+              <div className="text-center mb-8">
+                <h2 className="text-base font-bold text-foreground">Your Focus for Today</h2>
+                <p className="text-xs text-foreground/40 mt-1">Tick a task, then start a focus session for it. Complete these {focusTasks.length} high-priority items.</p>
+              </div>
 
-            <div className="space-y-4">
-              <AnimatePresence>
-                {focusTasks.length === 0 ? (
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12 border border-border border-dashed rounded-2xl">
-                    <CheckSquare className="h-10 w-10 text-foreground/20 mx-auto mb-3" />
-                    <h3 className="text-sm font-bold text-foreground/50 uppercase tracking-wider">All caught up!</h3>
-                    <p className="text-xs text-foreground/30 mt-1">You have no urgent tasks due today.</p>
-                  </motion.div>
-                ) : (
-                  focusTasks.map((task) => (
-                    <motion.div
-                      key={task.id}
-                      layout
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                    >
-                      <Card
-                        onClick={() => {
-                          setSelectedTask(task);
-                          setIsDetailsOpen(true);
-                        }}
-                        className={cn("bg-card border border-border shadow-sm rounded-lg overflow-hidden relative group cursor-pointer hover:border-primary/30 transition-all",
-                          task.priority === "urgent" ? "border-rose-500/30" : "",
-                          task.blocked ? "opacity-60" : ""
-                        )}
+              <div className="space-y-4">
+                <AnimatePresence>
+                  {focusTasks.length === 0 ? (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12 border border-border border-dashed rounded-2xl">
+                      <CheckSquare className="h-10 w-10 text-foreground/20 mx-auto mb-3" />
+                      <h3 className="text-sm font-bold text-foreground/50 uppercase tracking-wider">All caught up!</h3>
+                      <p className="text-xs text-foreground/30 mt-1">You have no urgent tasks due today.</p>
+                    </motion.div>
+                  ) : (
+                    focusTasks.map((task) => {
+                      const isTicked = selectedFocusTaskId === task.id;
+                      return (
+                      <motion.div
+                        key={task.id}
+                        layout
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
                       >
-                        {task.priority === "urgent" && !task.blocked && (
-                          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-rose-500 animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.5)]" />
-                        )}
-                        <CardContent className="p-5">
-                          <div className="flex items-start gap-4">
-                            <div className="flex-1">
-                               <div className="flex items-center justify-between mb-1.5">
-                                 <div className="flex items-center gap-2">
-                                   <span className="badge border border-border text-foreground/50 text-xs font-bold py-0.5 uppercase tracking-wider">
-                                     {task.projectName || "Project"}
-                                   </span>
-                                   {task.priority === "urgent" && <span className="badge status-critical font-bold text-xs py-0.5 uppercase tracking-wider">Urgent</span>}
-                                   {task.blocked && <span className="badge status-draft font-bold text-xs py-0.5 uppercase tracking-wider flex items-center gap-1"><Lock className="w-2.5 h-2.5" /> Blocked</span>}
-                                   {task.status === "review" && <StatusBadge status="review" />}
+                        <Card
+                          onClick={() => {
+                            // Selecting a task for Focus Mode is a distinct action from
+                            // viewing its details — never open the details dialog here.
+                            setSelectedFocusTaskId(prev => (prev === task.id ? null : task.id));
+                          }}
+                          className={cn("bg-card border border-border shadow-sm rounded-lg overflow-hidden relative group cursor-pointer hover:border-primary/30 transition-all",
+                            task.priority === "urgent" ? "border-rose-500/30" : "",
+                            task.blocked ? "opacity-60" : "",
+                            isTicked && "border-primary/60 bg-primary/5 ring-1 ring-primary/20"
+                          )}
+                        >
+                          {task.priority === "urgent" && !task.blocked && (
+                            <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-rose-500 animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.5)]" />
+                          )}
+                          <CardContent className="p-5">
+                            <div className="flex items-start gap-4">
+                              {/* Tick-style selection checkbox */}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedFocusTaskId(prev => (prev === task.id ? null : task.id));
+                                }}
+                                aria-pressed={isTicked}
+                                className={cn("mt-0.5 w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors cursor-pointer",
+                                  isTicked ? "bg-primary border-primary" : "border-border hover:border-primary/50"
+                                )}
+                              >
+                                {isTicked && <Check className="w-3.5 h-3.5 text-foreground" />}
+                              </button>
+                              <div className="flex-1">
+                                 <div className="flex items-center justify-between mb-1.5">
+                                   <div className="flex items-center gap-2">
+                                     <span className="badge border border-border text-foreground/50 text-xs font-bold py-0.5 uppercase tracking-wider">
+                                       {task.projectName || "Project"}
+                                     </span>
+                                     {task.priority === "urgent" && <span className="badge status-critical font-bold text-xs py-0.5 uppercase tracking-wider">Urgent</span>}
+                                     {task.blocked && <span className="badge status-draft font-bold text-xs py-0.5 uppercase tracking-wider flex items-center gap-1"><Lock className="w-2.5 h-2.5" /> Blocked</span>}
+                                     {task.status === "review" && <StatusBadge status="review" />}
+                                   </div>
+                                   <button
+                                     onClick={(e) => {
+                                       e.stopPropagation();
+                                       handleDeleteTask(task.id);
+                                     }}
+                                     className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-rose-500/20 text-rose-400 rounded cursor-pointer"
+                                   >
+                                     <Trash2 className="w-3 h-3" />
+                                   </button>
                                  </div>
-                                 <button
-                                   onClick={(e) => {
-                                     e.stopPropagation();
-                                     handleDeleteTask(task.id);
-                                   }}
-                                   className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-rose-500/20 text-rose-400 rounded cursor-pointer"
-                                 >
-                                   <Trash2 className="w-3 h-3" />
-                                 </button>
-                               </div>
-                              <h3 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors leading-snug">{task.title}</h3>
+                                <h3 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors leading-snug">{task.title}</h3>
 
-                              <div className="flex items-center gap-4 mt-4 text-xs font-bold uppercase tracking-wider">
-                                {task.dueDate && (
-                                  <div className={cn("flex items-center gap-1 px-2.5 h-6 rounded-lg text-xs font-bold uppercase",
-                                    isOverdue(task.dueDate) ? "bg-rose-950/40 border border-rose-500/20 text-rose-300" : "bg-amber-950/40 border border-amber-500/20 text-amber-300"
-                                  )}>
-                                    <Clock className="w-3 h-3" />
-                                    {isOverdue(task.dueDate) ? "Overdue" : "Due Today"}
-                                  </div>
-                                )}
-                                {task.status === "backlog" && isOwner(task) && (
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleStartTask(task.id); }}
-                                    className="ml-auto btn-ghost py-1 px-3 h-7 text-xs font-bold flex items-center gap-1 border-border text-foreground/70 hover:text-foreground cursor-pointer"
-                                  >
-                                    <Play className="w-2.5 h-2.5 fill-current text-accent" /> Start
-                                  </button>
-                                )}
-                                {task.status === "in_progress" && isOwner(task) && (
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); openSubmitReviewConfirm(task); }}
-                                    className="ml-auto btn-primary py-1 px-3 h-7 text-xs font-bold flex items-center gap-1 cursor-pointer"
-                                  >
-                                    <Send className="w-2.5 h-2.5" /> Completed Task
-                                  </button>
-                                )}
+                                <div className="flex items-center gap-4 mt-4 text-xs font-bold uppercase tracking-wider">
+                                  {task.dueDate && (
+                                    <div className={cn("flex items-center gap-1 px-2.5 h-6 rounded-lg text-xs font-bold uppercase",
+                                      isOverdue(task.dueDate) ? "bg-rose-950/40 border border-rose-500/20 text-rose-300" :
+                                      isToday(task.dueDate) ? "bg-amber-950/40 border border-amber-500/20 text-amber-300" :
+                                      "border border-border text-foreground/50"
+                                    )}>
+                                      <Clock className="w-3 h-3" />
+                                      {isOverdue(task.dueDate)
+                                        ? "Overdue"
+                                        : isToday(task.dueDate)
+                                          ? "Due Today"
+                                          : new Date(task.dueDate).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                                    </div>
+                                  )}
+                                  {task.status === "backlog" && isOwner(task) && !task.focusSession && (
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); handleStartTask(task.id); }}
+                                      className="ml-auto btn-ghost py-1 px-3 h-7 text-xs font-bold flex items-center gap-1 border-border text-foreground/70 hover:text-foreground cursor-pointer"
+                                    >
+                                      <Play className="w-2.5 h-2.5 fill-current text-accent" /> Start
+                                    </button>
+                                  )}
+                                  {task.status === "in_progress" && isOwner(task) && !task.focusSession && (
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); openSubmitReviewConfirm(task); }}
+                                      className="ml-auto btn-primary py-1 px-3 h-7 text-xs font-bold flex items-center gap-1 cursor-pointer"
+                                    >
+                                      <Send className="w-2.5 h-2.5" /> Completed Task
+                                    </button>
+                                  )}
+                                </div>
+                                {renderFocusCardBlock(task)}
                               </div>
                             </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ))
-                )}
-              </AnimatePresence>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                      );
+                    })
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
+          </div>
+
+          {/* Sticky Start Focus Mode footer */}
+          <div className="shrink-0 border-t border-border p-4 flex justify-center bg-card/40">
+            <button
+              type="button"
+              disabled={!selectedFocusTaskId}
+              onClick={() => {
+                const task = focusTasks.find(t => t.id === selectedFocusTaskId);
+                if (task) openStartFocusDialog(task);
+              }}
+              className="btn-primary h-10 px-6 text-sm font-bold flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed max-w-2xl w-full"
+            >
+              <Target className="w-4 h-4" /> Start Focus Mode
+            </button>
           </div>
         </motion.div>
       ) : (
@@ -762,7 +1404,7 @@ export default function TaskBoard() {
                           <button
                             onClick={() => {
                               setAddingToStatus("backlog");
-                              setNewTask(prev => ({ ...prev, assignedTo: user?.uid || "" }));
+                            setNewTask(prev => ({ ...prev, assignedTo: currentAssigneeId || user?.uid || "" }));
                               setIsAddOpen(true);
                             }}
                             className="w-full text-foreground/50 hover:text-foreground justify-start h-8 px-2.5 text-xs mb-3 rounded-xl transition-all font-bold border border-dashed border-border/60 hover:border-primary/50 flex items-center cursor-pointer bg-card/40 hover:bg-card truncate"
@@ -873,7 +1515,7 @@ export default function TaskBoard() {
                                       <Play className="w-3 h-3 fill-current text-accent" /> Start Task
                                     </button>
                                   )}
-                                  {task.status === "in_progress" && isOwner(task) && (
+                                  {task.status === "in_progress" && isOwner(task) && !task.focusSession && (
                                     <button
                                       onClick={(e) => { e.stopPropagation(); openSubmitReviewConfirm(task); }}
                                       className="btn-primary w-full mt-3 h-8 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
@@ -881,6 +1523,9 @@ export default function TaskBoard() {
                                       <Send className="w-3 h-3" /> Completed Task
                                     </button>
                                   )}
+
+                                  {/* FOCUS MODE — read-only badge for others, controls for the assignee */}
+                                  {renderFocusCardBlock(task)}
 
                                   {/* ADMIN REVIEW ACTIONS (In Review Column) */}
                                   {task.status === "review" && isCSuiteOrAdmin && (
@@ -948,14 +1593,14 @@ export default function TaskBoard() {
               <label className="text-xs font-bold text-foreground/70 uppercase tracking-wider">Assign To</label>
               {isCSuiteOrAdmin ? (
                 <Select
-                  value={newTask.assignedTo || user?.uid || ""}
+                  value={newTask.assignedTo || currentAssigneeId || user?.uid || ""}
                  onValueChange={(val) => setNewTask({ ...newTask, assignedTo: val ?? "" })}
                 >
                   <SelectTrigger className="w-full border-border text-foreground h-9">
                     <SelectValue placeholder="Select Employee" />
                   </SelectTrigger>
                   <SelectContent className="bg-background border-border text-foreground max-h-60 overflow-y-auto">
-                    <SelectItem value={user?.uid || ""}>Assign to me</SelectItem>
+                    <SelectItem value={currentAssigneeId || user?.uid || ""}>Assign to me</SelectItem>
                     {Object.entries(employeesByDept).map(([dept, emps]) => (
                       <SelectGroup key={dept}>
                         <SelectLabel className="font-bold text-primary">{dept}</SelectLabel>
@@ -970,14 +1615,16 @@ export default function TaskBoard() {
                 </Select>
               ) : isManagerOrSenior ? (
                 <Select
-                  value={newTask.assignedTo || user?.uid || ""}
+                  value={newTask.assignedTo || currentAssigneeId || user?.uid || ""}
                   onValueChange={(val) => setNewTask({ ...newTask, assignedTo: val ?? "" })}
                 >
                   <SelectTrigger className="w-full border-border text-foreground h-9">
                     <SelectValue placeholder="Select Myself or Junior" />
                   </SelectTrigger>
                   <SelectContent className="bg-background border-border text-foreground max-h-60 overflow-y-auto">
-                    <SelectItem value={user?.uid || ""}>Assign to me ({user?.fullName || "Me"})</SelectItem>
+                    <SelectItem value={currentAssigneeId || user?.uid || ""}>
+                      Assign to me
+                    </SelectItem>
                     <SelectGroup>
                       <SelectLabel className="font-bold text-primary">Junior Team Members</SelectLabel>
                       {juniorEmployees.map(emp => (
@@ -990,7 +1637,7 @@ export default function TaskBoard() {
                 </Select>
               ) : (
                 <Select
-                  value={user?.uid || ""}
+                  value={currentAssigneeId || user?.uid || ""}
                   disabled={true}
                   onValueChange={(val) => setNewTask({ ...newTask, assignedTo: val as string })}
                 >
@@ -998,8 +1645,8 @@ export default function TaskBoard() {
                     <SelectValue placeholder="Assign to me" />
                   </SelectTrigger>
                   <SelectContent className="bg-background border-border text-foreground">
-                    <SelectItem value={user?.uid || ""}>
-                      Assign to me ({user?.fullName || user?.displayName || "Me"})
+                    <SelectItem value={currentAssigneeId || user?.uid || ""}>
+                      Assign to me
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -1053,6 +1700,97 @@ export default function TaskBoard() {
               </button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* START FOCUS DIALOG (Screen 2) */}
+      <Dialog open={isStartFocusOpen} onOpenChange={setIsStartFocusOpen}>
+        <DialogContent className="bg-card/95 border-border text-foreground sm:max-w-md backdrop-blur-md shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Target className="w-4 h-4 text-primary" /> Start Focus Mode
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-foreground/70 uppercase tracking-wider">Selected Task</label>
+              <div className="p-3 border border-border rounded-xl text-sm font-bold text-foreground bg-background/50">
+                {focusTasks.find(t => t.id === selectedFocusTaskId)?.title || "—"}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-foreground/70 uppercase tracking-wider">Choose Session Duration</label>
+              <Select value={focusDurationChoice} onValueChange={(val) => setFocusDurationChoice(val as "25" | "50" | "none")}>
+                <SelectTrigger className="w-full border-border text-foreground h-9">
+                  <SelectValue placeholder="Duration" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border-border text-foreground">
+                  <SelectItem value="25">25 Minutes</SelectItem>
+                  <SelectItem value="50">50 Minutes</SelectItem>
+                  <SelectItem value="none">No Time Limit</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-foreground/70 uppercase tracking-wider">Optional Notes</label>
+              <Textarea
+                placeholder="Seed your Quick Notes for this session..."
+                value={focusStartNotes}
+                onChange={(e) => setFocusStartNotes(e.target.value)}
+                className="border-border text-foreground placeholder:text-foreground/30 min-h-[70px]"
+              />
+            </div>
+          </div>
+          <DialogFooter className="mt-6 border-t-0 pt-4">
+            <button
+              type="button"
+              onClick={() => setIsStartFocusOpen(false)}
+              className="px-4 py-2 text-sm font-bold text-foreground/70 hover:text-foreground transition-colors"
+              disabled={isStartingFocus}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmStartFocus}
+              disabled={isStartingFocus || !selectedFocusTaskId}
+              className="px-4 py-2 text-sm font-bold bg-primary hover:bg-primary text-foreground rounded-lg transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
+            >
+              <Target className="w-3.5 h-3.5" /> {isStartingFocus ? "Starting..." : "Start Focus"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* EXIT FOCUS MODE CONFIRMATION (accessible from a paused card on the normal board) */}
+      <Dialog open={!!exitFocusTarget} onOpenChange={(o) => !o && setExitFocusTarget(null)}>
+        <DialogContent className="bg-card/95 border-border text-foreground sm:max-w-sm backdrop-blur-md shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-rose-400 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" /> Exit Focus Mode?
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-foreground/60 mt-2 leading-relaxed">
+            This session's progress will be discarded. The task will stay in In Progress, with no focus stats attached.
+          </p>
+          <DialogFooter className="mt-6 border-t-0 pt-2">
+            <button
+              type="button"
+              onClick={() => setExitFocusTarget(null)}
+              className="px-4 py-2 text-sm font-bold text-foreground/70 hover:text-foreground transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => exitFocusTarget && handleExitFocusSession(exitFocusTarget)}
+              className="px-4 py-2 text-sm font-bold bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors flex items-center justify-center gap-1.5"
+            >
+              <LogOut className="w-3.5 h-3.5" /> Exit Focus Mode
+            </button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -1132,15 +1870,42 @@ export default function TaskBoard() {
                 </h4>
                 <div className="p-2.5 border border-border rounded-xl text-xs text-foreground/50">
                   {activeTask?.attachments && activeTask.attachments.length > 0 ? (
-                    activeTask.attachments.map((att, i) => (
-                      <div key={i} className="flex items-center gap-2 text-foreground/80 py-0.5">
-                        <Paperclip className="w-3 h-3 text-primary" /> {att}
-                      </div>
-                    ))
+                    activeTask.attachments.map((att, i) => {
+                      const attachment = typeof att === "string" ? { name: att, url: "" } : att;
+                      return (
+                        <div key={`${attachment.name}-${i}`} className="flex items-center gap-2 text-foreground/80 py-1">
+                          <Paperclip className="w-3 h-3 shrink-0 text-primary" />
+                          {attachment.url ? (
+                            <a href={attachment.url} target="_blank" rel="noreferrer" className="truncate text-primary hover:underline">
+                              {attachment.name}
+                            </a>
+                          ) : (
+                            <span className="truncate">{attachment.name}</span>
+                          )}
+                        </div>
+                      );
+                    })
                   ) : (
                     "No attachments uploaded."
                   )}
                 </div>
+                {activeTask?.status === "in_progress" && isOwner(activeTask) && (
+                  <div className="mt-2">
+                    <label className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border border-primary/40 px-3 text-xs font-bold text-primary transition-colors hover:bg-primary/10">
+                      <Paperclip className="h-3.5 w-3.5" />
+                      {isUploadingAttachment ? "Uploading…" : "Attach file"}
+                      <input
+                        type="file"
+                        className="sr-only"
+                        accept=".pdf,.docx,.xlsx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        onChange={handleAttachmentUpload}
+                        disabled={isUploadingAttachment}
+                      />
+                    </label>
+                    <p className="mt-1.5 text-[10px] text-foreground/45">PDF, DOCX, or XLSX — up to 10 MB.</p>
+                    {attachmentError && <p className="mt-1 text-[10px] font-medium text-rose-400">{attachmentError}</p>}
+                  </div>
+                )}
               </div>
             )}
 
@@ -1202,7 +1967,7 @@ export default function TaskBoard() {
                 <Play className="w-4 h-4 fill-current" /> Start Task
               </button>
             )}
-            {activeTask?.status === "in_progress" && isOwner(activeTask) && (
+            {activeTask?.status === "in_progress" && isOwner(activeTask) && !activeTask.focusSession && (
               <button
                 onClick={() => openSubmitReviewConfirm(activeTask)}
                 className="btn-primary w-full h-10 text-sm font-bold flex items-center justify-center gap-2 cursor-pointer mt-2"
@@ -1210,6 +1975,7 @@ export default function TaskBoard() {
                 <Send className="w-4 h-4" /> Completed Task
               </button>
             )}
+            {activeTask && renderFocusCardBlock(activeTask)}
 
             {/* Admin Actions in Drawer */}
             {activeTask?.status === "review" && isCSuiteOrAdmin && (
