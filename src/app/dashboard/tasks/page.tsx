@@ -158,9 +158,9 @@ export default function TaskBoard() {
     Object.values(tasks).flat().find(t => t.id === selectedTask.id) :
     null;
 
-  // Task locking: Non-admins cannot drag tasks out of Backlog, Review, or Done.
-  // Backlog tasks MUST be started via the "Start Task" button.
-  const isLocked = (t: Task) => !isCSuiteOrAdmin && (t.status === "backlog" || t.status === "review" || t.status === "done");
+  // Task locking: ALL drag-and-drop is locked for non-admins.
+  // Employees MUST use the Start Task / Completed Task buttons to progress tasks.
+  const isLocked = (t: Task) => !isCSuiteOrAdmin;
   const isOwner = (t: Task) => !!user && t.assignedTo === user.uid;
 
   // Filter juniors for Senior Employees / Managers
@@ -206,7 +206,7 @@ export default function TaskBoard() {
       } else if (isManagerOrSenior) {
         assigneeId = newTask.assignedTo || user.uid;
       } else {
-        assigneeId = user.uid; // Regular employees can only assign to self
+        assigneeId = user.uid;
       }
 
       const assigneeEmp = employeesList.find(emp => emp.id === assigneeId) || {
@@ -432,20 +432,9 @@ export default function TaskBoard() {
     const sourceStatus = source.droppableId as TaskStatus;
     const destStatus = destination.droppableId as TaskStatus;
 
-    // Drag-and-drop restrictions: Non-admins CANNOT drag into/out of Backlog, Review, or Done.
-    // Tasks in Backlog MUST be started via the "Start Task" button.
-    if (!isCSuiteOrAdmin) {
-      if (
-        sourceStatus === "backlog" ||
-        destStatus === "backlog" ||
-        sourceStatus === "review" ||
-        destStatus === "review" ||
-        sourceStatus === "done" ||
-        destStatus === "done"
-      ) {
-        return;
-      }
-    }
+    // Drag-and-drop is fully disabled for non-admins — all task progression
+    // must happen via the Start Task / Completed Task buttons.
+    if (!isCSuiteOrAdmin) return;
 
     const sourceTasks = Array.from(tasks[sourceStatus]);
     const destTasks = sourceStatus === destStatus ? sourceTasks : Array.from(tasks[destStatus]);
@@ -563,7 +552,10 @@ export default function TaskBoard() {
 
           {/* ADMIN ONLY: All Employee Filter Dropdown near Export CSV */}
           {isCSuiteOrAdmin && !focusMode && !myTasksOnly && (
-            <Select value={employeeFilter} onValueChange={setEmployeeFilter}>
+           <Select
+  value={employeeFilter}
+  onValueChange={(val) => setEmployeeFilter(val ?? "all")}
+>
               <SelectTrigger className="h-9 w-44 border-border text-xs font-bold">
                 <SelectValue placeholder="All employees" />
               </SelectTrigger>
@@ -955,10 +947,9 @@ export default function TaskBoard() {
             <div className="space-y-2">
               <label className="text-xs font-bold text-foreground/70 uppercase tracking-wider">Assign To</label>
               {isCSuiteOrAdmin ? (
-                /* C-Suite & Admin: Full Department & Employee Selection */
                 <Select
                   value={newTask.assignedTo || user?.uid || ""}
-                  onValueChange={(val) => setNewTask({ ...newTask, assignedTo: val })}
+                 onValueChange={(val) => setNewTask({ ...newTask, assignedTo: val ?? "" })}
                 >
                   <SelectTrigger className="w-full border-border text-foreground h-9">
                     <SelectValue placeholder="Select Employee" />
@@ -978,10 +969,9 @@ export default function TaskBoard() {
                   </SelectContent>
                 </Select>
               ) : isManagerOrSenior ? (
-                /* Senior Employee / Manager: Assign to Myself OR Juniors */
                 <Select
                   value={newTask.assignedTo || user?.uid || ""}
-                  onValueChange={(val) => setNewTask({ ...newTask, assignedTo: val })}
+                  onValueChange={(val) => setNewTask({ ...newTask, assignedTo: val ?? "" })}
                 >
                   <SelectTrigger className="w-full border-border text-foreground h-9">
                     <SelectValue placeholder="Select Myself or Junior" />
@@ -999,7 +989,6 @@ export default function TaskBoard() {
                   </SelectContent>
                 </Select>
               ) : (
-                /* Regular Employee / Intern: Strictly Self Assignment */
                 <Select
                   value={user?.uid || ""}
                   disabled={true}
@@ -1091,7 +1080,6 @@ export default function TaskBoard() {
               </div>
             )}
 
-            {/* Task Meta Details */}
             <div className="grid grid-cols-3 gap-2 border border-border p-3 rounded-xl text-xs">
               <div>
                 <span className="text-foreground/40 block mb-0.5">Assigned To:</span>
@@ -1114,7 +1102,6 @@ export default function TaskBoard() {
               </div>
             </div>
 
-            {/* Recheck Feedback Banner if sent back by Admin */}
             {activeTask?.feedback && (
               <div className="border border-rose-500/40 bg-rose-950/40 rounded-xl p-3 text-xs text-rose-300 font-medium space-y-1">
                 <div className="flex items-center gap-1.5 font-bold text-rose-400">
@@ -1137,7 +1124,7 @@ export default function TaskBoard() {
               </div>
             )}
 
-            {/* Attachments Section — HIDDEN for Backlog tasks */}
+            {/* Attachments — HIDDEN for Backlog */}
             {activeTask?.status !== "backlog" && (
               <div>
                 <h4 className="text-xs font-bold text-foreground/70 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
@@ -1157,13 +1144,12 @@ export default function TaskBoard() {
               </div>
             )}
 
-            {/* Remarks & Progress Log — HIDDEN for Backlog tasks */}
+            {/* Remarks & Progress Log — HIDDEN for Backlog */}
             {activeTask?.status !== "backlog" && (
               <div>
                 <h3 className="text-xs font-bold text-foreground/70 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                   <MessageSquare className="w-3.5 h-3.5 text-primary" /> Remarks & Progress Logs ({activeTask?.remarks?.length || 0})
                 </h3>
-
                 <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
                   {!activeTask?.remarks || activeTask.remarks.length === 0 ? (
                     <div className="text-center py-4 text-foreground/20 text-xs font-medium border border-border border-dashed rounded-xl">
@@ -1176,9 +1162,7 @@ export default function TaskBoard() {
                           <span className="text-primary">{remark.authorName}</span>
                           <span className="text-foreground/30 text-[10px]">{new Date(remark.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
-                        <p className="text-xs text-foreground/80 leading-relaxed font-medium">
-                          {remark.text}
-                        </p>
+                        <p className="text-xs text-foreground/80 leading-relaxed font-medium">{remark.text}</p>
                       </div>
                     ))
                   )}
@@ -1186,7 +1170,7 @@ export default function TaskBoard() {
               </div>
             )}
 
-            {/* Add Remark Form — HIDDEN for Backlog tasks & locked tasks */}
+            {/* Add Remark Form — HIDDEN for Backlog & locked tasks */}
             {activeTask && activeTask.status !== "backlog" && !isLocked(activeTask) && (
               <form onSubmit={handleAddRemark} className="space-y-2 border-t border-border pt-3">
                 <label className="text-xs font-bold text-foreground/40 uppercase tracking-wider block">Add Progress Remark</label>
@@ -1326,4 +1310,5 @@ export default function TaskBoard() {
         </DialogContent>
       </Dialog>
     </div>
-  );}
+  );
+}
