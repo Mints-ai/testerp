@@ -31,6 +31,10 @@ export const CHAT_TOOLS = [
                         type: "string",
                         description: "Full/partial name, email, or employee ID (e.g. MNTSGBL-021-2026). Omit to mean 'myself'.",
                     },
+                    listAll: {
+                        type: "boolean",
+                        description: "Set to true if the user is asking for details of ALL employees, not one specific person.",
+                    },
                 },
             },
         },
@@ -41,23 +45,26 @@ export const CHAT_TOOLS = [
 // Entity resolution: turns a model-extracted label or ID into a real
 // Firestore record.
 // ---------------------------------------------------------------------------
-function findEmployee(items: any[], search: string): any | null {
-    const cleanSearch = search.toLowerCase().replace(/\s+/g, ' ').trim();
-    return (
-        items.find((i) => {
-            const name = i.fullName?.toLowerCase().replace(/\s+/g, ' ');
-            const empId = i.employeeId?.toLowerCase();
-            const email = i.email?.toLowerCase();
-            return name === cleanSearch || empId === cleanSearch || email === cleanSearch;
-        }) ||
-        items.find((i) => {
-            const name = i.fullName?.toLowerCase().replace(/\s+/g, ' ');
-            const empId = i.employeeId?.toLowerCase();
-            const email = i.email?.toLowerCase();
-            return (name && name.includes(cleanSearch)) || (empId && empId.includes(cleanSearch)) || (email && email.includes(cleanSearch));
-        }) ||
-        null
-    );
+function findEmployee<T extends Record<string, any>>(items: T[], search: string): T | null {
+    const lower = search.toLowerCase();
+    const normalized = lower.replace(/\s+/g, "");
+
+    const fields = ["fullName", "employeeId", "email"];
+
+    for (const field of fields) {
+        const exact = items.find((i) => i[field]?.toLowerCase() === lower);
+        if (exact) return exact;
+    }
+    for (const field of fields) {
+        const partial = items.find((i) => i[field]?.toLowerCase().includes(lower));
+        if (partial) return partial;
+    }
+    // New: normalized fallback -- handles "thelhappi" matching "Thel Happi"
+    for (const field of fields) {
+        const normMatch = items.find((i) => i[field]?.toLowerCase().replace(/\s+/g, "").includes(normalized));
+        if (normMatch) return normMatch;
+    }
+    return null;
 }
 
 // Helper to extract department info consistently
@@ -93,7 +100,21 @@ async function getCurrentProjectsForEmployee(employeeId: string) {
 // - No name given -> defaults to the caller's own record, always allowed.
 // - A name/ID given -> looking up someone else requires VIEW_ALL_EMPLOYEES.
 // ---------------------------------------------------------------------------
-export async function getEmployeeDetails(session: ChatSession, employeeName?: string) {
+export async function getEmployeeDetails(session: ChatSession, employeeName?: string, listAll?: boolean) {
+    if (listAll) {
+        if (!canAccess(session.role, "VIEW_ALL_EMPLOYEES")) {
+            return { error: "not_authorized" };
+        }
+        const snap = await adminDb.collection("employees").where("isActive", "==", true).get();
+        return snap.docs.map((d) => ({
+            employeeId: d.data().employeeId || d.id,
+            fullName: d.data().fullName,
+            jobTitle: d.data().jobTitle,
+            department: d.data().department,
+            departments: d.data().departments,
+            email: d.data().email,
+        }));
+    }
     if (!employeeName) {
         const selfDoc = await adminDb.collection("employees").doc(session.uid).get();
         if (!selfDoc.exists) return { error: "not_found" };
