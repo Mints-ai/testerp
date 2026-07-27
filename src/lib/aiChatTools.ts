@@ -23,13 +23,13 @@ export const CHAT_TOOLS = [
         function: {
             name: "getEmployeeDetails",
             description:
-                "Get details about an employee: job title, department, email, and the project(s) they are currently working on. Defaults to the requester's own record if no name is given.",
+                "Get details about an employee: employee ID, job title, department, sub-departments/departments list, email, and the project(s) they are currently working on. Defaults to the requester's own record if no name or ID is given.",
             parameters: {
                 type: "object",
                 properties: {
                     employeeName: {
                         type: "string",
-                        description: "Full or partial name of the employee. Omit to mean 'myself'.",
+                        description: "Full/partial name, email, or employee ID (e.g. MNTSGBL-021-2026). Omit to mean 'myself'.",
                     },
                 },
             },
@@ -38,30 +38,45 @@ export const CHAT_TOOLS = [
 ] as const;
 
 // ---------------------------------------------------------------------------
-// Entity resolution: turns a model-extracted label (e.g. "Sanal") into a real
-// Firestore record. This string is untrusted input -- it is used only to
-// decide *what* to look up, never *who is asking* or *what is allowed*.
+// Entity resolution: turns a model-extracted label or ID into a real
+// Firestore record.
 // ---------------------------------------------------------------------------
-function fuzzyFind<T extends Record<string, any>>(
-    items: T[],
-    field: string,
-    search: string
-): T | null {
-    const lower = search.toLowerCase();
+function findEmployee(items: any[], search: string): any | null {
+    const cleanSearch = search.toLowerCase().replace(/\s+/g, ' ').trim();
     return (
-        items.find((i) => i[field]?.toLowerCase() === lower) ||
-        items.find((i) => i[field]?.toLowerCase().includes(lower)) ||
+        items.find((i) => {
+            const name = i.fullName?.toLowerCase().replace(/\s+/g, ' ');
+            const empId = i.employeeId?.toLowerCase();
+            const email = i.email?.toLowerCase();
+            return name === cleanSearch || empId === cleanSearch || email === cleanSearch;
+        }) ||
+        items.find((i) => {
+            const name = i.fullName?.toLowerCase().replace(/\s+/g, ' ');
+            const empId = i.employeeId?.toLowerCase();
+            const email = i.email?.toLowerCase();
+            return (name && name.includes(cleanSearch)) || (empId && empId.includes(cleanSearch)) || (email && email.includes(cleanSearch));
+        }) ||
         null
     );
+}
+
+// Helper to extract department info consistently
+function formatDepartmentInfo(data: any) {
+    const deptList: string[] = Array.isArray(data.departments) && data.departments.length > 0
+        ? data.departments
+        : (data.department ? [data.department] : []);
+
+    const departmentString = data.department || (deptList.length > 0 ? deptList.join(", ") : "Unassigned");
+
+    return {
+        department: departmentString,
+        departments: deptList,
+    };
 }
 
 // ---------------------------------------------------------------------------
 // Project membership lives on the PROJECT document, not the employee
 // document -- each project has a memberIds array of employee uids.
-// So "what is this employee currently working on" means: search the
-// projects collection for any project whose memberIds array contains this
-// employee's uid, and whose status is "active" (confirm this string matches
-// your actual `projects` collection's status values).
 // ---------------------------------------------------------------------------
 async function getCurrentProjectsForEmployee(employeeId: string) {
     const snap = await adminDb
@@ -76,9 +91,7 @@ async function getCurrentProjectsForEmployee(employeeId: string) {
 // ---------------------------------------------------------------------------
 // Tool: employee details
 // - No name given -> defaults to the caller's own record, always allowed.
-// - A name given -> looking up someone else requires VIEW_ALL_EMPLOYEES,
-//   checked against session.role (server-verified), never against anything
-//   the model was told during the conversation.
+// - A name/ID given -> looking up someone else requires VIEW_ALL_EMPLOYEES.
 // ---------------------------------------------------------------------------
 export async function getEmployeeDetails(session: ChatSession, employeeName?: string) {
     if (!employeeName) {
@@ -86,10 +99,13 @@ export async function getEmployeeDetails(session: ChatSession, employeeName?: st
         if (!selfDoc.exists) return { error: "not_found" };
         const d = selfDoc.data()!;
         const currentProjects = await getCurrentProjectsForEmployee(session.uid);
+        const deptInfo = formatDepartmentInfo(d);
         return {
+            employeeId: d.employeeId || session.uid,
             fullName: d.fullName,
             jobTitle: d.jobTitle,
-            department: d.department,
+            department: deptInfo.department,
+            departments: deptInfo.departments,
             email: d.email,
             currentProjects,
         };
@@ -105,14 +121,17 @@ export async function getEmployeeDetails(session: ChatSession, employeeName?: st
         .get();
 
     const employees = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as any[];
-    const match = fuzzyFind(employees, "fullName", employeeName);
+    const match = findEmployee(employees, employeeName);
     if (!match) return { error: "not_found" };
 
     const currentProjects = await getCurrentProjectsForEmployee(match.id);
+    const deptInfo = formatDepartmentInfo(match);
     return {
+        employeeId: match.employeeId || match.id,
         fullName: match.fullName,
         jobTitle: match.jobTitle,
-        department: match.department,
+        department: deptInfo.department,
+        departments: deptInfo.departments,
         email: match.email,
         currentProjects,
     };
