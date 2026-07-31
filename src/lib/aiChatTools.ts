@@ -39,6 +39,33 @@ export const CHAT_TOOLS = [
             },
         },
     },
+    {
+        type: "function",
+        function: {
+            name: "getProjectDetails",
+            description:
+                "Get complete details about a project: name, description, status, service type, client, start/end dates, budget, milestones, and team members. Defaults to the requester's own project(s) if no project name or employee name is given.",
+            parameters: {
+                type: "object",
+                properties: {
+                    projectName: {
+                        type: "string",
+                        description: "Full/partial project name. Omit to mean 'the project(s) I'm on'.",
+                    },
+                    employeeName: {
+                        type: "string",
+                        description:
+                            "Full/partial name, email, or employee ID of the person whose projects you want (e.g. 'Alex's projects', 'what is Alex working on'). Omit to mean the requester themselves.",
+                    },
+                    listAll: {
+                        type: "boolean",
+                        description: "Set to true if the user is asking for a list of ALL projects, not one specific project or person.",
+                    },
+                },
+            },
+        },
+    },
+
 ] as const;
 
 // ---------------------------------------------------------------------------
@@ -64,6 +91,22 @@ function findEmployee<T extends Record<string, any>>(items: T[], search: string)
         const normMatch = items.find((i) => i[field]?.toLowerCase().replace(/\s+/g, "").includes(normalized));
         if (normMatch) return normMatch;
     }
+    return null;
+}
+
+function findProject<T extends Record<string, any>>(items: T[], search: string): T | null {
+    const lower = search.toLowerCase();
+    const normalized = lower.replace(/\s+/g, "");
+
+    const exact = items.find((i) => i.name?.toLowerCase() === lower);
+    if (exact) return exact;
+
+    const partial = items.find((i) => i.name?.toLowerCase().includes(lower));
+    if (partial) return partial;
+
+    const normMatch = items.find((i) => i.name?.toLowerCase().replace(/\s+/g, "").includes(normalized));
+    if (normMatch) return normMatch;
+
     return null;
 }
 
@@ -156,4 +199,126 @@ export async function getEmployeeDetails(session: ChatSession, employeeName?: st
         email: match.email,
         currentProjects,
     };
+}
+
+async function buildFullProjectDetails(project: any, role: string) {
+    const memberIds: string[] = Array.isArray(project.memberIds) ? project.memberIds : [];
+
+    let team: { fullName: string; jobTitle: string }[] = [];
+    if (memberIds.length > 0) {
+        const empSnap = await adminDb.collection("employees").get();
+        const empMap = new Map(empSnap.docs.map((d) => [d.id, d.data()]));
+        team = memberIds
+            .map((id) => empMap.get(id))
+            .filter(Boolean)
+            .map((e: any) => ({ fullName: e.fullName, jobTitle: e.jobTitle }));
+    }
+
+    let clientName: string | null = null;
+    if (project.clientId) {
+        const clientDoc = await adminDb.collection("clients").doc(project.clientId).get();
+        if (clientDoc.exists) clientName = clientDoc.data()!.companyName || null;
+    }
+
+    const milestones = Array.isArray(project.milestones) ? project.milestones : [];
+    const progress = milestones.length > 0
+        ? Math.round((milestones.filter((m: any) => m.completed).length / milestones.length) * 100)
+        : 0;
+
+    const baseDetails = {
+        projectId: project.id,
+        name: project.name,
+        startDate: project.startDate || null,
+        endDate: project.endDate || null,
+        progress,
+        milestones: milestones.map((m: any) => ({
+            title: m.title,
+            dueDate: m.dueDate || null,
+            completed: !!m.completed,
+        })),
+    };
+
+    // founder, system_admin, c_suite, manager -> full details (description, status, client, team)
+    if (canAccess(role, "VIEW_ALL_PROJECTS")) {
+        return {
+            ...baseDetails,
+            description: project.description || null,
+            status: project.status,
+            serviceType: project.serviceType || null,
+            client: clientName,
+            team,
+            // Budget stays restricted to founder/system_admin/c_suite -- managers don't get it,
+            // matching VIEW_ALL_FINANCE elsewhere in the app (e.g. the "new project" budget field).
+            ...(canAccess(role, "VIEW_ALL_FINANCE") ? { budget: project.budget ?? null } : {}),
+        };
+    }
+
+    // senior_employee, employee, intern (must still be a member -- gated in getProjectDetails)
+    // -> progress, dates, milestones only. No budget, client, or team roster.
+    return baseDetails;
+}
+
+
+// ---------------------------------------------------------------------------
+// Tool: project details
+// - Full access (VIEW_ALL_PROJECTS role) -> can view/list any project.
+// - Everyone else -> can ONLY view projects where their uid is in memberIds.
+//   Asking about a project they're not assigned to returns not_authorized,
+//   even if they know the project's name.
+// ---------------------------------------------------------------------------
+export async function getProjectDetails(
+    session: ChatSession,
+    projectName?: string,
+    listAll?: boolean,
+    employeeName?: string
+) {
+    const hasFullAccess = canAccess(session.role, "VIEW_ALL_PROJECTS");
+
+    if (listAll) {
+        if (!hasFullAccess) return { error: "not_authorized" };
+        const snap = await adminDb.collection("projects").get();
+        return Promise.all(snap.docs.map((d) => buildFullProjectDetails({ id: d.id, ...d.data() }, session.role)));
+    }
+
+    // NEW: "Alex's projects" -- resolve the named employee to a uid, then
+    // list the projects THEY belong to (not the caller's).
+    if (employeeName) {
+        if (!hasFullAccess) return { error: "not_authorized" };
+
+        const empSnap = await adminDb.collection("employees").where("isActive", "==", true).get();
+        const employees = empSnap.docs.map((d) => ({ id: d.id, ...d.data() })) as any[];
+        const match = findEmployee(employees, employeeName);
+        if (!match) return { error: "not_found" };
+
+        const snap = await adminDb
+            .collection("projects")
+            .where("memberIds", "array-contains", match.id)
+            .get();
+        if (snap.empty) return { error: "not_found" };
+
+        return Promise.all(snap.docs.map((d) => buildFullProjectDetails({ id: d.id, ...d.data() }, session.role)));
+    }
+
+    if (!projectName) {
+        // "my project(s)" -- always the CALLER's own projects, regardless of role.
+        const snap = await adminDb
+            .collection("projects")
+            .where("memberIds", "array-contains", session.uid)
+            .get();
+        if (snap.empty) return { error: "not_found" };
+        return Promise.all(snap.docs.map((d) => buildFullProjectDetails({ id: d.id, ...d.data() }, session.role)));
+    }
+
+    // A specific project was named -- resolve it, then gate access.
+    const allSnap = await adminDb.collection("projects").get();
+    const projects = allSnap.docs.map((d) => ({ id: d.id, ...d.data() })) as any[];
+    const match = findProject(projects, projectName);
+    if (!match) return { error: "not_found" };
+
+    const isMember = Array.isArray(match.memberIds) && match.memberIds.includes(session.uid);
+    if (!hasFullAccess && !isMember) {
+        return { error: "not_authorized" };
+    }
+
+    return buildFullProjectDetails(match, session.role);
 }
