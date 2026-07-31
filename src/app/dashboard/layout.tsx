@@ -6,6 +6,7 @@ import { TopNav } from "@/components/layout/TopNav";
 import { GlobalTimer } from "@/components/layout/GlobalTimer";
 import { CommandPalette } from "@/components/layout/CommandPalette";
 import { ToastProvider } from "@/context/ToastContext";
+import { ChatWidget } from "@/components/ChatWidget";
 
 export default function DashboardLayout({
   children,
@@ -25,6 +26,7 @@ export default function DashboardLayout({
           </div>
           <GlobalTimer />
           <CommandPalette />
+          <ChatWidget />
         </div>
       </ToastProvider>
     </RouteGuard>
