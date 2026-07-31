@@ -44,3 +44,5 @@ next-env.d.ts
 .wiki-repo/
 
 chat.ps1
+
+chat_emp.ps1
