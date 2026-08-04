@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { 
@@ -300,7 +301,7 @@ export default function ReportsAndIntelligence() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-blue-500" /> {isManager ? "Intelligence & Reports" : "Status Reports"}
+            <BarChart3 className="w-5 h-5 text-primary" /> {isManager ? "Intelligence & Reports" : "Status Reports"}
           </h1>
           <p className="text-xs text-foreground/40 mt-1">
             {isManager 
@@ -323,11 +324,11 @@ export default function ReportsAndIntelligence() {
 
       {/* Financial KPIs Empty State UI */}
       {isManager && invoices.length === 0 && expenses.length === 0 && (
-        <div className="bg-blue-950/40 border border-blue-500/20 text-blue-300 p-4 rounded-xl flex items-start gap-3 shadow-sm">
-          <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+        <div className="bg-blue-950/40 border border-primary/20 text-primary/80 p-4 rounded-xl flex items-start gap-3 shadow-sm">
+          <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
           <div>
             <p className="font-bold text-xs uppercase tracking-wider">No Live Financial Data Found</p>
-            <p className="text-[11px] text-foreground/40 leading-relaxed mt-1 font-semibold">
+            <p className="text-xs text-foreground/40 leading-relaxed mt-1 font-semibold">
               There are no invoices or logged expenses in your database yet. 
               Once you generate invoices or log expenses, this intelligence dashboard will automatically switch to displaying your live data.
             </p>
@@ -338,11 +339,11 @@ export default function ReportsAndIntelligence() {
       {/* KPI Overviews Row */}
       {isManager && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
+          <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Gross Revenue</span>
-                <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                <span className="text-xs font-bold text-foreground/40 uppercase tracking-wider">Gross Revenue</span>
+                <div className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
                   <DollarSign className="w-4 h-4" />
                 </div>
               </div>
@@ -350,17 +351,17 @@ export default function ReportsAndIntelligence() {
                 <h3 className="text-xl font-bold text-foreground font-mono">
                   AED {(financialKPIs.totalBilled || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </h3>
-                <p className="text-[10px] text-emerald-400 flex items-center mt-2 font-bold uppercase tracking-wider">
+                <p className="text-xs text-accent flex items-center mt-2 font-bold uppercase tracking-wider">
                   <TrendingUp className="w-3.5 h-3.5 mr-1" /> Revenue
                 </p>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
+          <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Total Expenses</span>
+                <span className="text-xs font-bold text-foreground/40 uppercase tracking-wider">Total Expenses</span>
                 <div className="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
                   <Landmark className="w-4 h-4" />
                 </div>
@@ -369,18 +370,18 @@ export default function ReportsAndIntelligence() {
                 <h3 className="text-xl font-bold text-foreground font-mono">
                   AED {(financialKPIs.totalExpenses || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </h3>
-                <p className="text-[10px] text-rose-400 flex items-center mt-2 font-bold uppercase tracking-wider">
+                <p className="text-xs text-rose-400 flex items-center mt-2 font-bold uppercase tracking-wider">
                   <TrendingDown className="w-3.5 h-3.5 mr-1" /> Expenses
                 </p>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
+          <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Net profit</span>
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                <span className="text-xs font-bold text-foreground/40 uppercase tracking-wider">Net profit</span>
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-accent">
                   <Activity className="w-4 h-4" />
                 </div>
               </div>
@@ -388,17 +389,17 @@ export default function ReportsAndIntelligence() {
                 <h3 className="text-xl font-bold text-foreground font-mono">
                   AED {(financialKPIs.netProfit || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                 </h3>
-                <p className="text-[10px] text-emerald-400 mt-2 font-bold uppercase tracking-wider">
+                <p className="text-xs text-accent mt-2 font-bold uppercase tracking-wider">
                   Margin: {financialKPIs.profitMargin > 0 ? financialKPIs.profitMargin.toFixed(1) : "0.0"}%
                 </p>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
+          <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border">
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Active Portfolio</span>
+                <span className="text-xs font-bold text-foreground/40 uppercase tracking-wider">Active Portfolio</span>
                 <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
                   <Briefcase className="w-4 h-4" />
                 </div>
@@ -407,7 +408,7 @@ export default function ReportsAndIntelligence() {
                 <h3 className="text-xl font-bold text-foreground tracking-tight">
                   {projectMetrics.totalCount || 0} Active Projects
                 </h3>
-                <p className="text-[10px] text-foreground/30 mt-2 font-semibold">
+                <p className="text-xs text-foreground/30 mt-2 font-semibold">
                   Avg. Budget: AED {((projectMetrics.activeBudget / (projectMetrics.totalCount || 1)) || 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                 </p>
               </div>
@@ -418,25 +419,25 @@ export default function ReportsAndIntelligence() {
 
       {/* Main Tabbed Analysis Panels */}
       <Tabs defaultValue={isManager ? "financial" : "my-reports"} className="w-full">
-        <TabsList className="bg-white/[0.02] border border-white/[0.08] shadow-inner p-1 rounded-xl mb-6 flex overflow-x-auto scrollbar-hide flex-nowrap max-w-full justify-start w-full sm:w-fit gap-1 text-foreground">
+        <TabsList className="border border-border shadow-inner p-1 rounded-xl mb-6 flex overflow-x-auto scrollbar-hide flex-nowrap max-w-full justify-start w-full sm:w-fit gap-1 text-foreground">
           {isManager && (
             <>
-              <TabsTrigger value="financial" className="text-xs py-1.5 px-4 font-bold rounded-lg text-foreground/40 data-[state=active]:bg-blue-600 data-[state=active]:text-foreground data-[state=active]:shadow-glow-blue transition-all cursor-pointer shrink-0">
+              <TabsTrigger value="financial" className="text-xs py-1.5 px-4 font-bold rounded-lg text-foreground/40 data-[state=active]:bg-primary data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all cursor-pointer shrink-0">
                 Financial Analytics
               </TabsTrigger>
-              <TabsTrigger value="operational" className="text-xs py-1.5 px-4 font-bold rounded-lg text-foreground/40 data-[state=active]:bg-blue-600 data-[state=active]:text-foreground data-[state=active]:shadow-glow-blue transition-all cursor-pointer shrink-0">
+              <TabsTrigger value="operational" className="text-xs py-1.5 px-4 font-bold rounded-lg text-foreground/40 data-[state=active]:bg-primary data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all cursor-pointer shrink-0">
                 Operational Delivery
               </TabsTrigger>
-              <TabsTrigger value="team" className="text-xs py-1.5 px-4 font-bold rounded-lg text-foreground/40 data-[state=active]:bg-blue-600 data-[state=active]:text-foreground data-[state=active]:shadow-glow-blue transition-all cursor-pointer shrink-0">
+              <TabsTrigger value="team" className="text-xs py-1.5 px-4 font-bold rounded-lg text-foreground/40 data-[state=active]:bg-primary data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all cursor-pointer shrink-0">
                 Team Intelligence
               </TabsTrigger>
             </>
           )}
-          <TabsTrigger value="my-reports" className="text-xs py-1.5 px-4 font-bold rounded-lg text-foreground/40 data-[state=active]:bg-blue-600 data-[state=active]:text-foreground data-[state=active]:shadow-glow-blue transition-all cursor-pointer shrink-0">
+          <TabsTrigger value="my-reports" className="text-xs py-1.5 px-4 font-bold rounded-lg text-foreground/40 data-[state=active]:bg-primary data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all cursor-pointer shrink-0">
             My Status Reports
           </TabsTrigger>
           {isManager && (
-            <TabsTrigger value="team-reports" className="text-xs py-1.5 px-4 font-bold rounded-lg text-foreground/40 data-[state=active]:bg-blue-600 data-[state=active]:text-foreground data-[state=active]:shadow-glow-blue transition-all cursor-pointer shrink-0">
+            <TabsTrigger value="team-reports" className="text-xs py-1.5 px-4 font-bold rounded-lg text-foreground/40 data-[state=active]:bg-primary data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all cursor-pointer shrink-0">
               Team Status Reports
             </TabsTrigger>
           )}
@@ -447,10 +448,10 @@ export default function ReportsAndIntelligence() {
             {/* Tab 1: Financial Analytics */}
             <TabsContent value="financial" className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Card className="lg:col-span-2 glass-card overflow-hidden border-white/[0.08] bg-white/[0.02] p-5">
+                <Card className="lg:col-span-2 bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border p-5">
                   <CardHeader className="p-0 mb-6">
                     <CardTitle className="text-sm font-bold text-foreground">Revenue vs. Expenses Trend</CardTitle>
-                    <CardDescription className="text-[11px] text-foreground/40 mt-1">Monthly track of incoming receivables and operational overhead expenses.</CardDescription>
+                    <CardDescription className="text-xs text-foreground/40 mt-1">Monthly track of incoming receivables and operational overhead expenses.</CardDescription>
                   </CardHeader>
                   <CardContent className="h-[300px] p-0 w-full min-w-0">
                     {mounted ? (
@@ -486,20 +487,20 @@ export default function ReportsAndIntelligence() {
                   </CardContent>
                 </Card>
 
-                <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02] p-5">
+                <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border p-5">
                   <CardHeader className="p-0 mb-6">
                     <CardTitle className="text-sm font-bold text-foreground">Financial Health Statement</CardTitle>
-                    <CardDescription className="text-[11px] text-foreground/40 mt-1">Key stability performance indicators.</CardDescription>
+                    <CardDescription className="text-xs text-foreground/40 mt-1">Key stability performance indicators.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6 pt-2 p-0">
-                    <div className="border border-white/[0.06] rounded-xl p-4 bg-white/[0.01] space-y-4">
+                    <div className="border border-border rounded-xl p-4 space-y-4">
                       <div className="flex items-center justify-between text-xs font-semibold">
                         <span className="text-foreground/40">Monthly Burn Rate</span>
                         <span className="text-foreground font-mono">AED 0</span>
                       </div>
                       <div className="flex items-center justify-between text-xs font-semibold">
                         <span className="text-foreground/40">Estimated Runaway</span>
-                        <span className="badge bg-blue-500/10 border border-blue-500/20 text-blue-300 font-bold uppercase tracking-wider text-[9px] py-0.5">N/A</span>
+                        <span className="badge bg-primary/10 border border-primary/20 text-primary/80 font-bold uppercase tracking-wider text-xs py-0.5">N/A</span>
                       </div>
                       <div className="flex items-center justify-between text-xs font-semibold">
                         <span className="text-foreground/40">Invoiced Unpaid Balance</span>
@@ -508,10 +509,10 @@ export default function ReportsAndIntelligence() {
                     </div>
 
                     <div className="space-y-3.5">
-                      <h4 className="text-[10px] font-bold text-foreground/30 uppercase tracking-[0.12em]">Quick Advice & Insights</h4>
-                      <div className="flex gap-2.5 p-3.5 rounded-xl bg-muted/20 border border-blue-500/10 text-foreground/70 text-xs">
-                        <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
-                        <p className="leading-relaxed font-semibold text-[11px]">
+                      <h4 className="text-xs font-bold text-foreground/30 uppercase tracking-[0.12em]">Quick Advice & Insights</h4>
+                      <div className="flex gap-2.5 p-3.5 rounded-xl border border-primary/10 text-foreground/70 text-xs">
+                        <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                        <p className="leading-relaxed font-semibold text-xs">
                           Your net margin is <strong>{financialKPIs.profitMargin > 0 ? financialKPIs.profitMargin.toFixed(1) : "0.0"}%</strong>. Add data to generate insights.
                         </p>
                       </div>
@@ -524,10 +525,10 @@ export default function ReportsAndIntelligence() {
             {/* Tab 2: Operational Delivery */}
             <TabsContent value="operational" className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02] p-5">
+                <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border p-5">
                   <CardHeader className="p-0 mb-6">
                     <CardTitle className="text-sm font-bold text-foreground">Delivery Portfolio Mix</CardTitle>
-                    <CardDescription className="text-[11px] text-foreground/40 mt-1">Visual summary of client projects status.</CardDescription>
+                    <CardDescription className="text-xs text-foreground/40 mt-1">Visual summary of client projects status.</CardDescription>
                   </CardHeader>
                   <CardContent className="h-64 p-0 flex flex-col items-center justify-center w-full min-w-0">
                     {mounted ? (
@@ -558,7 +559,7 @@ export default function ReportsAndIntelligence() {
                     
                     <div className="flex flex-wrap gap-x-4 gap-y-1.5 justify-center mt-4">
                       {getProjectStatusDistribution().map((entry, index) => (
-                        <div key={entry.name} className="flex items-center gap-1.5 text-[10px] text-foreground/60 font-semibold uppercase tracking-wider">
+                        <div key={entry.name} className="flex items-center gap-1.5 text-xs text-foreground/60 font-semibold uppercase tracking-wider">
                           <div className="w-2 h-2 rounded-full" style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }} />
                           <span>{entry.name}: {entry.value}</span>
                         </div>
@@ -567,10 +568,10 @@ export default function ReportsAndIntelligence() {
                   </CardContent>
                 </Card>
 
-                <Card className="lg:col-span-2 glass-card overflow-hidden border-white/[0.08] bg-white/[0.02] p-5">
+                <Card className="lg:col-span-2 bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border p-5">
                   <CardHeader className="p-0 mb-6">
                     <CardTitle className="text-sm font-bold text-foreground">Project Velocity vs. Delivery Speed</CardTitle>
-                    <CardDescription className="text-[11px] text-foreground/40 mt-1">Monthly distribution of total actively loaded projects.</CardDescription>
+                    <CardDescription className="text-xs text-foreground/40 mt-1">Monthly distribution of total actively loaded projects.</CardDescription>
                   </CardHeader>
                   <CardContent className="h-[300px] p-0 w-full min-w-0">
                     {mounted ? (
@@ -595,10 +596,10 @@ export default function ReportsAndIntelligence() {
             {/* Tab 3: Team Intelligence */}
             <TabsContent value="team" className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Card className="lg:col-span-2 glass-card overflow-hidden border-white/[0.08] bg-white/[0.02] p-5">
+                <Card className="lg:col-span-2 bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border p-5">
                   <CardHeader className="p-0 mb-6">
                     <CardTitle className="text-sm font-bold text-foreground">Headcount Breakdown by Department</CardTitle>
-                    <CardDescription className="text-[11px] text-foreground/40 mt-1">Shows team density and capacity allocations.</CardDescription>
+                    <CardDescription className="text-xs text-foreground/40 mt-1">Shows team density and capacity allocations.</CardDescription>
                   </CardHeader>
                   <CardContent className="h-[300px] p-0 w-full min-w-0">
                     {mounted ? (
@@ -617,31 +618,31 @@ export default function ReportsAndIntelligence() {
                   </CardContent>
                 </Card>
 
-                <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02] p-5">
+                <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border p-5">
                   <CardHeader className="p-0 mb-6">
                     <CardTitle className="text-sm font-bold text-foreground">Total Headcount Density</CardTitle>
-                    <CardDescription className="text-[11px] text-foreground/40 mt-1">Full Team dynamics overview.</CardDescription>
+                    <CardDescription className="text-xs text-foreground/40 mt-1">Full Team dynamics overview.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6 p-0 pt-2">
-                    <div className="flex items-center justify-between p-4 border border-white/[0.06] rounded-xl bg-white/[0.01]">
+                    <div className="flex items-center justify-between p-4 border border-border rounded-xl">
                       <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-500/10 text-blue-400 rounded-lg border border-blue-500/20">
+                        <div className="p-2 bg-primary/10 text-primary rounded-lg border border-primary/20">
                           <Users className="w-5 h-5" />
                         </div>
                         <div>
                           <h4 className="font-bold text-foreground text-xs">{employees.length || 0} Employees</h4>
-                          <p className="text-[10px] text-foreground/40 mt-0.5 font-semibold">Active personnel directory</p>
+                          <p className="text-xs text-foreground/40 mt-0.5 font-semibold">Active personnel directory</p>
                         </div>
                       </div>
                       <ChevronRight className="w-4 h-4 text-foreground/30" />
                     </div>
 
-                    <div className="space-y-3.5 text-xs text-foreground/70 leading-relaxed bg-muted/20 p-4 border border-blue-500/10 rounded-xl">
-                      <h4 className="font-bold text-foreground text-[11px] uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                        <Calendar className="w-4 h-4 text-blue-400" />
+                    <div className="space-y-3.5 text-xs text-foreground/70 leading-relaxed p-4 border border-primary/10 rounded-xl">
+                      <h4 className="font-bold text-foreground text-xs uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                        <Calendar className="w-4 h-4 text-primary" />
                         Workforce Health Assessment
                       </h4>
-                      <ul className="space-y-2 list-disc pl-4 text-foreground/60 font-semibold text-[11px]">
+                      <ul className="space-y-2 list-disc pl-4 text-foreground/60 font-semibold text-xs">
                         <li>Not enough data to calculate attendance metrics.</li>
                       </ul>
                     </div>
@@ -656,13 +657,13 @@ export default function ReportsAndIntelligence() {
         <TabsContent value="my-reports" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Submit Report Form */}
-            <Card className="lg:col-span-1 glass bg-white/[0.02] border border-white/[0.08] shadow-lg rounded-2xl p-6">
+            <Card className="lg:col-span-1 bg-card border border-border shadow-sm border border-border shadow-lg rounded-2xl p-6">
               <CardHeader className="p-0 mb-4">
                 <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
-                  <Send className="w-4 h-4 text-blue-400" />
+                  <Send className="w-4 h-4 text-primary" />
                   Submit Status Report
                 </CardTitle>
-                <CardDescription className="text-[10px] text-foreground/40 mt-1">
+                <CardDescription className="text-xs text-foreground/40 mt-1">
                   Submit a daily update or a weekly summary to update your team leads.
                 </CardDescription>
               </CardHeader>
@@ -670,27 +671,19 @@ export default function ReportsAndIntelligence() {
                 <form onSubmit={handleSubmitReport} className="space-y-4">
                   {/* Report Type Selection */}
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Report Type</label>
+                    <label className="text-xs font-bold text-foreground/40 uppercase tracking-wider">Report Type</label>
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         type="button"
                         onClick={() => { setReportType("daily"); setReportDate(new Date().toISOString().split('T')[0]); }}
-                        className={`h-9 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-                          reportType === "daily"
-                            ? "bg-blue-600/20 text-blue-300 border-blue-500/30"
-                            : "bg-white/[0.01] text-foreground/40 border-white/[0.08] hover:text-foreground/80 hover:bg-white/[0.03]"
-                        }`}
+                        className={`h-9 rounded-xl border text-xs font-bold transition-all cursor-pointer ${ reportType === "daily" ? "bg-primary/20 text-primary/80 border-primary/30" : " text-foreground/40 border-border hover:text-foreground/80 hover:" }`}
                       >
                         Daily Report
                       </button>
                       <button
                         type="button"
                         onClick={() => { setReportType("weekly"); setReportDate(new Date().toISOString().split('T')[0]); }}
-                        className={`h-9 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-                          reportType === "weekly"
-                            ? "bg-cyan-600/20 text-cyan-300 border-cyan-500/30"
-                            : "bg-white/[0.01] text-foreground/40 border-white/[0.08] hover:text-foreground/80 hover:bg-white/[0.03]"
-                        }`}
+                        className={`h-9 rounded-xl border text-xs font-bold transition-all cursor-pointer ${ reportType === "weekly" ? "bg-cyan-600/20 text-cyan-300 border-cyan-500/30" : " text-foreground/40 border-border hover:text-foreground/80 hover:" }`}
                       >
                         Weekly Report
                       </button>
@@ -699,20 +692,20 @@ export default function ReportsAndIntelligence() {
 
                   {/* Date Input */}
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">
+                    <label className="text-xs font-bold text-foreground/40 uppercase tracking-wider">
                       {reportType === "daily" ? "Report Date" : "Week Ending Date"}
                     </label>
                     <Input
                       type="date"
                       value={reportDate}
                       onChange={(e) => setReportDate(e.target.value)}
-                      className="glass-input h-9 text-xs border-border text-foreground placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0"
+                      className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-9 text-xs border-border text-foreground placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0"
                     />
                   </div>
 
                   {/* Accomplishments */}
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">
+                    <label className="text-xs font-bold text-foreground/40 uppercase tracking-wider">
                       Accomplishments / What I did
                     </label>
                     <Textarea
@@ -720,13 +713,13 @@ export default function ReportsAndIntelligence() {
                       value={accomplishments}
                       onChange={(e) => setAccomplishments(e.target.value)}
                       rows={4}
-                      className="glass-input text-xs border-border text-foreground placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 resize-none"
+                      className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm text-xs border-border text-foreground placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 resize-none"
                     />
                   </div>
 
                   {/* Planned */}
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">
+                    <label className="text-xs font-bold text-foreground/40 uppercase tracking-wider">
                       Planned / What's Next
                     </label>
                     <Textarea
@@ -734,13 +727,13 @@ export default function ReportsAndIntelligence() {
                       value={planned}
                       onChange={(e) => setPlanned(e.target.value)}
                       rows={3}
-                      className="glass-input text-xs border-border text-foreground placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 resize-none"
+                      className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm text-xs border-border text-foreground placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 resize-none"
                     />
                   </div>
 
                   {/* Blockers */}
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider flex items-center gap-1 text-amber-400/80">
+                    <label className="text-xs font-bold text-foreground/40 uppercase tracking-wider flex items-center gap-1 text-amber-400/80">
                       <AlertTriangle className="w-3 h-3 text-amber-400" />
                       Blockers / Challenges (Optional)
                     </label>
@@ -749,19 +742,19 @@ export default function ReportsAndIntelligence() {
                       value={blockers}
                       onChange={(e) => setBlockers(e.target.value)}
                       rows={2}
-                      className="glass-input text-xs border-border text-foreground placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 resize-none"
+                      className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm text-xs border-border text-foreground placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 resize-none"
                     />
                   </div>
 
                   {/* Status Messages */}
                   {reportSuccess && (
-                    <div className="flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] rounded-xl">
+                    <div className="flex items-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 text-accent text-xs rounded-xl">
                       <CheckCircle2 className="w-4 h-4 shrink-0" />
                       <span>Report submitted successfully!</span>
                     </div>
                   )}
                   {reportError && (
-                    <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-[11px] rounded-xl">
+                    <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl">
                       <AlertTriangle className="w-4 h-4 shrink-0 text-red-400" />
                       <span>{reportError}</span>
                     </div>
@@ -770,7 +763,7 @@ export default function ReportsAndIntelligence() {
                   <button
                     type="submit"
                     disabled={submittingReport || !accomplishments.trim()}
-                    className="btn-primary w-full h-10 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-glow-blue"
+                    className="btn-primary w-full h-10 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-sm"
                   >
                     {submittingReport ? "Submitting..." : "Submit Report"}
                   </button>
@@ -779,14 +772,14 @@ export default function ReportsAndIntelligence() {
             </Card>
 
             {/* Past Submissions list */}
-            <Card className="lg:col-span-2 glass bg-white/[0.02] border border-white/[0.08] shadow-lg rounded-2xl p-6">
+            <Card className="lg:col-span-2 bg-card border border-border shadow-sm border border-border shadow-lg rounded-2xl p-6">
               <CardHeader className="p-0 mb-4 flex flex-row items-center justify-between">
                 <div>
                   <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-blue-400" />
+                    <FileText className="w-4 h-4 text-primary" />
                     My Report Submissions
                   </CardTitle>
-                  <CardDescription className="text-[10px] text-foreground/40 mt-1">
+                  <CardDescription className="text-xs text-foreground/40 mt-1">
                     Your previous submissions are listed below. Click details to expand.
                   </CardDescription>
                 </div>
@@ -801,23 +794,19 @@ export default function ReportsAndIntelligence() {
                 ) : (
                   <div className="space-y-3 overflow-y-auto max-h-[600px] pr-1">
                     {myReports.map((rep) => (
-                      <div key={rep.id} className="relative bg-white/[0.01] border border-white/[0.04] p-4 rounded-xl flex items-center justify-between hover:bg-white/[0.02] hover:border-white/[0.08] transition-all group">
+                      <div key={rep.id} className="relative border border-border p-4 rounded-xl flex items-center justify-between hover: hover:border-border transition-all group">
                         <div className="flex items-center gap-4">
-                          <div className={`p-2 rounded-lg border ${
-                            rep.type === "daily" 
-                              ? "bg-blue-500/10 text-blue-400 border-blue-500/20" 
-                              : "bg-cyan-500/10 text-cyan-400 border-cyan-500/20"
-                          }`}>
+                          <div className={`p-2 rounded-lg border ${ rep.type === "daily" ? "bg-primary/10 text-primary border-primary/20" : "bg-cyan-500/10 text-accent border-cyan-500/20" }`}>
                             <FileText className="w-5 h-5" />
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
                               <span className="font-bold text-xs text-foreground capitalize">{rep.type} Update</span>
-                              <Badge className={rep.type === "daily" ? "bg-blue-500/10 text-blue-400 border-blue-500/25" : "bg-cyan-500/10 text-cyan-400 border-cyan-500/25"}>
+                              <Badge className={rep.type === "daily" ? "bg-primary/10 text-primary border-primary/25" : "bg-cyan-500/10 text-accent border-cyan-500/25"}>
                                 {rep.date}
                               </Badge>
                             </div>
-                            <p className="text-[11px] text-foreground/50 mt-1.5 line-clamp-1 max-w-[280px] sm:max-w-[400px] font-medium">
+                            <p className="text-xs text-foreground/50 mt-1.5 line-clamp-1 max-w-[280px] sm:max-w-[400px] font-medium">
                               {rep.accomplishments}
                             </p>
                           </div>
@@ -825,7 +814,7 @@ export default function ReportsAndIntelligence() {
 
                         <button 
                           onClick={() => { setSelectedReport(rep); setIsViewModalOpen(true); }}
-                          className="btn-ghost p-2 text-foreground/40 hover:text-foreground hover:bg-muted/40 rounded-xl border-border/30 cursor-pointer shrink-0"
+                          className="btn-ghost p-2 text-foreground/40 hover:text-foreground hover: rounded-xl border-border/30 cursor-pointer shrink-0"
                           title="View report details"
                         >
                           <Eye className="w-4 h-4" />
@@ -842,14 +831,14 @@ export default function ReportsAndIntelligence() {
         {/* Tab 5: Team Status Reports (Manager-only) */}
         {isManager && (
           <TabsContent value="team-reports" className="space-y-6">
-            <Card className="glass bg-white/[0.02] border border-white/[0.08] shadow-lg rounded-2xl p-6">
+            <Card className="bg-card border border-border shadow-sm border border-border shadow-lg rounded-2xl p-6">
               <CardHeader className="p-0 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                   <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <Users className="w-4 h-4 text-blue-400" />
+                    <Users className="w-4 h-4 text-primary" />
                     Team Status Reports
                   </CardTitle>
-                  <CardDescription className="text-[10px] text-foreground/40 mt-1">
+                  <CardDescription className="text-xs text-foreground/40 mt-1">
                     Review Daily and Weekly work reports submitted across the organization.
                   </CardDescription>
                 </div>
@@ -858,27 +847,47 @@ export default function ReportsAndIntelligence() {
                 <div className="flex flex-wrap gap-3">
                   <div className="flex items-center gap-2">
                     <Filter className="w-3.5 h-3.5 text-foreground/30" />
-                    <select 
+                    <Select 
                       value={filterType} 
-                      onChange={(e) => setFilterType(e.target.value)}
-                      className="glass-input h-8 text-[11px] font-semibold border-border bg-[#090e18]/80 text-foreground rounded-lg focus:border-blue-500/60 focus:ring-0 px-2.5 py-0"
+                      onValueChange={(val) => setFilterType(val as string)}
+                      items={{
+                        all: 'All Types',
+                        daily: 'Daily Reports',
+                        weekly: 'Weekly Reports'
+                      }}
                     >
-                      <option value="all">All Types</option>
-                      <option value="daily">Daily Reports</option>
-                      <option value="weekly">Weekly Reports</option>
-                    </select>
+                      <SelectTrigger className="h-8 w-[140px] text-xs font-semibold border-border bg-card text-foreground rounded-lg focus:ring-0">
+                        <SelectValue placeholder="All Types" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-background border-border text-foreground">
+                        <SelectItem value="all">All Types</SelectItem>
+                        <SelectItem value="daily">Daily Reports</SelectItem>
+                        <SelectItem value="weekly">Weekly Reports</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
 
-                  <select 
+                  <Select 
                     value={filterEmployee} 
-                    onChange={(e) => setFilterEmployee(e.target.value)}
-                    className="glass-input h-8 text-[11px] font-semibold border-border bg-[#090e18]/80 text-foreground rounded-lg focus:border-blue-500/60 focus:ring-0 px-2.5 py-0"
+                    onValueChange={(val) => setFilterEmployee(val as string)}
+                    items={[
+                      { value: 'all', label: 'All Employees' },
+                      ...Array.from(new Set(teamReports.map(r => r.employeeName))).map(name => ({
+                        value: name,
+                        label: name
+                      }))
+                    ]}
                   >
-                    <option value="all">All Employees</option>
-                    {Array.from(new Set(teamReports.map(r => r.employeeName))).map(name => (
-                      <option key={name} value={name}>{name}</option>
-                    ))}
-                  </select>
+                    <SelectTrigger className="h-8 w-[160px] text-xs font-semibold border-border bg-card text-foreground rounded-lg focus:ring-0">
+                      <SelectValue placeholder="All Employees" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border-border text-foreground max-h-60 overflow-y-auto">
+                      <SelectItem value="all">All Employees</SelectItem>
+                      {Array.from(new Set(teamReports.map(r => r.employeeName))).map(name => (
+                        <SelectItem key={name} value={name}>{name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
@@ -903,24 +912,20 @@ export default function ReportsAndIntelligence() {
                     return (
                       <div className="space-y-3 overflow-y-auto max-h-[600px] pr-1">
                         {filtered.map((rep) => (
-                          <div key={rep.id} className="relative bg-white/[0.01] border border-white/[0.04] p-4 rounded-xl flex items-center justify-between hover:bg-white/[0.02] hover:border-white/[0.08] transition-all group">
+                          <div key={rep.id} className="relative border border-border p-4 rounded-xl flex items-center justify-between hover: hover:border-border transition-all group">
                             <div className="flex items-center gap-4">
-                              <div className={`p-2 rounded-lg border ${
-                                rep.type === "daily" 
-                                  ? "bg-blue-500/10 text-blue-400 border-blue-500/20" 
-                                  : "bg-cyan-500/10 text-cyan-400 border-cyan-500/20"
-                              }`}>
+                              <div className={`p-2 rounded-lg border ${ rep.type === "daily" ? "bg-primary/10 text-primary border-primary/20" : "bg-cyan-500/10 text-accent border-cyan-500/20" }`}>
                                 <FileText className="w-5 h-5" />
                               </div>
                               <div>
                                 <div className="flex flex-wrap items-center gap-2.5">
                                   <span className="font-bold text-xs text-foreground">{rep.employeeName}</span>
-                                  <span className="text-[10px] text-foreground/40 font-semibold">{rep.employeeTitle || "Team Member"}</span>
-                                  <Badge className={rep.type === "daily" ? "bg-blue-500/10 text-blue-400 border-blue-500/25" : "bg-cyan-500/10 text-cyan-400 border-cyan-500/25"}>
+                                  <span className="text-xs text-foreground/40 font-semibold">{rep.employeeTitle || "Team Member"}</span>
+                                  <Badge className={rep.type === "daily" ? "bg-primary/10 text-primary border-primary/25" : "bg-cyan-500/10 text-accent border-cyan-500/25"}>
                                     {rep.type} • {rep.date}
                                   </Badge>
                                 </div>
-                                <p className="text-[11px] text-foreground/50 mt-1.5 line-clamp-1 max-w-[280px] sm:max-w-[400px] font-medium">
+                                <p className="text-xs text-foreground/50 mt-1.5 line-clamp-1 max-w-[280px] sm:max-w-[400px] font-medium">
                                   {rep.accomplishments}
                                 </p>
                               </div>
@@ -928,7 +933,7 @@ export default function ReportsAndIntelligence() {
 
                             <button 
                               onClick={() => { setSelectedReport(rep); setIsViewModalOpen(true); }}
-                              className="btn-ghost p-2 text-foreground/40 hover:text-foreground hover:bg-muted/40 rounded-xl border-border/30 cursor-pointer shrink-0"
+                              className="btn-ghost p-2 text-foreground/40 hover:text-foreground hover: rounded-xl border-border/30 cursor-pointer shrink-0"
                               title="View report details"
                             >
                               <Eye className="w-4 h-4" />
@@ -947,20 +952,20 @@ export default function ReportsAndIntelligence() {
 
       {/* Detailed Report View Modal */}
       <Dialog open={isViewModalOpen} onOpenChange={setIsViewModalOpen}>
-        <DialogContent className="max-w-md bg-[#0a1122]/98 border border-border rounded-2xl text-foreground p-6 shadow-2xl backdrop-blur-xl">
+        <DialogContent className="max-w-md bg-[#0a1122]/98 border border-border rounded-2xl text-foreground p-6 shadow-2xl">
           {selectedReport && (
             <>
-              <DialogHeader className="border-b border-white/[0.08] pb-4">
+              <DialogHeader className="border-b border-border pb-4">
                 <div className="flex items-center justify-between">
                   <DialogTitle className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-blue-400" />
+                    <FileText className="w-4 h-4 text-primary" />
                     {selectedReport.employeeName}'s {selectedReport.type === "daily" ? "Daily" : "Weekly"} Report
                   </DialogTitle>
-                  <Badge className={selectedReport.type === "daily" ? "bg-blue-500/10 text-blue-400 border-blue-500/25" : "bg-cyan-500/10 text-cyan-400 border-cyan-500/25"}>
+                  <Badge className={selectedReport.type === "daily" ? "bg-primary/10 text-primary border-primary/25" : "bg-cyan-500/10 text-accent border-cyan-500/25"}>
                     {selectedReport.date}
                   </Badge>
                 </div>
-                <DialogDescription className="text-[9px] text-foreground/40 font-semibold mt-1">
+                <DialogDescription className="text-xs text-foreground/40 font-semibold mt-1">
                   Submitted by {selectedReport.employeeTitle || "Team Member"}
                 </DialogDescription>
               </DialogHeader>
@@ -968,8 +973,8 @@ export default function ReportsAndIntelligence() {
               <div className="space-y-4 py-4 max-h-[420px] overflow-y-auto pr-1">
                 {/* Accomplishments */}
                 <div className="space-y-1.5">
-                  <h4 className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Accomplishments / Work Done</h4>
-                  <p className="text-xs text-foreground/80 whitespace-pre-wrap leading-relaxed bg-white/[0.01] border border-white/[0.04] p-3.5 rounded-xl font-medium">
+                  <h4 className="text-xs font-bold text-foreground/40 uppercase tracking-wider">Accomplishments / Work Done</h4>
+                  <p className="text-xs text-foreground/80 whitespace-pre-wrap leading-relaxed border border-border p-3.5 rounded-xl font-medium">
                     {selectedReport.accomplishments}
                   </p>
                 </div>
@@ -977,8 +982,8 @@ export default function ReportsAndIntelligence() {
                 {/* Planned */}
                 {selectedReport.planned && (
                   <div className="space-y-1.5">
-                    <h4 className="text-[10px] font-bold text-foreground/40 uppercase tracking-wider">Planned / Next Steps</h4>
-                    <p className="text-xs text-foreground/85 whitespace-pre-wrap leading-relaxed bg-white/[0.01] border border-white/[0.04] p-3.5 rounded-xl font-medium">
+                    <h4 className="text-xs font-bold text-foreground/40 uppercase tracking-wider">Planned / Next Steps</h4>
+                    <p className="text-xs text-foreground/85 whitespace-pre-wrap leading-relaxed border border-border p-3.5 rounded-xl font-medium">
                       {selectedReport.planned}
                     </p>
                   </div>
@@ -987,7 +992,7 @@ export default function ReportsAndIntelligence() {
                 {/* Blockers */}
                 {selectedReport.blockers && (
                   <div className="space-y-1.5">
-                    <h4 className="text-[10px] font-bold text-amber-400/80 uppercase tracking-wider flex items-center gap-1.5">
+                    <h4 className="text-xs font-bold text-amber-400/80 uppercase tracking-wider flex items-center gap-1.5">
                       <AlertTriangle className="w-3 h-3 text-amber-400" />
                       Blockers / Challenges
                     </h4>
@@ -998,7 +1003,7 @@ export default function ReportsAndIntelligence() {
                 )}
               </div>
 
-              <div className="flex justify-end pt-2 border-t border-white/[0.08]">
+              <div className="flex justify-end pt-2 border-t border-border">
                 <button 
                   onClick={() => setIsViewModalOpen(false)}
                   className="btn-primary px-5 h-9 text-xs font-bold cursor-pointer"

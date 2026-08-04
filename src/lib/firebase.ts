@@ -20,6 +20,7 @@ const firebaseConfig = {
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || (useDummy ? "mintsglobal-erp.appspot.com" : undefined),
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || (useDummy ? "1234567890" : undefined),
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || (useDummy ? "1:1234567890:web:1234567890" : undefined),
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || (useDummy ? "G-DUMMYMEASURE" : undefined),
 };
 
 let app;

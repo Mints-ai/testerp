@@ -72,51 +72,74 @@ export const CHAT_TOOLS = [
 // Entity resolution: turns a model-extracted label or ID into a real
 // Firestore record.
 // ---------------------------------------------------------------------------
-function findEmployee<T extends Record<string, any>>(items: T[], search: string): T | null {
+function findEmployee<T extends Record<string, unknown>>(items: T[], search: string): T | null {
     const lower = search.toLowerCase();
     const normalized = lower.replace(/\s+/g, "");
 
     const fields = ["fullName", "employeeId", "email"];
 
     for (const field of fields) {
-        const exact = items.find((i) => i[field]?.toLowerCase() === lower);
+        const exact = items.find((i) => {
+            const v = i[field] as unknown;
+            return typeof v === 'string' && v.toLowerCase() === lower;
+        });
         if (exact) return exact;
     }
     for (const field of fields) {
-        const partial = items.find((i) => i[field]?.toLowerCase().includes(lower));
+        const partial = items.find((i) => {
+            const v = i[field] as unknown;
+            return typeof v === 'string' && v.toLowerCase().includes(lower);
+        });
         if (partial) return partial;
     }
     // New: normalized fallback -- handles "thelhappi" matching "Thel Happi"
     for (const field of fields) {
-        const normMatch = items.find((i) => i[field]?.toLowerCase().replace(/\s+/g, "").includes(normalized));
+        const normMatch = items.find((i) => {
+            const v = i[field] as unknown;
+            return typeof v === 'string' && v.toLowerCase().replace(/\s+/g, "").includes(normalized);
+        });
         if (normMatch) return normMatch;
     }
     return null;
 }
 
-function findProject<T extends Record<string, any>>(items: T[], search: string): T | null {
+function findProject<T extends Record<string, unknown>>(items: T[], search: string): T | null {
     const lower = search.toLowerCase();
     const normalized = lower.replace(/\s+/g, "");
 
-    const exact = items.find((i) => i.name?.toLowerCase() === lower);
+    const exact = items.find((i) => {
+        const v = i['name'] as unknown;
+        return typeof v === 'string' && v.toLowerCase() === lower;
+    });
     if (exact) return exact;
 
-    const partial = items.find((i) => i.name?.toLowerCase().includes(lower));
+    const partial = items.find((i) => {
+        const v = i['name'] as unknown;
+        return typeof v === 'string' && v.toLowerCase().includes(lower);
+    });
     if (partial) return partial;
 
-    const normMatch = items.find((i) => i.name?.toLowerCase().replace(/\s+/g, "").includes(normalized));
+    const normMatch = items.find((i) => {
+        const v = i['name'] as unknown;
+        return typeof v === 'string' && v.toLowerCase().replace(/\s+/g, "").includes(normalized);
+    });
     if (normMatch) return normMatch;
 
     return null;
 }
 
 // Helper to extract department info consistently
-function formatDepartmentInfo(data: any) {
-    const deptList: string[] = Array.isArray(data.departments) && data.departments.length > 0
-        ? data.departments
-        : (data.department ? [data.department] : []);
+function formatDepartmentInfo(data: Record<string, unknown> | { department?: string; departments?: string[] }) {
+    const raw = data as Record<string, unknown>;
+    const departmentsRaw = raw['departments'];
+    let deptList: string[] = [];
+    if (Array.isArray(departmentsRaw) && departmentsRaw.length > 0) {
+        deptList = departmentsRaw.map(d => String(d));
+    } else if (raw['department']) {
+        deptList = [String(raw['department'])];
+    }
 
-    const departmentString = data.department || (deptList.length > 0 ? deptList.join(", ") : "Unassigned");
+    const departmentString = raw['department'] ? String(raw['department']) : (deptList.length > 0 ? deptList.join(", ") : "Unassigned");
 
     return {
         department: departmentString,
@@ -184,11 +207,11 @@ export async function getEmployeeDetails(session: ChatSession, employeeName?: st
         .where("isActive", "==", true)
         .get();
 
-    const employees = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as any[];
+    const employees = snap.docs.map((d) => ({ id: d.id, ...(d.data() as Record<string, unknown>) })) as Record<string, unknown>[];
     const match = findEmployee(employees, employeeName);
     if (!match) return { error: "not_found" };
-
-    const currentProjects = await getCurrentProjectsForEmployee(match.id);
+    const matchId = (match as Record<string, unknown>).id as string;
+    const currentProjects = await getCurrentProjectsForEmployee(matchId);
     const deptInfo = formatDepartmentInfo(match);
     return {
         employeeId: match.employeeId || match.id,
@@ -201,17 +224,31 @@ export async function getEmployeeDetails(session: ChatSession, employeeName?: st
     };
 }
 
-async function buildFullProjectDetails(project: any, role: string) {
-    const memberIds: string[] = Array.isArray(project.memberIds) ? project.memberIds : [];
+interface ProjectDoc {
+    id?: string;
+    memberIds?: string[];
+    clientId?: string;
+    milestones?: unknown[];
+    name?: string;
+    startDate?: string;
+    endDate?: string;
+    description?: string;
+    status?: string;
+    serviceType?: string;
+    budget?: number;
+}
+
+async function buildFullProjectDetails(project: ProjectDoc, role: string) {
+    const memberIds: string[] = Array.isArray(project.memberIds) ? (project.memberIds as string[]) : [];
 
     let team: { fullName: string; jobTitle: string }[] = [];
     if (memberIds.length > 0) {
         const empSnap = await adminDb.collection("employees").get();
-        const empMap = new Map(empSnap.docs.map((d) => [d.id, d.data()]));
+        const empMap = new Map(empSnap.docs.map((d) => [d.id, d.data() as Record<string, unknown>]));
         team = memberIds
             .map((id) => empMap.get(id))
             .filter(Boolean)
-            .map((e: any) => ({ fullName: e.fullName, jobTitle: e.jobTitle }));
+            .map((e) => ({ fullName: (e as Record<string, unknown>).fullName as string, jobTitle: (e as Record<string, unknown>).jobTitle as string }));
     }
 
     let clientName: string | null = null;
@@ -220,9 +257,9 @@ async function buildFullProjectDetails(project: any, role: string) {
         if (clientDoc.exists) clientName = clientDoc.data()!.companyName || null;
     }
 
-    const milestones = Array.isArray(project.milestones) ? project.milestones : [];
+    const milestones = Array.isArray(project.milestones) ? (project.milestones as unknown[]) : [];
     const progress = milestones.length > 0
-        ? Math.round((milestones.filter((m: any) => m.completed).length / milestones.length) * 100)
+        ? Math.round((milestones.filter((m) => ((m as Record<string, unknown>).completed as boolean)).length / milestones.length) * 100)
         : 0;
 
     const baseDetails = {
@@ -231,10 +268,10 @@ async function buildFullProjectDetails(project: any, role: string) {
         startDate: project.startDate || null,
         endDate: project.endDate || null,
         progress,
-        milestones: milestones.map((m: any) => ({
-            title: m.title,
-            dueDate: m.dueDate || null,
-            completed: !!m.completed,
+        milestones: milestones.map((m) => ({
+            title: (m as Record<string, unknown>).title as string | undefined,
+            dueDate: (m as Record<string, unknown>).dueDate as string | undefined || null,
+            completed: !!((m as Record<string, unknown>).completed),
         })),
     };
 
@@ -277,7 +314,7 @@ export async function getProjectDetails(
     if (listAll) {
         if (!hasFullAccess) return { error: "not_authorized" };
         const snap = await adminDb.collection("projects").get();
-        return Promise.all(snap.docs.map((d) => buildFullProjectDetails({ id: d.id, ...d.data() }, session.role)));
+        return Promise.all(snap.docs.map((d) => buildFullProjectDetails({ id: d.id, ...(d.data() as Record<string, unknown>) } as ProjectDoc, session.role)));
     }
 
     // NEW: "Alex's projects" -- resolve the named employee to a uid, then
@@ -286,7 +323,7 @@ export async function getProjectDetails(
         if (!hasFullAccess) return { error: "not_authorized" };
 
         const empSnap = await adminDb.collection("employees").where("isActive", "==", true).get();
-        const employees = empSnap.docs.map((d) => ({ id: d.id, ...d.data() })) as any[];
+        const employees = empSnap.docs.map((d) => ({ id: d.id, ...(d.data() as Record<string, unknown>) })) as Record<string, unknown>[];
         const match = findEmployee(employees, employeeName);
         if (!match) return { error: "not_found" };
 
@@ -296,7 +333,7 @@ export async function getProjectDetails(
             .get();
         if (snap.empty) return { error: "not_found" };
 
-        return Promise.all(snap.docs.map((d) => buildFullProjectDetails({ id: d.id, ...d.data() }, session.role)));
+        return Promise.all(snap.docs.map((d) => buildFullProjectDetails({ id: d.id, ...(d.data() as Record<string, unknown>) } as ProjectDoc, session.role)));
     }
 
     if (!projectName) {
@@ -306,13 +343,13 @@ export async function getProjectDetails(
             .where("memberIds", "array-contains", session.uid)
             .get();
         if (snap.empty) return { error: "not_found" };
-        return Promise.all(snap.docs.map((d) => buildFullProjectDetails({ id: d.id, ...d.data() }, session.role)));
+        return Promise.all(snap.docs.map((d) => buildFullProjectDetails({ id: d.id, ...(d.data() as Record<string, unknown>) } as ProjectDoc, session.role)));
     }
 
     // A specific project was named -- resolve it, then gate access.
     const allSnap = await adminDb.collection("projects").get();
-    const projects = allSnap.docs.map((d) => ({ id: d.id, ...d.data() })) as any[];
-    const match = findProject(projects, projectName);
+    const projects = allSnap.docs.map((d) => ({ id: d.id, ...(d.data() as Record<string, unknown>) })) as ProjectDoc[];
+    const match = findProject(projects as unknown as Record<string, unknown>[], projectName);
     if (!match) return { error: "not_found" };
 
     const isMember = Array.isArray(match.memberIds) && match.memberIds.includes(session.uid);

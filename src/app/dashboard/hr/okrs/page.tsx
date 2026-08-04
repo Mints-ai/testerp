@@ -72,41 +72,41 @@ export default function OKRManagement() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2 text-foreground">
-              <Target className="h-8 w-8 text-blue-400" /> Goal Tracking (OKRs)
+              <Target className="h-8 w-8 text-primary" /> Goal Tracking (OKRs)
             </h1>
             <p className="text-foreground/40 mt-1">Set, track, and manage Objectives and Key Results.</p>
           </div>
           
           <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-            <DialogTrigger className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold h-10 px-5 bg-blue-600 hover:bg-blue-700 text-foreground shadow-md transition-all hover:translate-y-[-1px]">
+            <DialogTrigger className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold h-10 px-5 bg-primary hover:bg-blue-700 text-foreground shadow-md transition-all hover:translate-y-[-1px]">
               <Plus className="mr-2 h-4 w-4" /> New Goal
             </DialogTrigger>
-            <DialogContent className="bg-[#121813] border-border rounded-2xl shadow-xl text-foreground">
+            <DialogContent className="bg-background border-border rounded-2xl shadow-xl text-foreground">
               <DialogHeader>
                 <DialogTitle className="text-xl font-bold text-foreground">Create New Objective</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleAddOKR} className="space-y-4 py-4">
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-foreground/60 uppercase">Objective (The Goal)</label>
-                  <Input required placeholder="E.g., Increase organic website traffic" value={objective} onChange={e => setObjective(e.target.value)} className="bg-muted/40 border-border rounded-xl text-foreground" />
+                  <Input required placeholder="E.g., Increase organic website traffic" value={objective} onChange={e => setObjective(e.target.value)} className="border-border rounded-xl text-foreground" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-foreground/60 uppercase">Key Result (How to measure it)</label>
-                  <Input required placeholder="E.g., Reach 50k monthly visitors" value={keyResult} onChange={e => setKeyResult(e.target.value)} className="bg-muted/40 border-border rounded-xl text-foreground" />
+                  <Input required placeholder="E.g., Reach 50k monthly visitors" value={keyResult} onChange={e => setKeyResult(e.target.value)} className="border-border rounded-xl text-foreground" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-foreground/60 uppercase">Target Value (Numeric)</label>
-                    <Input required type="number" placeholder="50000" value={targetValue} onChange={e => setTargetValue(e.target.value)} className="bg-muted/40 border-border rounded-xl text-foreground" />
+                    <Input required type="number" placeholder="50000" value={targetValue} onChange={e => setTargetValue(e.target.value)} className="border-border rounded-xl text-foreground" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-foreground/60 uppercase">Assign To</label>
-                    <Input placeholder="Employee Name or Dept" value={assignedTo} onChange={e => setAssignedTo(e.target.value)} className="bg-muted/40 border-border rounded-xl text-foreground" />
+                    <Input placeholder="Employee Name or Dept" value={assignedTo} onChange={e => setAssignedTo(e.target.value)} className="border-border rounded-xl text-foreground" />
                   </div>
                 </div>
                 <DialogFooter className="pt-4 gap-2 sm:gap-0">
-                  <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)} className="rounded-xl border-border text-foreground bg-transparent hover:bg-muted/40">Cancel</Button>
-                  <Button type="submit" disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700 text-foreground rounded-xl font-semibold">Save OKR</Button>
+                  <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)} className="rounded-xl border-border text-foreground bg-transparent hover:">Cancel</Button>
+                  <Button type="submit" disabled={isSubmitting} className="bg-primary hover:bg-blue-700 text-foreground rounded-xl font-semibold">Save OKR</Button>
                 </DialogFooter>
               </form>
             </DialogContent>
@@ -116,7 +116,7 @@ export default function OKRManagement() {
         {loading ? (
           <div className="p-8 text-center text-foreground/40">Loading goals...</div>
         ) : okrs.length === 0 ? (
-          <Card className="border-dashed border-border bg-white/[0.01] rounded-2xl">
+          <Card className="border-dashed border-border rounded-2xl">
             <CardContent className="p-12 text-center flex flex-col items-center justify-center">
               <TrendingUp className="h-12 w-12 text-foreground/20 mb-3" />
               <h3 className="text-lg font-bold text-foreground">No Goals Set</h3>
@@ -131,14 +131,13 @@ export default function OKRManagement() {
               const progress = Math.min(100, Math.round((current / target) * 100));
               
               return (
-                <Card key={okr.id} className="border-border bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-300 rounded-2xl overflow-hidden shadow-sm hover:shadow-md">
-                  <CardHeader className="pb-3 border-b border-border/30 bg-white/[0.01]">
+                <Card key={okr.id} className="border-border hover: transition-all duration-300 rounded-2xl overflow-hidden shadow-sm hover:shadow-md">
+                  <CardHeader className="pb-3 border-b border-border/30">
                     <div className="flex justify-between items-start gap-4">
                       <CardTitle className="text-lg font-bold leading-tight text-foreground">{okr.objective}</CardTitle>
-                      <Badge variant="outline" className={cn(
-                        "whitespace-nowrap capitalize font-semibold shadow-none rounded-lg",
-                        progress >= 100 ? "border-emerald-500/20 text-emerald-400 bg-emerald-500/10" : 
-                        progress > 30 ? "border-blue-500/20 text-blue-400 bg-blue-500/10" : "border-amber-500/20 text-amber-400 bg-amber-500/10"
+                      <Badge variant="outline" className={cn("whitespace-nowrap capitalize font-semibold shadow-none rounded-lg",
+                        progress >= 100 ? "border-emerald-500/20 text-accent bg-emerald-500/10" : 
+                        progress > 30 ? "border-primary/20 text-primary bg-primary/10" : "border-amber-500/20 text-amber-400 bg-amber-500/10"
                       )}>
                         {progress >= 100 ? "Completed" : okr.status.replace("_", " ")}
                       </Badge>
@@ -153,14 +152,14 @@ export default function OKRManagement() {
                     <div className="space-y-2">
                       <div className="flex justify-between text-xs">
                         <span className="text-foreground/40 font-medium">{current} / {target}</span>
-                        <span className="font-bold text-blue-400">{progress}%</span>
+                        <span className="font-bold text-primary">{progress}%</span>
                       </div>
                       <Progress value={progress} className="h-2 bg-muted/80" />
                     </div>
                     
                     <div className="pt-3 border-t border-border/30 flex justify-between items-center text-xs">
-                      <span className="text-foreground/40">Assigned: <strong className="text-blue-300">{okr.assignedTo}</strong></span>
-                      <button className="text-blue-400 hover:text-blue-300 font-semibold hover:underline">Update Progress</button>
+                      <span className="text-foreground/40">Assigned: <strong className="text-primary/80">{okr.assignedTo}</strong></span>
+                      <button className="text-primary hover:text-primary/80 font-semibold hover:underline">Update Progress</button>
                     </div>
                   </CardContent>
                 </Card>

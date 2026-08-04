@@ -619,21 +619,21 @@ export default function OnboardEmployees() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
-              <UserPlus className="h-5 w-5 text-blue-500" /> Onboard Employees
+              <UserPlus className="h-5 w-5 text-primary" /> Onboard Employees
             </h1>
             <p className="text-xs text-foreground/40 mt-1">Provision login credentials and dashboard settings for your team members.</p>
           </div>
           
-          <div className="flex bg-white/[0.03] p-1 rounded-xl border border-white/[0.08] shadow-inner">
+          <div className="flex p-1 rounded-xl border border-border shadow-inner">
             <button 
               onClick={() => setActiveTab("single")}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "single" ? "bg-blue-600 text-foreground shadow-glow-blue" : "text-foreground/40 hover:text-foreground/80"}`}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "single" ? "bg-primary text-foreground shadow-sm" : "text-foreground/40 hover:text-foreground/80"}`}
             >
               Single Onboarding
             </button>
             <button 
               onClick={() => setActiveTab("bulk")}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "bulk" ? "bg-blue-600 text-foreground shadow-glow-blue" : "text-foreground/40 hover:text-foreground/80"}`}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${activeTab === "bulk" ? "bg-primary text-foreground shadow-sm" : "text-foreground/40 hover:text-foreground/80"}`}
             >
               Bulk CSV Wizard
             </button>
@@ -641,11 +641,11 @@ export default function OnboardEmployees() {
         </div>
 
         {activeTab === "single" ? (
-          <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
-            <CardHeader className="p-6 border-b border-white/[0.06]">
+          <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border">
+            <CardHeader className="p-6 border-b border-border">
               <CardTitle className="text-sm font-bold text-foreground uppercase tracking-wider flex justify-between items-center w-full">
                 <span>Employee Onboarding Sheet</span>
-                <span className="text-[10px] font-mono font-bold text-blue-400 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20 shadow-glow-blue shrink-0 uppercase tracking-widest">
+                <span className="text-xs font-mono font-bold text-primary bg-primary/10 px-2.5 py-0.5 rounded-full border border-primary/20 shadow-sm shrink-0 uppercase tracking-widest">
                   ID: {nextEmpId || "Calculating..."}
                 </span>
               </CardTitle>
@@ -673,11 +673,11 @@ export default function OnboardEmployees() {
                           <FormControl>
                             <Input 
                               placeholder="e.g. John Doe" 
-                              className="glass-input h-10 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full" 
+                              className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-10 text-xs border-border placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 w-full" 
                               {...field} 
                             />
                           </FormControl>
-                          <FormMessage className="text-rose-400 font-bold text-[10px]" />
+                          <FormMessage className="text-rose-400 font-bold text-xs" />
                         </FormItem>
                       )}
                     />
@@ -692,7 +692,7 @@ export default function OnboardEmployees() {
                             <button 
                               type="button" 
                               onClick={handleGenerateStaticEmail}
-                              className="text-[10px] text-blue-400 hover:text-blue-300 font-bold flex items-center gap-1 uppercase tracking-wider transition-colors cursor-pointer bg-blue-500/5 hover:bg-blue-500/10 px-2 py-0.5 rounded-lg border border-blue-500/20"
+                              className="text-xs text-primary hover:text-primary/80 font-bold flex items-center gap-1 uppercase tracking-wider transition-colors cursor-pointer bg-primary/5 hover:bg-primary/10 px-2 py-0.5 rounded-lg border border-primary/20"
                             >
                               <Wand2 className="h-3 w-3" /> Static internal mail
                             </button>
@@ -701,14 +701,14 @@ export default function OnboardEmployees() {
                             <Input 
                               placeholder="e.g. john.doe@mintsglobal.ae or personal@gmail.com" 
                               type="email" 
-                              className="glass-input h-10 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full" 
+                              className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-10 text-xs border-border placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 w-full" 
                               {...field} 
                             />
                           </FormControl>
-                          <FormDescription className="text-[10px] text-foreground/30 leading-relaxed">
+                          <FormDescription className="text-xs text-foreground/30 leading-relaxed">
                             💡 <strong>Static Accounts:</strong> Auto-generating an @mintsglobal.ae email lets users log in using their username slug (e.g. `john.doe`) without needing a real Google Account!
                           </FormDescription>
-                          <FormMessage className="text-rose-400 font-bold text-[10px]" />
+                          <FormMessage className="text-rose-400 font-bold text-xs" />
                         </FormItem>
                       )}
                     />
@@ -725,7 +725,7 @@ export default function OnboardEmployees() {
                             <select 
                               onChange={field.onChange} 
                               value={field.value || ""} 
-                              className="w-full h-10 border border-border rounded-xl px-3 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#121813] text-foreground"
+                              className="w-full h-10 border border-border rounded-xl px-3 text-xs focus:border-primary/60 focus:ring-0 bg-background text-foreground"
                             >
                               <option value="">Select role...</option>
                               {Object.entries(ROLE_META).map(([key, meta]) => (
@@ -733,8 +733,8 @@ export default function OnboardEmployees() {
                               ))}
                             </select>
                           </FormControl>
-                          <FormDescription className="text-[9px] text-foreground/30 uppercase tracking-wider">Determines permissions and access levels.</FormDescription>
-                          <FormMessage className="text-rose-400 font-bold text-[10px]" />
+                          <FormDescription className="text-xs text-foreground/30 uppercase tracking-wider">Determines permissions and access levels.</FormDescription>
+                          <FormMessage className="text-rose-400 font-bold text-xs" />
                         </FormItem>
                       )}
                     />
@@ -746,7 +746,7 @@ export default function OnboardEmployees() {
                         <FormItem className="space-y-3 col-span-1 md:col-span-2">
                           <div className="mb-2">
                             <FormLabel className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Departments</FormLabel>
-                            <FormDescription className="text-[9px] text-foreground/30 uppercase tracking-wider">Select one or more departments for this employee.</FormDescription>
+                            <FormDescription className="text-xs text-foreground/30 uppercase tracking-wider">Select one or more departments for this employee.</FormDescription>
                           </div>
                           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                             {DEPARTMENTS.map((dept) => (
@@ -758,7 +758,7 @@ export default function OnboardEmployees() {
                                   return (
                                     <FormItem
                                       key={dept}
-                                      className="flex flex-row items-start space-x-2 space-y-0 rounded-md border border-border/30 bg-[#121813] p-2 hover:bg-muted/40 transition-colors cursor-pointer"
+                                      className="flex flex-row items-start space-x-2 space-y-0 rounded-md border border-border/30 bg-background p-2 hover: transition-colors cursor-pointer"
                                     >
                                       <FormControl>
                                         <Checkbox
@@ -782,7 +782,7 @@ export default function OnboardEmployees() {
                               />
                             ))}
                           </div>
-                          <FormMessage className="text-rose-400 font-bold text-[10px]" />
+                          <FormMessage className="text-rose-400 font-bold text-xs" />
                         </FormItem>
                       )}
                     />
@@ -793,13 +793,13 @@ export default function OnboardEmployees() {
                       control={form.control}
                       name="subRoles"
                       render={({ field }) => (
-                        <FormItem className="space-y-3 col-span-1 md:col-span-2 p-4 bg-white/[0.02] rounded-2xl border border-white/[0.06]">
+                        <FormItem className="space-y-3 col-span-1 md:col-span-2 p-4 rounded-2xl border border-border">
                           <div>
                             <FormLabel className="text-xs font-bold text-foreground/60 uppercase tracking-wider flex items-center gap-1.5">
-                              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                              <Sparkles className="w-3.5 h-3.5 text-accent" />
                               Specializations & Services (Subroles)
                             </FormLabel>
-                            <FormDescription className="text-[9px] text-foreground/30 uppercase tracking-wider">Select specific service subroles within selected departments.</FormDescription>
+                            <FormDescription className="text-xs text-foreground/30 uppercase tracking-wider">Select specific service subroles within selected departments.</FormDescription>
                           </div>
                           
                           <div className="space-y-4 max-h-48 overflow-y-auto pr-2">
@@ -808,7 +808,7 @@ export default function OnboardEmployees() {
                               if (mappedSubroles.length === 0) return null;
                               return (
                                 <div key={dept} className="space-y-2 border-b border-border/30 pb-3 last:border-b-0 last:pb-0">
-                                  <h5 className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">{dept} Specialities</h5>
+                                  <h5 className="text-xs font-bold text-primary uppercase tracking-wider">{dept} Specialities</h5>
                                   <div className="grid grid-cols-2 gap-2">
                                     {mappedSubroles.map(sub => {
                                       const isChecked = field.value?.includes(sub);
@@ -816,7 +816,7 @@ export default function OnboardEmployees() {
                                       return (
                                         <div
                                           key={sub}
-                                          className="flex flex-row items-center space-x-2 rounded-md border border-border/30 bg-[#0a1628] p-2 hover:bg-muted/40 transition-colors cursor-pointer"
+                                          className="flex flex-row items-center space-x-2 rounded-md border border-border/30 bg-card p-2 hover: transition-colors cursor-pointer"
                                         >
                                           <Checkbox
                                             id={checkboxId}
@@ -844,7 +844,7 @@ export default function OnboardEmployees() {
                               );
                             })}
                           </div>
-                          <FormMessage className="text-rose-400 font-bold text-[10px]" />
+                          <FormMessage className="text-rose-400 font-bold text-xs" />
                         </FormItem>
                       )}
                     />
@@ -860,11 +860,11 @@ export default function OnboardEmployees() {
                           <FormControl>
                             <Input 
                               placeholder="e.g. Senior SEO Specialist" 
-                              className="glass-input h-10 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full" 
+                              className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-10 text-xs border-border placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 w-full" 
                               {...field} 
                             />
                           </FormControl>
-                          <FormMessage className="text-rose-400 font-bold text-[10px]" />
+                          <FormMessage className="text-rose-400 font-bold text-xs" />
                         </FormItem>
                       )}
                     />
@@ -876,22 +876,22 @@ export default function OnboardEmployees() {
                         <FormItem className="space-y-1.5">
                           <div className="flex justify-between items-center">
                             <FormLabel className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Phone Number</FormLabel>
-                            <span className="text-[9px] text-foreground/30 uppercase tracking-wider font-bold">Optional</span>
+                            <span className="text-xs text-foreground/30 uppercase tracking-wider font-bold">Optional</span>
                           </div>
                           <FormControl>
                             <Input 
                               placeholder="e.g. +971 50 123 4567" 
-                              className="glass-input h-10 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono" 
+                              className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-10 text-xs border-border placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 w-full font-mono" 
                               {...field} 
                             />
                           </FormControl>
-                          <FormMessage className="text-rose-400 font-bold text-[10px]" />
+                          <FormMessage className="text-rose-400 font-bold text-xs" />
                         </FormItem>
                       )}
                     />
                   </div>
 
-                  <div className="p-4 bg-white/[0.02] rounded-2xl border border-white/[0.06] space-y-4">
+                  <div className="p-4 rounded-2xl border border-border space-y-4">
                     <FormField
                       control={form.control}
                       name="isIntern"
@@ -905,7 +905,7 @@ export default function OnboardEmployees() {
                           </FormControl>
                           <div className="space-y-1 leading-none">
                             <FormLabel className="text-xs font-bold text-foreground/80">This employee is an Intern</FormLabel>
-                            <FormDescription className="text-[10px] text-foreground/30 mt-0.5">
+                            <FormDescription className="text-xs text-foreground/30 mt-0.5">
                               Interns have restricted dashboards and automatic time-bound account termination.
                             </FormDescription>
                           </div>
@@ -923,11 +923,11 @@ export default function OnboardEmployees() {
                             <FormControl>
                               <Input 
                                 type="date" 
-                                className="glass-input h-10 text-xs border-border focus:border-blue-500/60 focus:ring-0 w-full" 
+                                className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-10 text-xs border-border focus:border-primary/60 focus:ring-0 w-full" 
                                 {...field} 
                               />
                             </FormControl>
-                            <FormMessage className="text-rose-400 font-bold text-[10px]" />
+                            <FormMessage className="text-rose-400 font-bold text-xs" />
                           </FormItem>
                         )}
                       />
@@ -941,23 +941,23 @@ export default function OnboardEmployees() {
                       render={({ field }) => (
                         <FormItem className="space-y-1.5">
                           <FormLabel className="text-xs font-bold text-foreground/60 uppercase tracking-wider flex items-center gap-1">
-                            <Key className="h-3.5 w-3.5 text-blue-400" /> Temporary Login Password
+                            <Key className="h-3.5 w-3.5 text-primary" /> Temporary Login Password
                           </FormLabel>
                           <FormControl>
                             <Input 
                               type="text" 
-                              className="glass-input h-10 text-xs border-border focus:border-blue-500/60 focus:ring-0 w-full font-mono text-blue-400 font-bold" 
+                              className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-10 text-xs border-border focus:border-primary/60 focus:ring-0 w-full font-mono text-primary font-bold" 
                               {...field} 
                             />
                           </FormControl>
-                          <FormDescription className="text-[9px] text-foreground/30 uppercase tracking-wider">Auto-generated secure credentials. Provide to the employee.</FormDescription>
-                          <FormMessage className="text-rose-400 font-bold text-[10px]" />
+                          <FormDescription className="text-xs text-foreground/30 uppercase tracking-wider">Auto-generated secure credentials. Provide to the employee.</FormDescription>
+                          <FormMessage className="text-rose-400 font-bold text-xs" />
                         </FormItem>
                       )}
                     />
                   </div>
 
-                  <div className="flex justify-end gap-3 pt-6 border-t border-white/[0.06]">
+                  <div className="flex justify-end gap-3 pt-6 border-t border-border">
                     <button 
                       type="button" 
                       onClick={() => router.back()} 
@@ -979,11 +979,11 @@ export default function OnboardEmployees() {
             </CardContent>
           </Card>
         ) : (
-          <Card className="glass-card overflow-hidden border-white/[0.08] bg-white/[0.02]">
-            <CardHeader className="p-6 border-b border-white/[0.06] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <Card className="bg-card border border-border shadow-sm rounded-lg overflow-hidden border-border">
+            <CardHeader className="p-6 border-b border-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
                 <CardTitle className="text-sm font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
-                  <FileSpreadsheet className="w-4.5 h-4.5 text-blue-400" /> Bulk CSV Onboarding
+                  <FileSpreadsheet className="w-4.5 h-4.5 text-primary" /> Bulk CSV Onboarding
                 </CardTitle>
                 <CardDescription className="text-xs text-foreground/40 mt-1.5">
                   Upload employee details in bulk. System validates rules and creates secure logins in batches.
@@ -991,61 +991,61 @@ export default function OnboardEmployees() {
               </div>
               <button
                 onClick={downloadSampleTemplate}
-                className="text-[10px] text-blue-400 hover:text-blue-300 font-bold flex items-center gap-1.5 uppercase tracking-wider bg-blue-500/5 hover:bg-blue-500/10 px-3 py-1.5 rounded-xl border border-blue-500/20 transition-all cursor-pointer shrink-0"
+                className="text-xs text-primary hover:text-primary/80 font-bold flex items-center gap-1.5 uppercase tracking-wider bg-primary/5 hover:bg-primary/10 px-3 py-1.5 rounded-xl border border-primary/20 transition-all cursor-pointer shrink-0"
               >
                 <Download className="w-3.5 h-3.5" /> Sample CSV Template
               </button>
             </CardHeader>
             <CardContent className="p-6">
               {!csvFile ? (
-                <div className="border-2 border-dashed border-border hover:border-blue-500/40 rounded-2xl p-12 text-center bg-white/[0.01] hover:bg-white/[0.02] transition-all relative group cursor-pointer flex flex-col items-center justify-center">
+                <div className="border-2 border-dashed border-border hover:border-primary/40 rounded-2xl p-12 text-center hover: transition-all relative group cursor-pointer flex flex-col items-center justify-center">
                   <input
                     type="file"
                     accept=".csv"
                     onChange={handleCSVUpload}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
-                  <Upload className="w-8 h-8 text-foreground/20 group-hover:text-blue-400 transition-colors mb-4" />
+                  <Upload className="w-8 h-8 text-foreground/20 group-hover:text-primary transition-colors mb-4" />
                   <p className="text-xs font-bold text-foreground/80">Drag & Drop your CSV file here, or click to browse</p>
-                  <p className="text-[10px] text-foreground/30 mt-1.5 uppercase tracking-wider">Supports .csv files up to 10MB</p>
+                  <p className="text-xs text-foreground/30 mt-1.5 uppercase tracking-wider">Supports .csv files up to 10MB</p>
                 </div>
               ) : (
                 <div className="space-y-6">
                   {/* Stats Summary */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                    <div className="p-3.5 rounded-xl border border-white/[0.06] bg-white/[0.01]">
-                      <p className="text-[9px] font-bold text-foreground/40 uppercase tracking-wider">Total Records</p>
+                    <div className="p-3.5 rounded-xl border border-border">
+                      <p className="text-xs font-bold text-foreground/40 uppercase tracking-wider">Total Records</p>
                       <p className="text-lg font-bold text-foreground mt-1">{parsedEmployees.length}</p>
                     </div>
-                    <div className="p-3.5 rounded-xl border border-white/[0.06] bg-white/[0.01]">
-                      <p className="text-[9px] font-bold text-foreground/40 uppercase tracking-wider">Validation Errors</p>
-                      <p className={`text-lg font-bold mt-1 ${parsedEmployees.some(e => Object.keys(e.errors).length > 0) ? 'text-amber-400' : 'text-emerald-400'}`}>
+                    <div className="p-3.5 rounded-xl border border-border">
+                      <p className="text-xs font-bold text-foreground/40 uppercase tracking-wider">Validation Errors</p>
+                      <p className={`text-lg font-bold mt-1 ${parsedEmployees.some(e => Object.keys(e.errors).length > 0) ? 'text-amber-400' : 'text-accent'}`}>
                         {parsedEmployees.filter(e => Object.keys(e.errors).length > 0).length}
                       </p>
                     </div>
-                    <div className="p-3.5 rounded-xl border border-white/[0.06] bg-white/[0.01]">
-                      <p className="text-[9px] font-bold text-foreground/40 uppercase tracking-wider">Successfully Created</p>
-                      <p className="text-lg font-bold text-emerald-400 mt-1">{bulkSuccessCount}</p>
+                    <div className="p-3.5 rounded-xl border border-border">
+                      <p className="text-xs font-bold text-foreground/40 uppercase tracking-wider">Successfully Created</p>
+                      <p className="text-lg font-bold text-accent mt-1">{bulkSuccessCount}</p>
                     </div>
-                    <div className="p-3.5 rounded-xl border border-white/[0.06] bg-white/[0.01]">
-                      <p className="text-[9px] font-bold text-foreground/40 uppercase tracking-wider">Failed Runs</p>
+                    <div className="p-3.5 rounded-xl border border-border">
+                      <p className="text-xs font-bold text-foreground/40 uppercase tracking-wider">Failed Runs</p>
                       <p className="text-lg font-bold text-rose-400 mt-1">{bulkErrorCount}</p>
                     </div>
                   </div>
 
                   {/* Processing Status Block */}
                   {isProcessingBulk && (
-                    <div className="p-4 bg-blue-950/20 border border-blue-500/20 rounded-xl space-y-3">
-                      <div className="flex justify-between items-center text-xs font-bold text-blue-300">
+                    <div className="p-4 bg-blue-950/20 border border-primary/20 rounded-xl space-y-3">
+                      <div className="flex justify-between items-center text-xs font-bold text-primary/80">
                         <span className="flex items-center gap-1.5">
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
                           Processing Batch Onboarding...
                         </span>
                         <span>{bulkProgress.current} / {bulkProgress.total} Complete</span>
                       </div>
-                      <div className="glass-progress w-full h-2">
+                      <div className="bg-card border border-border shadow-sm-progress w-full h-2">
                         <div 
-                          className="glass-progress-fill bg-blue-500 h-full transition-all duration-300" 
+                          className="bg-card border border-border shadow-sm-progress-fill bg-primary h-full transition-all duration-300" 
                           style={{ width: `${(bulkProgress.current / bulkProgress.total) * 100}%` }}
                         />
                       </div>
@@ -1058,14 +1058,14 @@ export default function OnboardEmployees() {
                         <p className="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
                           <CheckCircle2 className="w-4 h-4" /> Batch Onboarding Complete!
                         </p>
-                        <p className="text-[10px] text-foreground/40 mt-1">
+                        <p className="text-xs text-foreground/40 mt-1">
                           Successfully onboarded {bulkSuccessCount} employee profiles ({bulkErrorCount} failed).
                         </p>
                       </div>
                       {onboardedCredentials.length > 0 && (
                         <button
                           onClick={downloadOnboardedCredentials}
-                          className="text-[10px] text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1.5 uppercase tracking-wider bg-emerald-500/5 hover:bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20 transition-all cursor-pointer shrink-0"
+                          className="text-xs text-accent hover:text-emerald-300 font-bold flex items-center gap-1.5 uppercase tracking-wider bg-emerald-500/5 hover:bg-emerald-500/10 px-3 py-1.5 rounded-xl border border-emerald-500/20 transition-all cursor-pointer shrink-0"
                         >
                           <Download className="w-3.5 h-3.5" /> Download credentials list
                         </button>
@@ -1074,11 +1074,11 @@ export default function OnboardEmployees() {
                   )}
 
                   {/* Interactive CSV Table Preview */}
-                  <div className="border border-white/[0.06] rounded-xl overflow-hidden bg-white/[0.01]">
+                  <div className="border border-border rounded-xl overflow-hidden">
                     <div className="overflow-x-auto max-h-[350px]">
                       <table className="w-full text-left text-xs border-collapse">
                         <thead>
-                          <tr className="border-b border-white/[0.06] bg-white/[0.02] text-foreground/40 font-bold uppercase tracking-wider text-[9px]">
+                          <tr className="border-b border-border text-foreground/40 font-bold uppercase tracking-wider text-xs">
                             <th className="p-3 w-10 text-center">Status</th>
                             <th className="p-3">Full Name</th>
                             <th className="p-3">Email</th>
@@ -1094,10 +1094,10 @@ export default function OnboardEmployees() {
                             return (
                               <tr 
                                 key={index} 
-                                className={`border-b border-white/[0.04] hover:bg-white/[0.01] transition-colors ${hasErrors ? 'bg-amber-500/[0.02]' : ''}`}
+                                className={`border-b border-border hover: transition-colors ${hasErrors ? 'bg-amber-500/[0.02]' : ''}`}
                               >
                                 <td className="p-3 text-center">
-                                  {emp.status === "provisioning" && <Loader2 className="w-4 h-4 text-blue-500 animate-spin mx-auto" />}
+                                  {emp.status === "provisioning" && <Loader2 className="w-4 h-4 text-primary animate-spin mx-auto" />}
                                   {emp.status === "success" && <CheckCircle2 className="w-4 h-4 text-emerald-500 mx-auto" />}
                                   {emp.status === "failed" && (
                                     <div className="cursor-help" title={emp.errorMessage || "Account creation failed"}>
@@ -1110,33 +1110,33 @@ export default function OnboardEmployees() {
                                     </div>
                                   )}
                                   {emp.status === "pending" && !hasErrors && (
-                                    <div className="w-2 h-2 bg-white/20 rounded-full mx-auto" />
+                                    <div className="w-2 h-2 rounded-full mx-auto" />
                                   )}
                                 </td>
                                 <td className="p-3 font-bold text-foreground">
                                   {emp.fullName || <span className="text-rose-400 italic">Empty</span>}
                                 </td>
-                                <td className="p-3 font-mono text-[11px] text-foreground/80">{emp.email || <span className="text-rose-400 italic">Empty</span>}</td>
+                                <td className="p-3 font-mono text-xs text-foreground/80">{emp.email || <span className="text-rose-400 italic">Empty</span>}</td>
                                 <td className="p-3">
                                   <div className="font-semibold">{emp.jobTitle || <span className="text-rose-400 italic">Empty</span>}</div>
-                                  <div className="text-[10px] text-foreground/40 capitalize">{emp.role}</div>
+                                  <div className="text-xs text-foreground/40 capitalize">{emp.role}</div>
                                 </td>
                                 <td className="p-3">
                                   <div className="flex flex-wrap gap-1 max-w-[200px]">
                                     {emp.departments.map(d => (
-                                      <span key={d} className="badge bg-muted/40 border border-border text-foreground/50 text-[8px] px-1 py-0.5 uppercase tracking-wider">{d}</span>
+                                      <span key={d} className="badge border border-border text-foreground/50 text-xs px-1 py-0.5 uppercase tracking-wider">{d}</span>
                                     ))}
                                     {emp.subRoles.map(s => (
-                                      <span key={s} className="badge bg-indigo-500/5 border border-indigo-500/10 text-indigo-300 text-[8px] px-1 py-0.5 uppercase tracking-wider">{s}</span>
+                                      <span key={s} className="badge bg-primary/5 border border-primary/10 text-primary text-xs px-1 py-0.5 uppercase tracking-wider">{s}</span>
                                     ))}
-                                    {emp.departments.length === 0 && <span className="text-rose-400 italic text-[10px]">None</span>}
+                                    {emp.departments.length === 0 && <span className="text-rose-400 italic text-xs">None</span>}
                                   </div>
                                 </td>
                                 <td className="p-3">
                                   {emp.isIntern ? (
-                                    <span className="text-amber-400 text-[10px] font-bold">Intern (Exp: {emp.internEndDate || "Date missing"})</span>
+                                    <span className="text-amber-400 text-xs font-bold">Intern (Exp: {emp.internEndDate || "Date missing"})</span>
                                   ) : (
-                                    <span className="text-foreground/30 text-[10px]">Regular</span>
+                                    <span className="text-foreground/30 text-xs">Regular</span>
                                   )}
                                 </td>
                                 <td className="p-3 text-center">
@@ -1147,7 +1147,7 @@ export default function OnboardEmployees() {
                                         setEditingIndex(index);
                                         setEditFormData({ ...emp });
                                       }}
-                                      className="p-1 text-foreground/40 hover:text-foreground hover:bg-muted/40 rounded transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                                      className="p-1 text-foreground/40 hover:text-foreground hover: rounded transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                                     >
                                       <Edit className="w-3.5 h-3.5" />
                                     </button>
@@ -1172,7 +1172,7 @@ export default function OnboardEmployees() {
                   </div>
 
                   {/* Wizard Footer Controls */}
-                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 border-t border-white/[0.06]">
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 border-t border-border">
                     <button
                       onClick={() => {
                         setCsvFile(null);
@@ -1209,11 +1209,11 @@ export default function OnboardEmployees() {
 
       {/* Edit row dialog */}
       {editingIndex !== null && editFormData && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#121813] border border-white/[0.08] rounded-2xl w-full max-w-lg overflow-hidden shadow-xl text-foreground">
-            <div className="p-5 border-b border-white/[0.06] flex justify-between items-center">
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-background border border-border rounded-2xl w-full max-w-lg overflow-hidden shadow-xl text-foreground">
+            <div className="p-5 border-b border-border flex justify-between items-center">
               <h3 className="font-bold text-sm uppercase tracking-wider flex items-center gap-1.5">
-                <Edit className="w-4 h-4 text-blue-400" />
+                <Edit className="w-4 h-4 text-primary" />
                 Edit Onboarding Profile
               </h3>
               <button 
@@ -1229,32 +1229,32 @@ export default function OnboardEmployees() {
             
             <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto pr-2">
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-foreground/60 uppercase tracking-wider">Full Name</label>
+                <label className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Full Name</label>
                 <Input 
                   value={editFormData.fullName}
                   onChange={(e) => setEditFormData({ ...editFormData, fullName: e.target.value })}
                   placeholder="e.g. John Doe"
-                  className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full"
+                  className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-9 text-xs border-border placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 w-full"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-foreground/60 uppercase tracking-wider">Email Address</label>
+                <label className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Email Address</label>
                 <Input 
                   value={editFormData.email}
                   onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
                   placeholder="e.g. john.doe@mintsglobal.ae"
-                  className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full"
+                  className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-9 text-xs border-border placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 w-full"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-foreground/60 uppercase tracking-wider">System Role</label>
+                  <label className="text-xs font-bold text-foreground/60 uppercase tracking-wider">System Role</label>
                   <select 
                     value={editFormData.role}
                     onChange={(e) => setEditFormData({ ...editFormData, role: e.target.value })}
-                    className="w-full h-9 border border-border rounded-xl px-2.5 text-xs focus:border-blue-500/60 focus:ring-0 bg-[#0f1510] text-foreground"
+                    className="w-full h-9 border border-border rounded-xl px-2.5 text-xs focus:border-primary/60 focus:ring-0 bg-[#0f1510] text-foreground"
                   >
                     {Object.entries(ROLE_META).map(([key, meta]) => (
                       <option key={key} value={key}>{meta.label}</option>
@@ -1263,18 +1263,18 @@ export default function OnboardEmployees() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-foreground/60 uppercase tracking-wider">Job Title</label>
+                  <label className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Job Title</label>
                   <Input 
                     value={editFormData.jobTitle}
                     onChange={(e) => setEditFormData({ ...editFormData, jobTitle: e.target.value })}
                     placeholder="e.g. SEO Specialist"
-                    className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full"
+                    className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-9 text-xs border-border placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 w-full"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-foreground/60 uppercase tracking-wider">Departments</label>
+                <label className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Departments</label>
                 <div className="grid grid-cols-3 gap-2">
                   {DEPARTMENTS.map((dept) => (
                     <div 
@@ -1285,7 +1285,7 @@ export default function OnboardEmployees() {
                           : [...editFormData.departments, dept];
                         setEditFormData({ ...editFormData, departments: depts });
                       }}
-                      className={`flex items-center space-x-2 border rounded-md p-1.5 hover:bg-muted/40 transition-colors cursor-pointer ${editFormData.departments.includes(dept) ? 'border-blue-500/40 bg-blue-500/5' : 'border-border/30 bg-[#0a100b]'}`}
+                      className={`flex items-center space-x-2 border rounded-md p-1.5 hover: transition-colors cursor-pointer ${editFormData.departments.includes(dept) ? 'border-primary/40 bg-primary/5' : 'border-border/30 bg-[#0a100b]'}`}
                     >
                       <input 
                         type="checkbox" 
@@ -1293,15 +1293,15 @@ export default function OnboardEmployees() {
                         onChange={() => {}}
                         className="rounded border-border/80"
                       />
-                      <span className="text-[10px] text-foreground/80">{dept}</span>
+                      <span className="text-xs text-foreground/80">{dept}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
               {editFormData.departments.some((d: string) => SUBROLES_MAPPING[d]?.length > 0) && (
-                <div className="space-y-1.5 p-3 bg-white/[0.01] border border-white/[0.04] rounded-xl">
-                  <label className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider flex items-center gap-1">
+                <div className="space-y-1.5 p-3 border border-border rounded-xl">
+                  <label className="text-xs font-bold text-accent uppercase tracking-wider flex items-center gap-1">
                     <Sparkles className="w-3 h-3" /> Specializations (Subroles)
                   </label>
                   <div className="space-y-3 max-h-32 overflow-y-auto pr-1">
@@ -1310,7 +1310,7 @@ export default function OnboardEmployees() {
                       if (subs.length === 0) return null;
                       return (
                         <div key={d} className="space-y-1 border-b border-border/30 pb-2 last:border-0 last:pb-0">
-                          <h6 className="text-[9px] font-bold text-indigo-300 uppercase tracking-wider">{d}</h6>
+                          <h6 className="text-xs font-bold text-primary uppercase tracking-wider">{d}</h6>
                           <div className="grid grid-cols-2 gap-2">
                             {subs.map((sub: string) => (
                               <div
@@ -1321,7 +1321,7 @@ export default function OnboardEmployees() {
                                     : [...editFormData.subRoles, sub];
                                   setEditFormData({ ...editFormData, subRoles: subroles });
                                 }}
-                                className={`flex items-center space-x-2 border rounded p-1 hover:bg-muted/40 transition-colors cursor-pointer ${editFormData.subRoles.includes(sub) ? 'border-indigo-500/40 bg-indigo-500/5' : 'border-border/30 bg-[#050912]'}`}
+                                className={`flex items-center space-x-2 border rounded p-1 hover: transition-colors cursor-pointer ${editFormData.subRoles.includes(sub) ? 'border-primary/40 bg-primary/5' : 'border-border/30 bg-[#050912]'}`}
                               >
                                 <input 
                                   type="checkbox" 
@@ -1329,7 +1329,7 @@ export default function OnboardEmployees() {
                                   onChange={() => {}}
                                   className="rounded border-border/80"
                                 />
-                                <span className="text-[9px] text-foreground/70">{sub}</span>
+                                <span className="text-xs text-foreground/70">{sub}</span>
                               </div>
                             ))}
                           </div>
@@ -1342,27 +1342,27 @@ export default function OnboardEmployees() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-foreground/60 uppercase tracking-wider">Phone</label>
+                  <label className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Phone</label>
                   <Input 
                     value={editFormData.phone}
                     onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
                     placeholder="Optional"
-                    className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full"
+                    className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-9 text-xs border-border placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 w-full"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-foreground/60 uppercase tracking-wider">Temporary Password</label>
+                  <label className="text-xs font-bold text-foreground/60 uppercase tracking-wider">Temporary Password</label>
                   <Input 
                     value={editFormData.temporaryPassword}
                     onChange={(e) => setEditFormData({ ...editFormData, temporaryPassword: e.target.value })}
                     placeholder="Auto-Generated"
-                    className="glass-input h-9 text-xs border-border placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 w-full font-mono"
+                    className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-9 text-xs border-border placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 w-full font-mono"
                   />
                 </div>
               </div>
 
-              <div className="p-3 bg-white/[0.01] border border-white/[0.04] rounded-xl flex items-center justify-between">
+              <div className="p-3 border border-border rounded-xl flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <input 
                     type="checkbox" 
@@ -1379,13 +1379,13 @@ export default function OnboardEmployees() {
                     type="date"
                     value={editFormData.internEndDate}
                     onChange={(e) => setEditFormData({ ...editFormData, internEndDate: e.target.value })}
-                    className="glass-input h-8 text-[11px] border-border focus:border-blue-500/60 focus:ring-0 w-32"
+                    className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-8 text-xs border-border focus:border-primary/60 focus:ring-0 w-32"
                   />
                 )}
               </div>
             </div>
 
-            <div className="p-5 border-t border-white/[0.06] flex justify-end gap-3">
+            <div className="p-5 border-t border-border flex justify-end gap-3">
               <button 
                 onClick={() => {
                   setEditingIndex(null);

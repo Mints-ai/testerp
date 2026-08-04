@@ -262,13 +262,13 @@ export function CorrectionRequestsTab() {
 
   return (
     <div className="space-y-6 text-foreground pb-6">
-      <Card className="border-white/[0.08] bg-white/[0.02] shadow-card rounded-2xl overflow-hidden backdrop-blur-xl">
-        <CardHeader className="pb-4 border-b border-white/[0.06] flex flex-row items-center justify-between">
+      <Card className="border-border shadow-card rounded-2xl overflow-hidden">
+        <CardHeader className="pb-4 border-b border-border flex flex-row items-center justify-between">
           <div className="flex items-center gap-2">
-            <CalendarDays className="w-5 h-5 text-blue-400" />
+            <CalendarDays className="w-5 h-5 text-primary" />
             <h3 className="font-bold text-foreground text-lg">Pending Attendance Corrections</h3>
           </div>
-          <Badge variant="outline" className="text-xs text-blue-300 font-bold bg-blue-500/10 border-blue-500/20 px-3 py-1 rounded-full shadow-none">
+          <Badge variant="outline" className="text-xs text-primary/80 font-bold bg-primary/10 border-primary/20 px-3 py-1 rounded-full shadow-none">
             {requests.length} Requests pending
           </Badge>
         </CardHeader>
@@ -276,7 +276,7 @@ export function CorrectionRequestsTab() {
         <CardContent className="p-6">
           {loading ? (
             <div className="py-12 text-center text-foreground/40 italic flex items-center justify-center gap-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
               <span>Querying pending correction logs...</span>
             </div>
           ) : requests.length === 0 ? (
@@ -290,7 +290,7 @@ export function CorrectionRequestsTab() {
               {requests.map((req) => (
                 <Card 
                   key={req.id} 
-                  className="bg-white/[0.01] border border-white/[0.06] rounded-xl hover:border-white/[0.1] hover:bg-white/[0.02] transition-all relative overflow-hidden group flex flex-col justify-between"
+                  className="border border-border rounded-xl hover:border-border hover: transition-all relative overflow-hidden group flex flex-col justify-between"
                 >
                   {/* Left accent strip */}
                   <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-cyan-500"></div>
@@ -300,30 +300,30 @@ export function CorrectionRequestsTab() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-9 w-9 border border-border bg-blue-950">
-                          <AvatarFallback className="bg-blue-800 text-blue-200 font-bold text-xs">
+                          <AvatarFallback className="bg-primary/20 text-primary/70 font-bold text-xs">
                             {getInitials(req.employeeName)}
                           </AvatarFallback>
                         </Avatar>
                         <div>
                           <p className="font-bold text-sm text-foreground">{req.employeeName}</p>
-                          <p className="text-[10px] text-foreground/40 font-semibold flex items-center gap-1">
-                            <User className="w-3 h-3 text-blue-400" /> Employee ID: {req.uid.substring(0, 8)}
+                          <p className="text-xs text-foreground/40 font-semibold flex items-center gap-1">
+                            <User className="w-3 h-3 text-primary" /> Employee ID: {req.uid.substring(0, 8)}
                           </p>
                         </div>
                       </div>
-                      <Badge variant="outline" className="text-[9px] bg-blue-500/10 text-blue-300 border-blue-500/25 px-2 py-0.5 rounded-full font-mono shadow-none">
+                      <Badge variant="outline" className="text-xs bg-primary/10 text-primary/80 border-primary/25 px-2 py-0.5 rounded-full font-mono shadow-none">
                         Pending
                       </Badge>
                     </div>
 
                     {/* Correction Proposed Values */}
-                    <div className="grid grid-cols-2 gap-4 bg-muted/40 border border-white/[0.04] p-3 rounded-xl text-center">
+                    <div className="grid grid-cols-2 gap-4 border border-border p-3 rounded-xl text-center">
                       <div>
-                        <p className="text-[9px] text-foreground/40 uppercase tracking-widest font-bold">Target Date</p>
+                        <p className="text-xs text-foreground/40 uppercase tracking-widest font-bold">Target Date</p>
                         <p className="text-xs font-bold text-foreground mt-1 font-mono">{formattedDateLabel(req.date)}</p>
                       </div>
                       <div>
-                        <p className="text-[9px] text-foreground/40 uppercase tracking-widest font-bold">Adjustment Type</p>
+                        <p className="text-xs text-foreground/40 uppercase tracking-widest font-bold">Adjustment Type</p>
                         <p className="text-xs font-bold text-cyan-300 mt-1 uppercase">
                           {req.requestType === "in" ? "Clock In" : req.requestType === "out" ? "Clock Out" : "Full Shift (Both)"}
                         </p>
@@ -331,13 +331,13 @@ export function CorrectionRequestsTab() {
                     </div>
 
                     {/* Target Adjusted Times */}
-                    <div className="flex flex-col gap-2 bg-white/[0.01] border border-white/[0.06] p-3 rounded-xl">
-                      <p className="text-[9px] text-foreground/30 uppercase tracking-wider font-bold">Proposed Correction:</p>
+                    <div className="flex flex-col gap-2 border border-border p-3 rounded-xl">
+                      <p className="text-xs text-foreground/30 uppercase tracking-wider font-bold">Proposed Correction:</p>
                       <div className="flex justify-between items-center text-xs">
                         {req.proposedClockIn && (
                           <div className="flex items-center gap-1.5">
                             <span className="text-foreground/45">Clock In:</span>
-                            <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 font-bold font-mono text-[10px]">
+                            <Badge className="bg-emerald-500/10 text-accent border-emerald-500/20 font-bold font-mono text-xs">
                               {formatTimeString(req.proposedClockIn)}
                             </Badge>
                           </div>
@@ -345,7 +345,7 @@ export function CorrectionRequestsTab() {
                         {req.proposedClockOut && (
                           <div className="flex items-center gap-1.5">
                             <span className="text-foreground/45">Clock Out:</span>
-                            <Badge className="bg-rose-500/10 text-rose-400 border-rose-500/20 font-bold font-mono text-[10px]">
+                            <Badge className="bg-rose-500/10 text-rose-400 border-rose-500/20 font-bold font-mono text-xs">
                               {formatTimeString(req.proposedClockOut)}
                             </Badge>
                           </div>
@@ -354,9 +354,9 @@ export function CorrectionRequestsTab() {
                     </div>
 
                     {/* Reason */}
-                    <div className="space-y-1 bg-white/[0.02] border border-white/[0.04] p-3 rounded-xl">
-                      <p className="text-[9px] text-foreground/40 uppercase tracking-widest font-bold flex items-center gap-1">
-                        <FileText className="w-3 h-3 text-blue-400" /> Explanation Reason
+                    <div className="space-y-1 border border-border p-3 rounded-xl">
+                      <p className="text-xs text-foreground/40 uppercase tracking-widest font-bold flex items-center gap-1">
+                        <FileText className="w-3 h-3 text-primary" /> Explanation Reason
                       </p>
                       <p className="text-xs text-foreground/70 italic leading-relaxed">
                         "{req.reason || "No explanation provided."}"
@@ -365,7 +365,7 @@ export function CorrectionRequestsTab() {
                   </div>
 
                   {/* Actions Footer */}
-                  <div className="border-t border-white/[0.06] p-3 bg-white/[0.01] flex gap-2">
+                  <div className="border-t border-border p-3 flex gap-2">
                     <Button
                       size="sm"
                       onClick={() => handleAction(req, "approved")}
@@ -384,7 +384,7 @@ export function CorrectionRequestsTab() {
                       variant="outline"
                       onClick={() => handleAction(req, "rejected")}
                       disabled={actioningId !== null}
-                      className="flex-1 h-9 text-xs bg-muted/40 hover:bg-red-950/20 border-border hover:border-red-500/30 text-foreground/80 hover:text-red-400 font-semibold rounded-lg cursor-pointer flex items-center justify-center gap-1"
+                      className="flex-1 h-9 text-xs hover:bg-red-950/20 border-border hover:border-red-500/30 text-foreground/80 hover:text-red-400 font-semibold rounded-lg cursor-pointer flex items-center justify-center gap-1"
                     >
                       <X className="w-4 h-4" /> Deny
                     </Button>

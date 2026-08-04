@@ -73,7 +73,7 @@ export default function CRMDashboard() {
   const handleAddLead = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!company || !contactName) return;
-    
+
     setIsSubmitting(true);
     try {
       await addDoc(collection(db, "leads"), {
@@ -99,7 +99,7 @@ export default function CRMDashboard() {
   const updateLeadStage = async (lead: any, newStage: string) => {
     try {
       await updateDoc(doc(db, "leads", lead.id), { stage: newStage });
-      
+
       if (newStage === "Won" && lead.stage !== "Won") {
         // 1. Create Client
         const clientRef = await addDoc(collection(db, "clients"), {
@@ -109,7 +109,7 @@ export default function CRMDashboard() {
           status: "Active",
           createdAt: serverTimestamp()
         });
-        
+
         // 2. Create Project
         await addDoc(collection(db, "projects"), {
           name: `${lead.company} Implementation`,
@@ -119,7 +119,7 @@ export default function CRMDashboard() {
           serviceType: "General",
           createdAt: serverTimestamp()
         });
-        
+
         // 3. Create Deposit Invoice (50%)
         const depositAmount = (lead.value || 0) * 0.5;
         if (depositAmount > 0) {
@@ -134,7 +134,7 @@ export default function CRMDashboard() {
             createdAt: serverTimestamp()
           });
         }
-        
+
         // 4. Create System Notification
         await addDoc(collection(db, "notifications"), {
           userId: "global",
@@ -143,7 +143,7 @@ export default function CRMDashboard() {
           read: false,
           createdAt: serverTimestamp()
         });
-        
+
         // 5. Discord Webhook Notification
         fetch('/api/discord', {
           method: 'POST',
@@ -196,13 +196,14 @@ export default function CRMDashboard() {
     }
   };
 
-  const filteredLeads = leads.filter(l => 
-    l.company.toLowerCase().includes(search.toLowerCase()) || 
+  const filteredLeads = leads.filter(l =>
+    l.company.toLowerCase().includes(search.toLowerCase()) ||
     l.contactName.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
-    <RoleGuard permission="CREATE_PROJECT" fallback={<div className="p-8 text-center text-foreground/40 font-bold uppercase tracking-wider text-xs">Access Denied. Only staff with project management authorization can access the CRM.</div>}>
+  <RoleGuard permission="CREATE_PROJECT" fallback={<div className="p-8 text-center text-foreground/40 font-bold uppercase tracking-wider text-xs">Access Denied. Only staff with project management authorization can access the CRM.</div>}>
+      <>
       <div className="space-y-6 h-[calc(100vh-120px)] flex flex-col">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shrink-0">
@@ -210,35 +211,26 @@ export default function CRMDashboard() {
             <h1 className="text-3xl font-bold tracking-tight text-foreground">CRM & Pipeline</h1>
             <p className="text-foreground/40 mt-1">Track leads, generate quotes, and close deals.</p>
           </div>
-          
+
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
             <div className="relative w-full sm:w-64">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-foreground/40" />
               <Input
                 placeholder="Search leads..."
-                className="pl-9 glass-card border-border text-foreground placeholder:text-foreground/30 w-full animate-none"
+                className="pl-9 bg-card border border-border shadow-sm rounded-lg border-border text-foreground placeholder:text-foreground/30 w-full animate-none"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            
-            <div className="flex gap-2 w-full sm:w-auto">
-              <Button
-                onClick={handleExportCSV}
-                variant="outline"
-                className="glass-card border-border hover:bg-muted/40 hover:text-foreground text-foreground/80 rounded-xl font-semibold h-10 px-4 flex-1 sm:flex-none cursor-pointer"
-              >
-                <Download className="mr-2 h-4 w-4 text-emerald-400 shrink-0" /> Export CSV
-              </Button>
 
-              <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-                <DialogTrigger 
-                  render={
-                    <Button className="bg-blue-600 hover:bg-blue-700 text-foreground shadow-md rounded-xl font-semibold h-10 px-5 flex-1 sm:flex-none cursor-pointer">
-                      <Plus className="mr-2 h-4 w-4 shrink-0" /> New Lead
-                    </Button>
-                  }
-                />
+            <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+              <DialogTrigger
+                render={
+                  <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-md rounded-xl font-semibold h-10 px-5">
+                    <Plus className="mr-2 h-4 w-4" /> New Lead
+                  </Button>
+                }
+              />
               <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                   <DialogTitle>Add New Lead</DialogTitle>
@@ -262,152 +254,150 @@ export default function CRMDashboard() {
                   </div>
                   <DialogFooter className="pt-4">
                     <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)}>Cancel</Button>
-                    <Button type="submit" disabled={isSubmitting} className="bg-blue-600 text-foreground">Save Lead</Button>
+                    <Button type="submit" disabled={isSubmitting} className="bg-primary text-foreground">Save Lead</Button>
                   </DialogFooter>
                 </form>
               </DialogContent>
             </Dialog>
           </div>
         </div>
-      </div>
 
-        {/* Kanban Board */}
-        <div className="flex-1 overflow-x-auto pb-4 hide-scrollbar">
-          <div className="flex gap-4 h-full min-w-max">
-            {STAGES.map(stage => {
-              const stageLeads = filteredLeads.filter(l => l.stage === stage);
-              
-              return (
-                <div key={stage} className="w-80 flex flex-col h-full bg-white/[0.02] border border-white/[0.06] rounded-2xl p-3">
-                  <div className="flex items-center justify-between mb-4 px-2">
-                    <h3 className="font-bold text-foreground tracking-tight uppercase text-sm flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full ${
-                        stage === 'Won' ? 'bg-green-500' : 
-                        stage === 'Lost' ? 'bg-red-500' : 'bg-blue-400'
+      {/* Kanban Board */}
+      <div className="flex-1 overflow-x-auto pb-4 hide-scrollbar">
+        <div className="flex gap-4 h-full min-w-max">
+          {STAGES.map(stage => {
+            const stageLeads = filteredLeads.filter(l => l.stage === stage);
+
+            return (
+              <div key={stage} className="w-80 flex flex-col h-full border border-border rounded-2xl p-3">
+                <div className="flex items-center justify-between mb-4 px-2">
+                  <h3 className="font-bold text-foreground tracking-tight uppercase text-sm flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${stage === 'Won' ? 'bg-green-500' :
+                      stage === 'Lost' ? 'bg-red-500' : 'bg-blue-400'
                       }`} />
-                      {stage}
-                    </h3>
-                    <Badge variant="secondary" className="bg-muted/40 text-foreground/80 border-border">{stageLeads.length}</Badge>
-                  </div>
+                    {stage}
+                  </h3>
+                  <Badge variant="secondary" className="text-foreground/80 border-border">{stageLeads.length}</Badge>
+                </div>
 
-                  <div className="flex-1 overflow-y-auto space-y-3 pr-1">
-                    <AnimatePresence>
-                      {stageLeads.map(lead => (
-                        <motion.div
-                          layout
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, scale: 0.95 }}
-                          key={lead.id}
-                          className="glass-card p-4 rounded-xl group hover:border-blue-500/30 transition-colors relative cursor-pointer"
-                          onClick={() => setSelectedLead(lead)}
-                        >
-                          <div className="flex justify-between items-start mb-2">
-                            <h4 className="font-bold text-foreground truncate pr-6">{lead.company}</h4>
-                            
-                            {/* Action Menu */}
-                            <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <DropdownMenu>
-                                <DropdownMenuTrigger className="p-1 hover:bg-muted/40 rounded-md">
-                                  <MoreHorizontal className="h-4 w-4 text-foreground/60" />
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => handleGenerateQuote(lead)}>
-                                    <FileText className="mr-2 h-4 w-4 text-blue-400" /> Generate Quote
-                                  </DropdownMenuItem>
-                                  {STAGES.map(s => s !== stage && (
-                                    <DropdownMenuItem key={s} onClick={(e) => { e.stopPropagation(); updateLeadStage(lead, s); }}>
-                                      Move to {s}
-                                    </DropdownMenuItem>
-                                  ))}
-                                  {(currentRole === "founder" || currentRole === "system_admin") && (
-                                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDeleteLead(lead.id); }} className="text-red-400 focus:text-red-300">
-                                      Delete Lead
-                                    </DropdownMenuItem>
-                                  )}
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-                          </div>
-                          
-                          <div className="space-y-1.5 text-xs text-foreground/60">
-                            <p className="flex items-center gap-1.5">
-                              <Building className="h-3 w-3 text-foreground/40" /> {lead.contactName}
-                            </p>
-                            {lead.email && (
-                              <p className="flex items-center gap-1.5">
-                                <Mail className="h-3 w-3 text-foreground/40" /> <span className="truncate">{lead.email}</span>
-                              </p>
-                            )}
-                            <p className="flex items-center gap-1.5 font-semibold text-blue-300 mt-2">
-                              <DollarSign className="h-3 w-3 text-emerald-400" /> 
-                              {lead.value ? `${lead.value.toLocaleString()} AED` : 'TBD'}
-                            </p>
-                          </div>
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-      {/* Lead Detail Sheet */}
-      <Sheet open={!!selectedLead} onOpenChange={(open) => !open && setSelectedLead(null)}>
-        <SheetContent side="right" className="w-[400px] p-6 border-l border-white/[0.08] bg-[#121813] text-foreground flex flex-col h-full overflow-y-auto">
-          {selectedLead && (
-            <>
-              <SheetHeader className="border-b border-white/[0.06] pb-4 mb-4 shrink-0">
-                <SheetTitle className="text-xl font-bold text-foreground flex items-center gap-2">
-                  <Building className="h-5 w-5 text-blue-400" />
-                  {selectedLead.company}
-                </SheetTitle>
-                <div className="flex items-center gap-4 text-xs text-foreground/60 mt-2">
-                  <span className="flex items-center gap-1.5"><User className="h-3 w-3" /> {selectedLead.contactName}</span>
-                  <span className="flex items-center gap-1.5"><DollarSign className="h-3 w-3 text-emerald-400" /> {selectedLead.value} AED</span>
-                </div>
-              </SheetHeader>
-              
-              <div className="flex-1 flex flex-col min-h-0">
-                <h4 className="font-bold text-sm text-foreground mb-3">Email Tracking & Activity</h4>
-                <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-1">
+                <div className="flex-1 overflow-y-auto space-y-3 pr-1">
                   <AnimatePresence>
-                    {leadEmails.length === 0 ? (
-                      <p className="text-xs text-foreground/40 italic text-center py-4">No activity logged yet.</p>
-                    ) : (
-                      leadEmails.map(msg => (
-                        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} key={msg.id} className="bg-white/[0.03] border border-white/[0.06] p-3 rounded-xl text-xs">
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="font-bold text-blue-300">{msg.sender}</span>
-                            <span className="text-[9px] text-foreground/40 uppercase font-mono tracking-wider">
-                              {msg.createdAt?.toDate().toLocaleDateString() || 'Just now'}
-                            </span>
+                    {stageLeads.map(lead => (
+                      <motion.div
+                        layout
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        key={lead.id}
+                        className="glass-card p-4 rounded-xl group hover:border-blue-500/30 transition-colors relative"
+                      >
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-bold text-foreground truncate pr-6">{lead.company}</h4>
+
+                          {/* Action Menu */}
+                          <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger className="p-1 hover: rounded-md">
+                                <MoreHorizontal className="h-4 w-4 text-foreground/60" />
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleGenerateQuote(lead)}>
+                                  <FileText className="mr-2 h-4 w-4 text-blue-400" /> Generate Quote
+                                </DropdownMenuItem>
+                                {STAGES.map(s => s !== stage && (
+                                  <DropdownMenuItem key={s} onClick={(e) => { e.stopPropagation(); updateLeadStage(lead, s); }}>
+                                    Move to {s}
+                                  </DropdownMenuItem>
+                                ))}
+                                {(currentRole === "founder" || currentRole === "system_admin") && (
+                                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDeleteLead(lead.id); }} className="text-red-400 focus:text-red-300">
+                                    Delete Lead
+                                  </DropdownMenuItem>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </div>
-                          <p className="text-foreground/80 whitespace-pre-wrap">{msg.text}</p>
-                        </motion.div>
-                      ))
-                    )}
+                        </div>
+
+                        <div className="space-y-1.5 text-xs text-foreground/60">
+                          <p className="flex items-center gap-1.5">
+                            <Building className="h-3 w-3 text-foreground/40" /> {lead.contactName}
+                          </p>
+                          {lead.email && (
+                            <p className="flex items-center gap-1.5">
+                              <Mail className="h-3 w-3 text-foreground/40" /> <span className="truncate">{lead.email}</span>
+                            </p>
+                          )}
+                          <p className="flex items-center gap-1.5 font-semibold text-blue-300 mt-2">
+                            <DollarSign className="h-3 w-3 text-emerald-400" />
+                            {lead.value ? `${lead.value.toLocaleString()} AED` : 'TBD'}
+                          </p>
+                        </div>
+                      </motion.div>
+                    ))}
                   </AnimatePresence>
                 </div>
-                
-                <form onSubmit={handleLogEmail} className="shrink-0 space-y-3 bg-white/[0.02] p-3 rounded-xl border border-white/[0.05]">
-                  <Textarea 
-                    placeholder="Log an email or meeting note..." 
-                    className="text-xs bg-black/20 border-border resize-none h-20 text-foreground placeholder:text-foreground/30"
-                    value={emailText}
-                    onChange={(e) => setEmailText(e.target.value)}
-                  />
-                  <Button type="submit" disabled={!emailText} className="w-full bg-blue-600 hover:bg-blue-700 text-xs h-8">
-                    <Plus className="h-3 w-3 mr-1.5" /> Log Activity
-                  </Button>
-                </form>
               </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
+            );
+          })}
+        </div>
+      </div>
+      </div>
+      {/* Lead Detail Sheet */ }
+  <Sheet open={!!selectedLead} onOpenChange={(open) => !open && setSelectedLead(null)}>
+    <SheetContent side="right" className="w-[400px] p-6 border-l border-border bg-background text-foreground flex flex-col h-full overflow-y-auto">
+      {selectedLead && (
+        <>
+          <SheetHeader className="border-b border-border pb-4 mb-4 shrink-0">
+            <SheetTitle className="text-xl font-bold text-foreground flex items-center gap-2">
+              <Building className="h-5 w-5 text-primary" />
+              {selectedLead.company}
+            </SheetTitle>
+            <div className="flex items-center gap-4 text-xs text-foreground/60 mt-2">
+              <span className="flex items-center gap-1.5"><User className="h-3 w-3" /> {selectedLead.contactName}</span>
+              <span className="flex items-center gap-1.5"><DollarSign className="h-3 w-3 text-accent" /> {selectedLead.value} AED</span>
+            </div>
+          </SheetHeader>
+
+          <div className="flex-1 flex flex-col min-h-0">
+            <h4 className="font-bold text-sm text-foreground mb-3">Email Tracking & Activity</h4>
+            <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-1">
+              <AnimatePresence>
+                {leadEmails.length === 0 ? (
+                  <p className="text-xs text-foreground/40 italic text-center py-4">No activity logged yet.</p>
+                ) : (
+                  leadEmails.map(msg => (
+                    <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} key={msg.id} className="border border-border p-3 rounded-xl text-xs">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="font-bold text-primary/80">{msg.sender}</span>
+                        <span className="text-xs text-foreground/40 uppercase font-mono tracking-wider">
+                          {msg.createdAt?.toDate().toLocaleDateString() || 'Just now'}
+                        </span>
+                      </div>
+                      <p className="text-foreground/80 whitespace-pre-wrap">{msg.text}</p>
+                    </motion.div>
+                  ))
+                )}
+              </AnimatePresence>
+            </div>
+
+            <form onSubmit={handleLogEmail} className="shrink-0 space-y-3 p-3 rounded-xl border border-border">
+              <Textarea
+                placeholder="Log an email or meeting note..."
+                className="text-xs bg-black/20 border-border resize-none h-20 text-foreground placeholder:text-foreground/30"
+                value={emailText}
+                onChange={(e) => setEmailText(e.target.value)}
+              />
+              <Button type="submit" disabled={!emailText} className="w-full bg-primary hover:bg-blue-700 text-xs h-8">
+                <Plus className="h-3 w-3 mr-1.5" /> Log Activity
+              </Button>
+            </form>
+          </div>
+        </>
+      )}
+    </SheetContent>
+  </Sheet>
+      </>
     </RoleGuard>
   );
 }

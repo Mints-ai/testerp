@@ -26,7 +26,7 @@ const LEAVE_TYPES = [
 
 const STATUS_COLORS: Record<string, string> = {
   pending: "bg-amber-500/10 text-amber-400 border-amber-500/20",
-  approved: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+  approved: "bg-emerald-500/10 text-accent border-emerald-500/20",
   rejected: "bg-rose-500/10 text-rose-400 border-rose-500/20",
 };
 
@@ -314,13 +314,13 @@ export default function LeaveManagement() {
         <div className="flex items-center gap-3">
           {isManagerOrAbove && (
             <Dialog open={isPolicyOpen} onOpenChange={setIsPolicyOpen}>
-              <DialogTrigger className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold h-10 px-4 py-2 bg-white/[0.04] hover:bg-white/[0.08] text-foreground/70 border border-white/[0.08] cursor-pointer transition-all">
+              <DialogTrigger className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold h-10 px-4 py-2 hover: text-foreground/70 border border-border cursor-pointer transition-all">
                 <Settings2 className="h-4 w-4" /> Leave Policies
               </DialogTrigger>
-              <DialogContent className="max-w-lg bg-[#0a1628] border border-white/[0.08] text-foreground backdrop-blur-xl rounded-2xl shadow-2xl">
+              <DialogContent className="max-w-lg bg-card border border-border text-foreground rounded-2xl shadow-2xl">
                 <DialogHeader>
                   <DialogTitle className="text-xl font-bold text-foreground flex items-center gap-2">
-                    <Settings2 className="w-5 h-5 text-blue-400" />
+                    <Settings2 className="w-5 h-5 text-primary" />
                     Leave Policy Configuration
                   </DialogTitle>
                   <DialogDescription className="text-foreground/40 text-xs mt-1">
@@ -331,10 +331,10 @@ export default function LeaveManagement() {
                   {Object.entries(ROLE_META).map(([roleKey, roleMeta]) => {
                     const policy = policies[roleKey] || { annualQuota: 20, sickQuota: 10, carryForward: false };
                     return (
-                      <div key={roleKey} className="p-3 bg-white/[0.02] border border-white/[0.06] rounded-xl space-y-2">
+                      <div key={roleKey} className="p-3 border border-border rounded-xl space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-bold text-foreground uppercase tracking-wider">{roleMeta.label}</span>
-                          <label className="flex items-center gap-1.5 text-[10px] text-foreground/40 cursor-pointer">
+                          <label className="flex items-center gap-1.5 text-xs text-foreground/40 cursor-pointer">
                             <input
                               type="checkbox"
                               checked={policy.carryForward || false}
@@ -346,25 +346,25 @@ export default function LeaveManagement() {
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                           <div className="space-y-1">
-                            <label className="text-[9px] font-bold text-foreground/30 uppercase tracking-wider">Annual Days</label>
+                            <label className="text-xs font-bold text-foreground/30 uppercase tracking-wider">Annual Days</label>
                             <Input
                               type="number"
                               min={0}
                               max={365}
                               value={policy.annualQuota}
                               onChange={(e) => setPolicies({ ...policies, [roleKey]: { ...policy, annualQuota: parseInt(e.target.value) || 0 } })}
-                              className="glass-input h-8 text-xs border-border focus:border-blue-500/60 focus:ring-0 text-foreground font-mono"
+                              className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-8 text-xs border-border focus:border-primary/60 focus:ring-0 text-foreground font-mono"
                             />
                           </div>
                           <div className="space-y-1">
-                            <label className="text-[9px] font-bold text-foreground/30 uppercase tracking-wider">Sick Days</label>
+                            <label className="text-xs font-bold text-foreground/30 uppercase tracking-wider">Sick Days</label>
                             <Input
                               type="number"
                               min={0}
                               max={365}
                               value={policy.sickQuota}
                               onChange={(e) => setPolicies({ ...policies, [roleKey]: { ...policy, sickQuota: parseInt(e.target.value) || 0 } })}
-                              className="glass-input h-8 text-xs border-border focus:border-blue-500/60 focus:ring-0 text-foreground font-mono"
+                              className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-8 text-xs border-border focus:border-primary/60 focus:ring-0 text-foreground font-mono"
                             />
                           </div>
                         </div>
@@ -375,7 +375,7 @@ export default function LeaveManagement() {
                 <Button
                   onClick={handleSavePolicies}
                   disabled={isSavingPolicy}
-                  className="w-full h-11 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-foreground shadow-glow-blue border-0 cursor-pointer rounded-xl mt-4"
+                  className="w-full h-11 text-xs font-semibold bg-primary hover:bg-blue-700 text-foreground shadow-sm border-0 cursor-pointer rounded-xl mt-4"
                 >
                   {isSavingPolicy ? "Saving..." : "Save Leave Policies"}
                 </Button>
@@ -384,13 +384,13 @@ export default function LeaveManagement() {
           )}
 
           <Dialog open={isApplyOpen} onOpenChange={setIsApplyOpen}>
-          <DialogTrigger className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold h-10 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-foreground shadow-glow-blue border-0 cursor-pointer transition-all">
+          <DialogTrigger className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-semibold h-10 px-4 py-2 bg-primary hover:bg-blue-700 text-foreground shadow-sm border-0 cursor-pointer transition-all">
             <CalendarIcon className="mr-2 h-4 w-4" /> Apply for Leave
           </DialogTrigger>
-          <DialogContent className="max-w-md bg-[#0a1628] border border-white/[0.08] text-foreground backdrop-blur-xl rounded-2xl shadow-2xl">
+          <DialogContent className="max-w-md bg-card border border-border text-foreground rounded-2xl shadow-2xl">
             <DialogHeader>
               <DialogTitle className="text-xl font-bold text-foreground flex items-center gap-2">
-                <CalendarIcon className="w-5 h-5 text-blue-400 animate-pulse" />
+                <CalendarIcon className="w-5 h-5 text-primary animate-pulse" />
                 Apply for Leave
               </DialogTitle>
               <DialogDescription className="text-foreground/40 text-xs mt-1">
@@ -401,11 +401,11 @@ export default function LeaveManagement() {
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-foreground/70">Leave Type</Label>
                 <Select value={newLeave.type} onValueChange={(val) => setNewLeave({...newLeave, type: val || ""})} required>
-                  <SelectTrigger className="glass-input h-10 text-xs border-border px-3 placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 text-foreground bg-[#0c1322]">
+                  <SelectTrigger className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-10 text-xs border-border px-3 placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 text-foreground bg-card">
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#0c1322] border border-border text-foreground rounded-xl">
-                    {LEAVE_TYPES.map(t => <SelectItem key={t} value={t} className="focus:bg-muted/40 cursor-pointer">{t}</SelectItem>)}
+                  <SelectContent className="bg-card border border-border text-foreground rounded-xl">
+                    {LEAVE_TYPES.map(t => <SelectItem key={t} value={t} className="focus: cursor-pointer">{t}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
@@ -415,20 +415,20 @@ export default function LeaveManagement() {
                   <Label className="text-xs font-semibold text-foreground/70">Start Date</Label>
                   <Input type="date" required min={new Date().toISOString().split("T")[0]} 
                          value={newLeave.startDate} onChange={e => setNewLeave({...newLeave, startDate: e.target.value})}
-                         className="glass-input h-10 text-xs border-border px-3 placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 text-foreground [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert" />
+                         className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-10 text-xs border-border px-3 placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 text-foreground [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert" />
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold text-foreground/70">End Date</Label>
                   <Input type="date" required min={newLeave.startDate || new Date().toISOString().split("T")[0]} 
                          value={newLeave.endDate} onChange={e => setNewLeave({...newLeave, endDate: e.target.value})}
-                         className="glass-input h-10 text-xs border-border px-3 placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 text-foreground [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert" />
+                         className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-10 text-xs border-border px-3 placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 text-foreground [&::-webkit-calendar-picker-indicator]:filter [&::-webkit-calendar-picker-indicator]:invert" />
                 </div>
               </div>
 
               {daysRequested > 0 && (
-                <div className="p-3 bg-muted/40 border border-white/[0.06] rounded-xl text-sm flex justify-between items-center text-foreground">
+                <div className="p-3 border border-border rounded-xl text-sm flex justify-between items-center text-foreground">
                   <span className="text-foreground/60">Working days requested:</span>
-                  <span className="font-bold text-blue-400 font-mono">{daysRequested} Days</span>
+                  <span className="font-bold text-primary font-mono">{daysRequested} Days</span>
                 </div>
               )}
 
@@ -436,10 +436,10 @@ export default function LeaveManagement() {
                 <Label className="text-xs font-semibold text-foreground/70">Reason (Optional)</Label>
                 <Textarea placeholder="Brief explanation..." 
                           value={newLeave.reason} onChange={e => setNewLeave({...newLeave, reason: e.target.value})}
-                          className="glass-input min-h-[80px] text-xs border-border p-3 placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 text-foreground" />
+                          className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm min-h-[80px] text-xs border-border p-3 placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 text-foreground" />
               </div>
               
-              <Button type="submit" disabled={isSubmitting || daysRequested === 0} className="w-full h-11 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-foreground shadow-glow-blue border-0 cursor-pointer rounded-xl">
+              <Button type="submit" disabled={isSubmitting || daysRequested === 0} className="w-full h-11 text-xs font-semibold bg-primary hover:bg-blue-700 text-foreground shadow-sm border-0 cursor-pointer rounded-xl">
                 {isSubmitting ? "Submitting..." : "Submit Request"}
               </Button>
             </form>
@@ -452,44 +452,44 @@ export default function LeaveManagement() {
         /* ================= EMPLOYEE VIEW ================= */
         <div className="space-y-6">
           <div className="grid md:grid-cols-2 gap-6">
-            <Card className="border-white/[0.08] bg-white/[0.02] shadow-card rounded-2xl overflow-hidden backdrop-blur-xl text-foreground">
+            <Card className="border-border shadow-card rounded-2xl overflow-hidden text-foreground">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg text-foreground">Annual Leave Balance</CardTitle>
                 <CardDescription className="text-foreground/40 text-xs">Global Standard</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex justify-between items-end mb-2">
-                  <span className="text-3xl font-black text-blue-400">{balance.totalAnnual - balance.usedAnnual}</span>
+                  <span className="text-3xl font-black text-primary">{balance.totalAnnual - balance.usedAnnual}</span>
                   <span className="text-xs text-foreground/40 mb-1 font-semibold">days remaining</span>
                 </div>
-                <Progress value={annualPercentage} className="h-3 bg-muted/40 rounded-full overflow-hidden [&>div]:bg-blue-500" />
+                <Progress value={annualPercentage} className="h-3 rounded-full overflow-hidden [&>div]:bg-primary" />
                 <p className="text-xs text-foreground/40 mt-2 text-right font-semibold">{balance.usedAnnual} of {balance.totalAnnual} days used</p>
               </CardContent>
             </Card>
             
-            <Card className="border-white/[0.08] bg-white/[0.02] shadow-card rounded-2xl overflow-hidden backdrop-blur-xl text-foreground">
+            <Card className="border-border shadow-card rounded-2xl overflow-hidden text-foreground">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg text-foreground">Sick Leave</CardTitle>
                 <CardDescription className="text-foreground/40 text-xs">Current year usage</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col justify-between h-[84px]">
                 <div className="flex justify-between items-end mb-2">
-                  <span className="text-3xl font-black text-emerald-400">{balance.usedSick}</span>
+                  <span className="text-3xl font-black text-accent">{balance.usedSick}</span>
                   <span className="text-xs text-foreground/40 mb-1 font-semibold">days used</span>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          <Card className="border-white/[0.08] bg-white/[0.02] shadow-card rounded-2xl overflow-hidden backdrop-blur-xl text-foreground">
-            <CardHeader className="border-b border-white/[0.06] pb-4">
+          <Card className="border-border shadow-card rounded-2xl overflow-hidden text-foreground">
+            <CardHeader className="border-b border-border pb-4">
               <CardTitle className="text-lg text-foreground">My Leave History</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               {loading ? (
                 <div className="text-center py-12 text-foreground/40 font-medium italic">
                   <div className="flex items-center justify-center gap-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
                     <span>Loading leave records...</span>
                   </div>
                 </div>
@@ -502,7 +502,7 @@ export default function LeaveManagement() {
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm text-left">
-                    <thead className="bg-white/[0.02] text-foreground/60 text-xs uppercase font-bold border-b border-white/[0.06]">
+                    <thead className="text-foreground/60 text-xs uppercase font-bold border-b border-border">
                       <tr>
                         <th className="px-6 py-4 font-bold">Type</th>
                         <th className="px-6 py-4 font-bold">Dates</th>
@@ -512,12 +512,12 @@ export default function LeaveManagement() {
                     </thead>
                     <tbody className="divide-y divide-white/[0.04]">
                       {leaves.map((leave) => (
-                        <tr key={leave.id} className="hover:bg-white/[0.02] transition-colors border-b border-white/[0.04] last:border-b-0">
+                        <tr key={leave.id} className="hover: transition-colors border-b border-border last:border-b-0">
                           <td className="px-6 py-4 font-bold text-foreground/90">{leave.leaveType}</td>
                           <td className="px-6 py-4 text-foreground/60 whitespace-nowrap">
                             {leave.startDate} to {leave.endDate}
                           </td>
-                          <td className="px-6 py-4 text-center font-bold font-mono text-blue-400">{leave.daysCount}</td>
+                          <td className="px-6 py-4 text-center font-bold font-mono text-primary">{leave.daysCount}</td>
                           <td className="px-6 py-4 text-center">
                             <Badge variant="outline" className={cn("font-bold shadow-none text-xs", STATUS_COLORS[leave.status] || STATUS_COLORS.pending)}>
                               {leave.status.charAt(0).toUpperCase() + leave.status.slice(1)}
@@ -535,11 +535,11 @@ export default function LeaveManagement() {
       ) : (
         /* ================= MANAGER VIEW ================= */
         <Tabs defaultValue="pending" className="w-full flex flex-col min-h-0">
-          <TabsList className="mb-6 bg-white/[0.03] border border-white/[0.08] p-1 rounded-xl w-fit shrink-0 gap-1 text-foreground">
+          <TabsList className="mb-6 border border-border p-1 rounded-xl w-fit shrink-0 gap-1 text-foreground">
             <TabsTrigger value="pending" className="relative px-4 py-2 rounded-lg text-sm font-semibold transition-all">
               Pending Approvals
               {pendingLeaves.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-rose-500 text-foreground text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-glow-rose">
+                <span className="absolute -top-1 -right-1 bg-rose-500 text-foreground text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-glow-rose">
                   {pendingLeaves.length}
                 </span>
               )}
@@ -550,9 +550,9 @@ export default function LeaveManagement() {
           
           <TabsContent value="pending" className="space-y-4 focus-visible:outline-none">
             {pendingLeaves.length === 0 ? (
-              <Card className="border-white/[0.08] bg-white/[0.02] shadow-card rounded-2xl overflow-hidden backdrop-blur-xl text-foreground">
+              <Card className="border-border shadow-card rounded-2xl overflow-hidden text-foreground">
                 <CardContent className="flex flex-col items-center justify-center py-12 text-center text-foreground/40">
-                  <CheckCircle2 className="h-12 w-12 text-blue-400 mb-4 animate-pulse" />
+                  <CheckCircle2 className="h-12 w-12 text-primary mb-4 animate-pulse" />
                   <p className="text-lg font-bold text-foreground">You're all caught up!</p>
                   <p className="text-xs text-foreground/40 mt-1">There are no pending leave requests to review.</p>
                 </CardContent>
@@ -562,7 +562,7 @@ export default function LeaveManagement() {
                 {pendingLeaves.map((leave) => {
                   const emp = employeesMap[leave.employeeId];
                   return (
-                    <Card key={leave.id} className="border-l-4 border-l-amber-500 border-t-white/[0.08] border-r-white/[0.08] border-b-white/[0.08] bg-white/[0.02] shadow-card rounded-2xl overflow-hidden backdrop-blur-xl text-foreground">
+                    <Card key={leave.id} className="border-l-4 border-l-amber-500 border-t-white/[0.08] border-r-white/[0.08] border-b-white/[0.08] shadow-card rounded-2xl overflow-hidden text-foreground">
                       <CardHeader className="pb-3 flex-row items-start justify-between">
                         <div>
                           <CardTitle className="text-lg text-foreground font-bold">{emp?.fullName || leave.employeeName || "Employee"}</CardTitle>
@@ -573,25 +573,25 @@ export default function LeaveManagement() {
                         <Badge variant="outline" className="bg-amber-500/10 text-amber-400 border-amber-500/20 font-bold shadow-none text-xs">Pending</Badge>
                       </CardHeader>
                       <CardContent className="space-y-4">
-                        <div className="bg-white/[0.02] border border-white/[0.06] p-3 rounded-xl flex gap-4 text-xs">
+                        <div className="border border-border p-3 rounded-xl flex gap-4 text-xs">
                           <div>
-                            <p className="text-foreground/40 text-[10px] uppercase font-bold mb-1">Dates</p>
+                            <p className="text-foreground/40 text-xs uppercase font-bold mb-1">Dates</p>
                             <p className="font-bold text-foreground/90">{new Date(leave.startDate).toLocaleDateString()} - {new Date(leave.endDate).toLocaleDateString()}</p>
                           </div>
-                          <div className="px-4 border-l border-white/[0.06]">
-                            <p className="text-foreground/40 text-[10px] uppercase font-bold mb-1">Duration</p>
-                            <p className="font-bold text-blue-400 font-mono">{leave.daysCount} Working Days</p>
+                          <div className="px-4 border-l border-border">
+                            <p className="text-foreground/40 text-xs uppercase font-bold mb-1">Duration</p>
+                            <p className="font-bold text-primary font-mono">{leave.daysCount} Working Days</p>
                           </div>
                         </div>
                         
                         {leave.reason && (
-                          <div className="bg-muted/40 border border-white/[0.04] p-3 rounded-xl">
-                            <p className="text-[10px] text-foreground/40 font-bold uppercase mb-1">Reason provided:</p>
+                          <div className="border border-border p-3 rounded-xl">
+                            <p className="text-xs text-foreground/40 font-bold uppercase mb-1">Reason provided:</p>
                             <p className="text-xs italic text-foreground/80">"{leave.reason}"</p>
                           </div>
                         )}
                         
-                        <div className="flex gap-4 pt-2 border-t border-white/[0.06]">
+                        <div className="flex gap-4 pt-2 border-t border-border">
                           <Button 
                             className="flex-1 h-10 text-xs bg-emerald-600 hover:bg-emerald-700 text-foreground font-bold rounded-xl shadow-glow-emerald border-0 cursor-pointer" 
                             onClick={() => handleApproveReject(leave.id, "approved")}>
@@ -621,10 +621,10 @@ export default function LeaveManagement() {
 
 {/* Edit Leave Dialog */}
 <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-  <DialogContent className="max-w-md bg-[#0a1628] border border-white/[0.08] text-foreground backdrop-blur-xl rounded-2xl shadow-2xl">
+  <DialogContent className="max-w-md bg-card border border-border text-foreground rounded-2xl shadow-2xl">
     <DialogHeader>
       <DialogTitle className="text-xl font-bold text-foreground flex items-center gap-2">
-        <Edit className="w-5 h-5 text-blue-400 animate-pulse" /> Edit Leave
+        <Edit className="w-5 h-5 text-primary animate-pulse" /> Edit Leave
       </DialogTitle>
       <DialogDescription className="text-foreground/40 text-xs mt-1">
         Modify leave details and save.
@@ -638,12 +638,12 @@ export default function LeaveManagement() {
             value={selectedLeave.leaveType}
             onValueChange={(val) => setSelectedLeave({ ...selectedLeave, leaveType: val })}
           >
-            <SelectTrigger className="glass-input h-10 text-xs border-border px-3 placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 text-foreground bg-[#0c1322]">
+            <SelectTrigger className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-10 text-xs border-border px-3 placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 text-foreground bg-card">
               <SelectValue placeholder="Select type" />
             </SelectTrigger>
-            <SelectContent className="bg-[#0c1322] border border-border text-foreground rounded-xl">
+            <SelectContent className="bg-card border border-border text-foreground rounded-xl">
               {LEAVE_TYPES.map((t) => (
-                <SelectItem key={t} value={t} className="focus:bg-muted/40 cursor-pointer">
+                <SelectItem key={t} value={t} className="focus: cursor-pointer">
                   {t}
                 </SelectItem>
               ))}
@@ -658,7 +658,7 @@ export default function LeaveManagement() {
               required
               value={selectedLeave.startDate}
               onChange={(e) => setSelectedLeave({ ...selectedLeave, startDate: e.target.value })}
-              className="glass-input h-10 text-xs border-border px-3 placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 text-foreground"
+              className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-10 text-xs border-border px-3 placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 text-foreground"
             />
           </div>
           <div className="space-y-1.5">
@@ -668,7 +668,7 @@ export default function LeaveManagement() {
               required
               value={selectedLeave.endDate}
               onChange={(e) => setSelectedLeave({ ...selectedLeave, endDate: e.target.value })}
-              className="glass-input h-10 text-xs border-border px-3 placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 text-foreground"
+              className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm h-10 text-xs border-border px-3 placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 text-foreground"
             />
           </div>
         </div>
@@ -678,10 +678,10 @@ export default function LeaveManagement() {
             placeholder="Brief explanation..."
             value={selectedLeave.reason}
             onChange={(e) => setSelectedLeave({ ...selectedLeave, reason: e.target.value })}
-            className="glass-input min-h-[80px] text-xs border-border p-3 placeholder:text-foreground/20 focus:border-blue-500/60 focus:ring-0 text-foreground"
+            className="bg-background border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary shadow-sm min-h-[80px] text-xs border-border p-3 placeholder:text-foreground/20 focus:border-primary/60 focus:ring-0 text-foreground"
           />
         </div>
-        <Button type="submit" className="w-full h-11 text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-foreground shadow-glow-blue border-0 cursor-pointer rounded-xl">
+        <Button type="submit" className="w-full h-11 text-xs font-semibold bg-primary hover:bg-blue-700 text-foreground shadow-sm border-0 cursor-pointer rounded-xl">
           Save Changes
         </Button>
       </form>
@@ -690,17 +690,17 @@ export default function LeaveManagement() {
 </Dialog>
 
           <TabsContent value="calendar" className="focus-visible:outline-none">
-            <Card className="border-white/[0.08] bg-white/[0.02] shadow-card rounded-2xl overflow-hidden backdrop-blur-xl text-foreground">
-              <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-white/[0.06] gap-4">
+            <Card className="border-border shadow-card rounded-2xl overflow-hidden text-foreground">
+              <CardHeader className="flex flex-row items-center justify-between pb-4 border-b border-border gap-4">
                 <CardTitle className="text-lg text-foreground">Team Leave Calendar</CardTitle>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="sm" className="glass h-8 w-8 p-0 border-border text-foreground/60 hover:text-foreground hover:bg-muted/40 cursor-pointer" onClick={() => setCurrentDate(subMonths(currentDate, 1))}>
+                  <Button variant="outline" size="sm" className="bg-card border border-border shadow-sm h-8 w-8 p-0 border-border text-foreground/60 hover:text-foreground hover: cursor-pointer" onClick={() => setCurrentDate(subMonths(currentDate, 1))}>
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
                   <span className="font-semibold text-sm w-36 text-center text-foreground/80 select-none">
                     {format(currentDate, "MMMM yyyy")}
                   </span>
-                  <Button variant="outline" size="sm" className="glass h-8 w-8 p-0 border-border text-foreground/60 hover:text-foreground hover:bg-muted/40 cursor-pointer" onClick={() => setCurrentDate(addMonths(currentDate, 1))}>
+                  <Button variant="outline" size="sm" className="bg-card border border-border shadow-sm h-8 w-8 p-0 border-border text-foreground/60 hover:text-foreground hover: cursor-pointer" onClick={() => setCurrentDate(addMonths(currentDate, 1))}>
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
@@ -712,7 +712,7 @@ export default function LeaveManagement() {
                   ))}
                   
                   {Array.from({ length: days[0].getDay() }).map((_, i) => (
-                    <div key={`empty-${i}`} className="h-28 bg-white/[0.01] rounded-xl border border-white/[0.04]"></div>
+                    <div key={`empty-${i}`} className="h-28 rounded-xl border border-border"></div>
                   ))}
                   
                   {days.map(day => {
@@ -727,19 +727,17 @@ export default function LeaveManagement() {
                     const isToday = isSameDay(day, new Date());
                     
                     return (
-                      <div key={day.toString()} className={cn(
-                        "h-28 p-1.5 flex flex-col rounded-xl border overflow-hidden",
+                      <div key={day.toString()} className={cn("h-28 p-1.5 flex flex-col rounded-xl border overflow-hidden",
                         isToday 
-                          ? "border-blue-500 bg-blue-500/5 shadow-glow-blue" 
-                          : "border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] transition-colors"
+                          ? "border-primary bg-primary/5 shadow-sm" 
+                          : "border-border  hover: transition-colors"
                       )}>
                         <div className="flex justify-between items-start w-full">
-                          <span className="text-[9px] text-foreground/40 font-bold pl-1">
+                          <span className="text-xs text-foreground/40 font-bold pl-1">
                             {dayLeaves.length > 0 ? `${dayLeaves.length} away` : ""}
                           </span>
-                          <span className={cn(
-                            "text-xs font-bold h-6 w-6 flex items-center justify-center rounded-full shrink-0",
-                            isToday ? "bg-blue-600 text-foreground" : "text-foreground/60"
+                          <span className={cn("text-xs font-bold h-6 w-6 flex items-center justify-center rounded-full shrink-0",
+                            isToday ? "bg-primary text-foreground" : "text-foreground/60"
                           )}>
                             {format(day, 'd')}
                           </span>
@@ -754,9 +752,9 @@ export default function LeaveManagement() {
                             
                             // Determine gorgeous color pill styles based on leave type
                             const t = leave.leaveType?.toLowerCase() || "";
-                            let pillStyle = "bg-indigo-500/15 text-indigo-300 border-indigo-500/25";
+                            let pillStyle = "bg-primary/15 text-primary border-primary/25";
                             if (t.includes("annual")) {
-                              pillStyle = "bg-blue-500/15 text-blue-300 border-blue-500/25";
+                              pillStyle = "bg-primary/15 text-primary/80 border-primary/25";
                             } else if (t.includes("sick")) {
                               pillStyle = "bg-emerald-500/15 text-emerald-300 border-emerald-500/25";
                             } else if (t.includes("unpaid")) {
@@ -768,8 +766,7 @@ export default function LeaveManagement() {
                             return (
                               <div 
                                 key={`${leave.id}-${idx}`} 
-                                className={cn(
-                                  "text-[9px] px-1.5 py-0.5 rounded border truncate font-bold text-left block transition-colors hover:bg-muted/40",
+                                className={cn("text-xs px-1.5 py-0.5 rounded border truncate font-bold text-left block transition-colors hover:",
                                   pillStyle
                                 )} 
                                 title={`${empName} - ${leave.leaveType}`}
@@ -788,11 +785,11 @@ export default function LeaveManagement() {
           </TabsContent>
 
           <TabsContent value="all" className="focus-visible:outline-none">
-            <Card className="border-white/[0.08] bg-white/[0.02] shadow-card rounded-2xl overflow-hidden backdrop-blur-xl text-foreground">
+            <Card className="border-border shadow-card rounded-2xl overflow-hidden text-foreground">
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm text-left">
-                    <thead className="bg-white/[0.02] text-foreground/60 text-xs uppercase font-bold border-b border-white/[0.06]">
+                    <thead className="text-foreground/60 text-xs uppercase font-bold border-b border-border">
                       <tr>
                         <th className="px-6 py-4 font-bold">Employee</th>
                         <th className="px-6 py-4 font-bold">Details</th>
@@ -807,11 +804,11 @@ export default function LeaveManagement() {
                       {leaves.map((leave) => {
                         const emp = employeesMap[leave.employeeId];
                         return (
-                          <tr key={leave.id} className="hover:bg-white/[0.02] transition-colors border-b border-white/[0.04] last:border-b-0">
+                          <tr key={leave.id} className="hover: transition-colors border-b border-border last:border-b-0">
                             <td className="px-6 py-4">
                               <div className="flex flex-col">
                                 <span className="font-bold text-foreground/90">{emp?.fullName || leave.employeeName || "Employee"}</span>
-                                <span className="text-[10px] text-foreground/30 font-mono mt-0.5">{emp?.employeeId || "No ID"}</span>
+                                <span className="text-xs text-foreground/30 font-mono mt-0.5">{emp?.employeeId || "No ID"}</span>
                               </div>
                             </td>
                             <td className="px-6 py-4">
@@ -824,7 +821,7 @@ export default function LeaveManagement() {
                             <td className="px-6 py-4 text-foreground/60 whitespace-nowrap">
                               {leave.startDate} to {leave.endDate}
                             </td>
-                            <td className="px-6 py-4 text-center font-bold font-mono text-blue-400">{leave.daysCount}</td>
+                            <td className="px-6 py-4 text-center font-bold font-mono text-primary">{leave.daysCount}</td>
                             <td className="px-6 py-4 text-center">
                               {canAccess(role, "EDIT_LEAVE") && (
                                 <Button

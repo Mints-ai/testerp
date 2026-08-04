@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, where, doc, getDoc, updateDoc, deleteDoc, setDoc } from "firebase/firestore";
@@ -782,7 +782,7 @@ export default function Chat() {
                               <div>
                                 <p className="text-sm font-bold text-foreground leading-none">{name}</p>
                                 <p className="text-[10px] text-foreground/40 mt-1">
-                                  {emp.jobTitle || "Employee"} • {emp.departments?.join(", ") || "No Department"}
+                                  {emp.jobTitle || "Employee"} ΓÇó {emp.departments?.join(", ") || "No Department"}
                                 </p>
                               </div>
                             </div>

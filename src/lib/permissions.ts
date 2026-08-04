@@ -58,4 +58,3 @@ export const ROLE_META: Record<string, { label: string; color: string }> = {
   employee: { label: "Employee", color: "bg-emerald-500/10 text-emerald-300 border border-emerald-500/20" },
   intern: { label: "Intern", color: "bg-slate-500/10 text-slate-300 border border-slate-500/20" },
 };
-

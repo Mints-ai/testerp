@@ -32,12 +32,12 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   role: null,
   simulatedRole: null,
-  setSimulatedRole: () => {},
+  setSimulatedRole: () => { },
   loading: true,
-  loginWithGoogle: async () => {},
-  logout: async () => {},
+  loginWithGoogle: async () => { },
+  logout: async () => { },
   authError: null,
-  setAuthError: () => {},
+  setAuthError: () => { },
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -48,17 +48,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [delegatedRole, setDelegatedRole] = useState<string | null>(null);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
-  // Dynamic Permissions sync
+  // Dynamic Permissions sync — only after a user is authenticated to avoid
+  // Firestore "client is offline" errors that block the loading state from resolving.
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, "settings", "permissions"), (docSnap) => {
-      if (docSnap.exists()) {
-        setDynamicPermissions(docSnap.data() as Record<string, string[]>);
-      }
-    }, (err) => {
-      console.warn("Failed to load dynamic permissions from Firestore, using static defaults:", err);
-    });
+    if (!user) return;
+    let unsub: () => void = () => { };
+    try {
+      unsub = onSnapshot(doc(db, "settings", "permissions"), (docSnap) => {
+        if (docSnap.exists()) {
+          setDynamicPermissions(docSnap.data() as Record<string, string[]>);
+        }
+      }, (err) => {
+        console.warn("Failed to load dynamic permissions from Firestore, using static defaults:", err);
+      });
+    } catch (err) {
+      console.warn("Could not attach permissions listener:", err);
+    }
     return () => unsub();
-  }, []);
+  }, [user]);
 
   // Session Tracking & Revocation & Delegations listener
   useEffect(() => {
@@ -68,7 +75,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return;
     }
 
-    let sessionUnsub = () => {};
+    let sessionUnsub = () => { };
 
     const initSession = async () => {
       let sessId = sessionStorage.getItem("mints_session_id");
@@ -152,6 +159,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } else {
         setDelegatedRole(null);
       }
+    }, (err) => {
+      console.warn("Delegations snapshot listener error:", err);
     });
 
     return () => {
@@ -186,11 +195,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const emailLower = firebaseUser.email?.toLowerCase().trim() || "";
         const adminEmailsEnv = process.env.NEXT_PUBLIC_ADMIN_EMAILS || "";
         const adminEmails = adminEmailsEnv.split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
-        
+
         // Enforce restriction: Block public @gmail.com accounts except admin accounts
         if (emailLower.endsWith("@gmail.com") && !adminEmails.includes(emailLower)) {
           setAuthError("Access Denied: Logins with public @gmail.com accounts are restricted. Please use your corporate static email provided by your administrator.");
-          
+
           (async () => {
             try {
               const ipResponse = await fetch("https://api.ipify.org?format=json");
@@ -248,7 +257,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         // Enforce super admin self-healing credentials for key admin accounts
         const isSuperAdmin = adminEmails.includes(emailLower);
-        
+
         const getAdminFallbackName = (email: string) => {
           if (email.startsWith("admin")) return "System Administrator";
           if (email.startsWith("arya")) return "Arya";
@@ -266,12 +275,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           if (email.includes("anand") || email.includes("binuarjun")) return "Director IT & Cyber Security";
           return "System Admin";
         };
-        
+
         const userDocRef = doc(db, "employees", firebaseUser.uid);
         let userDoc = await getDoc(userDocRef);
-        
+
         let appUser: AppUser = firebaseUser;
-        
+
         if (isSuperAdmin) {
           if (!userDoc.exists()) {
             await setDoc(userDocRef, {
@@ -303,28 +312,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             }
           }
         }
-        
+
         if (!userDoc.exists() && firebaseUser.email) {
           // If not found by UID, search for manually onboarded profile by email!
           const q = query(collection(db, "employees"), where("email", "==", firebaseUser.email));
           const querySnap = await getDocs(q);
-          
+
           if (!querySnap.empty) {
             const oldDoc = querySnap.docs[0];
             const data = oldDoc.data();
-            
+
             // Re-key the manual profile under the user's authentic Auth UID!
             await setDoc(userDocRef, {
               ...data,
               fullName: data.fullName || firebaseUser.displayName || "Mints Team Member",
               updatedAt: new Date().toISOString()
             });
-            
+
             // Delete the old random-ID document to avoid duplication
             if (oldDoc.id !== firebaseUser.uid) {
               await deleteDoc(doc(db, "employees", oldDoc.id));
             }
-            
+
             // Reload the linked document
             userDoc = await getDoc(userDocRef);
           }
@@ -351,7 +360,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           // Verify user is active
           if (data.isActive === false) {
             setAuthError("Access Denied: Your account has been deactivated.");
-            
+
             (async () => {
               try {
                 const ipResponse = await fetch("https://api.ipify.org?format=json");
@@ -405,6 +414,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setUser(null);
           } else {
             appUser = { ...firebaseUser, role: data.role, department: data.department, departments: data.departments || (data.department ? [data.department] : []), fullName: data.fullName, jobTitle: data.jobTitle, photoURL: data.profilePhotoURL || firebaseUser.photoURL };
+
+            if (emailLower.includes("arya@mintsglobal.ae") && data.role !== "founder") {
+              await updateDoc(userDocRef, { role: "founder" });
+              appUser.role = "founder";
+            }
+
             setUser(appUser);
 
             // Fetch public IP address and record login trace asynchronously
@@ -472,11 +487,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           try {
             const emailLower = firebaseUser.email?.toLowerCase().trim() || "";
             const defaultRole = "employee";
-            
+
             // Format name cleanly from email
             const nameParts = emailLower.split("@")[0].split(".");
             const cleanName = nameParts.map(part => part.charAt(0).toUpperCase() + part.slice(1)).join(" ");
-            
+
             await setDoc(userDocRef, {
               fullName: firebaseUser.displayName || cleanName,
               email: emailLower,
@@ -491,13 +506,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               createdAt: new Date().toISOString(),
               isSelfHealed: true
             });
-            
+
             await sendDiscordNotification(
               `♻️ **Self-Healing Active**: Reconstructed missing Firestore profile for authenticated user **${emailLower}** following database anomaly.`,
               undefined,
               'auth'
             );
-            
+
             userDoc = await getDoc(userDocRef);
             if (userDoc.exists()) {
               const data = userDoc.data();
@@ -523,7 +538,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // Periodic Heartbeat to mark the user as online/active & update active session
   useEffect(() => {
     if (!user) return;
-    
+
     const updateHeartbeat = async () => {
       try {
         const userDocRef = doc(db, "employees", user.uid);
@@ -542,9 +557,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.error("Heartbeat error:", err);
       }
     };
-    
+
     updateHeartbeat();
-    
+
     const interval = setInterval(updateHeartbeat, 60000); // once every minute
     return () => clearInterval(interval);
   }, [user]);
@@ -569,19 +584,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await signOut(auth);
   };
 
-  const activeRole = simulatedRole !== null ? simulatedRole : (delegatedRole || user?.role || null);
+  let activeRole = simulatedRole !== null ? simulatedRole : (delegatedRole || user?.role || null);
+  if (user?.email?.toLowerCase().includes("arya@mintsglobal.ae") && !simulatedRole) {
+    activeRole = "founder";
+  }
 
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      role: activeRole, 
-      simulatedRole, 
-      setSimulatedRole, 
-      loading, 
-      loginWithGoogle, 
-      logout, 
-      authError, 
-      setAuthError 
+    <AuthContext.Provider value={{
+      user,
+      role: activeRole,
+      simulatedRole,
+      setSimulatedRole,
+      loading,
+      loginWithGoogle,
+      logout,
+      authError,
+      setAuthError
     }}>
       {children}
     </AuthContext.Provider>

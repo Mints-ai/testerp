@@ -2,8 +2,8 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Loader2, LogOut, Hexagon } from "lucide-react";
+import { useEffect } from "react";
+import { Loader2, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function ClientPortalLayout({
@@ -14,41 +14,25 @@ export default function ClientPortalLayout({
   const { user, loading: authLoading, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [isClientUser, setIsClientUser] = useState(false);
-  const [checkingRole, setCheckingRole] = useState(true);
 
   useEffect(() => {
     if (authLoading) return;
 
     if (!user) {
       router.push(`/login?redirect=${pathname}`);
-      return;
     }
-
-    // Determine if the user is a client (e.g. role === 'client')
-    // For the sake of this demo, we allow anyone with the client role,
-    // or if they just want to test it, we let them in but they might see nothing if data isn't assigned to them.
-    if (user.role === 'client') {
-      setIsClientUser(true);
-    } else {
-      // Allow internal staff to view the portal for testing, but ideally they'd be restricted
-      setIsClientUser(true);
-    }
-    
-    setCheckingRole(false);
-
   }, [user, authLoading, router, pathname]);
 
-  if (authLoading || checkingRole) {
+  if (authLoading) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-slate-50">
-        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
-  if (!isClientUser) {
-    return null; // Will redirect
+  if (!user) {
+    return null;
   }
 
   const handleLogout = async () => {

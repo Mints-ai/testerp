@@ -60,11 +60,44 @@ export default function AssistantPage() {
         throw new Error(body?.error || `Request failed (${res.status})`);
       }
 
-      const data = await res.json();
-      setMessages((prev) => [
-        ...prev,
-        { id: crypto.randomUUID(), role: "assistant", content: data.answer || "No response received." },
-      ]);
+      if (!res.body) throw new Error("Empty response from assistant.");
+
+      // Add an empty assistant bubble, then fill it in token-by-token as the
+      // SSE stream arrives.
+      const assistantId = crypto.randomUUID();
+      setMessages((prev) => [...prev, { id: assistantId, role: "assistant", content: "" }]);
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let accumulated = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split("\n\n");
+        buffer = parts.pop() || ""; // keep any incomplete trailing chunk for next read
+
+        for (const part of parts) {
+          if (!part.startsWith("data: ")) continue;
+          const payload = part.slice(6);
+          if (payload === "[DONE]") continue;
+
+          try {
+            const obj = JSON.parse(payload);
+            if (obj.token) {
+              accumulated += obj.token;
+              setMessages((prev) =>
+                prev.map((m) => (m.id === assistantId ? { ...m, content: accumulated } : m))
+              );
+            }
+          } catch {
+            // ignore any malformed partial chunk -- next read will complete it
+          }
+        }
+      }
     } catch (err: any) {
       setMessages((prev) => [
         ...prev,
@@ -147,8 +180,8 @@ export default function AssistantPage() {
                       m.role === "user"
                         ? "bg-primary text-foreground rounded-tr-sm"
                         : m.isError
-                        ? "bg-rose-950/40 border border-rose-500/20 text-rose-300 rounded-tl-sm"
-                        : "border border-border text-foreground/90 rounded-tl-sm"
+                          ? "bg-rose-950/40 border border-rose-500/20 text-rose-300 rounded-tl-sm"
+                          : "border border-border text-foreground/90 rounded-tl-sm"
                     )}
                   >
                     {m.content}
