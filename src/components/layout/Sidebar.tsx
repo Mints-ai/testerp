@@ -201,7 +201,7 @@ export function Sidebar() {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         className={cn(
-          "fixed inset-y-0 left-0 z-50 bg-[#0d1f3c] bg-sidebar border-r border-white/10 hidden lg:flex flex-col overflow-hidden transition-shadow",
+          "fixed inset-y-0 left-0 z-50 bg-sidebar border-r border-white/10 hidden lg:flex flex-col overflow-hidden transition-shadow",
           isHovered ? "shadow-2xl" : "shadow-none"
         )}
       >
@@ -218,7 +218,7 @@ export function Sidebar() {
 
       {/* Mobile drawer */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="w-[280px] p-0 border-r border-sidebar-border bg-[#0d1f3c] bg-sidebar text-sidebar-foreground">
+        <SheetContent side="left" className="w-[280px] p-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
           <SheetTitle className="sr-only">Navigation Sidebar</SheetTitle>
           <SidebarContent isExpanded={true} onNavigate={() => setMobileOpen(false)} />
         </SheetContent>

@@ -236,7 +236,7 @@ export function GlobalTimer() {
                   onClick={handleSave}
                   disabled={isSaving || elapsedSeconds === 0 || isRunning}
                   size="sm"
-                  className="w-full bg-olive-500 hover:bg-olive-600 text-white text-xs h-8"
+                  className="w-full bg-primary hover:bg-primary/85 text-white text-xs h-8"
                 >
                   <CheckCircle2 className="w-3 h-3 mr-1" /> Log Time
                 </Button>
