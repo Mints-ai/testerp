@@ -14,15 +14,21 @@ import { getFirestore } from "firebase-admin/firestore";
 let app: App;
 
 if (!getApps().length) {
-    app = initializeApp({
-        credential: cert({
-            projectId: process.env.FIREBASE_PROJECT_ID,
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            // Private keys from env vars often have literal "\n" instead of real
-            // newlines -- this converts them back so the key parses correctly.
-            privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-        }),
-    });
+    try {
+        app = initializeApp({
+            credential: cert({
+                projectId: process.env.FIREBASE_PROJECT_ID,
+                clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+                // Private keys from env vars often have literal "\n" instead of real
+                // newlines -- this converts them back so the key parses correctly.
+                privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+            }),
+        });
+    } catch (error) {
+        console.warn("Firebase admin initialization failed (this is expected during build if env vars are missing):", (error as Error).message);
+        // Fallback for build-time evaluation
+        app = initializeApp({ projectId: "dummy" });
+    }
 } else {
     app = getApps()[0];
 }
