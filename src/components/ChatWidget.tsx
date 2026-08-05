@@ -36,22 +36,49 @@ export function ChatWidget() {
   // Track the GlobalTimer widget's live height so this button always sits
   // just above it, whether the timer is collapsed or expanded.
   useEffect(() => {
-    const timerEl = document.getElementById("global-timer-widget");
-    if (!timerEl) return;
+    let observer: ResizeObserver | null = null;
+    let timerEl = document.getElementById("global-timer-widget");
 
     const updatePosition = () => {
-      const rect = timerEl.getBoundingClientRect();
-      const heightFromViewportBottom = window.innerHeight - rect.top;
-      setButtonBottom(heightFromViewportBottom + GAP_ABOVE_TIMER);
+      const el = document.getElementById("global-timer-widget");
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        const heightFromViewportBottom = window.innerHeight - rect.top;
+        setButtonBottom(heightFromViewportBottom + GAP_ABOVE_TIMER);
+      } else {
+        setButtonBottom(96); // Fallback if timer is hidden or not mounted
+      }
     };
 
-    updatePosition();
-    const observer = new ResizeObserver(updatePosition);
-    observer.observe(timerEl);
+    if (timerEl) {
+      updatePosition();
+      observer = new ResizeObserver(updatePosition);
+      observer.observe(timerEl);
+    } else {
+      // Keep trying to find it in case it renders later
+      const intervalId = setInterval(() => {
+        timerEl = document.getElementById("global-timer-widget");
+        if (timerEl) {
+          clearInterval(intervalId);
+          updatePosition();
+          observer = new ResizeObserver(updatePosition);
+          observer.observe(timerEl);
+        }
+      }, 500);
+      
+      window.addEventListener("resize", updatePosition);
+      
+      return () => {
+        clearInterval(intervalId);
+        if (observer) observer.disconnect();
+        window.removeEventListener("resize", updatePosition);
+      };
+    }
+
     window.addEventListener("resize", updatePosition);
 
     return () => {
-      observer.disconnect();
+      if (observer) observer.disconnect();
       window.removeEventListener("resize", updatePosition);
     };
   }, []);
