@@ -408,8 +408,7 @@ export default function TaskBoard() {
     if (!parent) return false;
 
     const isCurrentUserLeader = parent.teamLeaderId === currentAssigneeId;
-    const isCurrentUserCoLeader =
-      !isCurrentUserLeader && !!parent.teamHeads?.includes(currentAssigneeId || "");
+    const isCurrentUserCoLeader =!isCurrentUserLeader && !!parent.teamHeads?.includes(currentAssigneeId || "");
 
     // A task assigned TO a co-leader can ONLY be reviewed by the team leader
     const isAssigneeCoLeader =
@@ -2001,9 +2000,19 @@ const openDeleteModal = (task: Task) => {
                       {teamMemberIds.map(id => {
                         const emp = employeesList.find(e => e.id === id);
                         const isHead = teamHeadIds.includes(id);
+                        const isCurrentLeader = id === teamLeaderId;
                         return (
-                          <button type="button" key={id} onClick={() => setTeamHeadIds(prev => isHead ? prev.filter(h => h !== id) : [...prev, id])}
-                            className={cn("px-2.5 h-7 rounded-lg border text-[11px] font-bold transition-colors cursor-pointer", isHead ? "bg-primary/10 border-primary/40 text-primary" : "border-border text-foreground/60 hover:bg-muted/60")}>
+                          <button
+                            type="button"
+                            key={id}
+                            disabled={isCurrentLeader}
+                            onClick={() => setTeamHeadIds(prev => isHead ? prev.filter(h => h !== id) : [...prev, id])}
+                            title={isCurrentLeader ? "This person is already the Team Leader" : undefined}
+                            className={cn("px-2.5 h-7 rounded-lg border text-[11px] font-bold transition-colors cursor-pointer",
+                              isCurrentLeader ? "opacity-40 cursor-not-allowed border-border text-foreground/40" :
+                              isHead ? "bg-primary/10 border-primary/40 text-primary" : "border-border text-foreground/60 hover:bg-muted/60"
+                            )}
+                          >
                             {emp?.fullName || id}
                           </button>
                         );
@@ -2016,7 +2025,7 @@ const openDeleteModal = (task: Task) => {
                     {(() => {
                       const eligibleLeaderIds = teamMemberIds.filter(id => {
                         const emp = employeesList.find(e => e.id === id);
-                        return emp && isEligibleLeader(emp);
+                        return emp && isEligibleLeader(emp) && !teamHeadIds.includes(id);
                       });
                       if (eligibleLeaderIds.length === 0) {
                         return (
@@ -2026,7 +2035,7 @@ const openDeleteModal = (task: Task) => {
                         );
                       }
                       return (
-                        <Select value={teamLeaderId} onValueChange={(val) => setTeamLeaderId(val ?? "")}>
+                        <Select value={teamLeaderId} onValueChange={(val) => { setTeamLeaderId(val ?? ""); setTeamHeadIds(prev => prev.filter(id => id !== val)); }}>
                           <SelectTrigger className="w-full border-border text-foreground h-9">
                             <SelectValue placeholder="Select Team Leader" />
                           </SelectTrigger>
