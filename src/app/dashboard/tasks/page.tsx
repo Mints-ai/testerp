@@ -846,6 +846,27 @@ export default function TaskBoard() {
       setIsSubmitting(false);
     }
   };
+  const openAddTaskModal = () => {
+    setAddingToStatus("backlog");
+    setAssignMode("individual");
+    setTeamMemberIds([]);
+    setTeamHeadIds([]);
+    setTeamLeaderId("");
+    setMonitorManagerIds([]);
+    setNewTask({ title: "", description: "", priority: "Normal", dueDate: "", assignedTo: currentAssigneeId || user?.uid || "" });
+    setIsAddOpen(true);
+  };
+
+  const closeAddTaskModal = () => {
+    setIsAddOpen(false);
+    setAssignMode("individual");
+    setTeamMemberIds([]);
+    setTeamHeadIds([]);
+    setTeamLeaderId("");
+    setMonitorManagerIds([]);
+    setNewTask({ title: "", description: "", priority: "Normal", dueDate: "", assignedTo: currentAssigneeId || user?.uid || "" });
+  };
+  
 
   // FIX 2 (part): Reset subtaskDateError when opening the modal
   const openAddSubtaskModal = (parentTask: Task) => {
@@ -1601,15 +1622,7 @@ const openDeleteModal = (task: Task) => {
           </button>
 
           <button
-            onClick={() => {
-              setAddingToStatus("backlog");
-              setAssignMode("individual");
-              setTeamMemberIds([]);
-              setTeamHeadIds([]);
-              setTeamLeaderId("");
-              setNewTask(prev => ({ ...prev, assignedTo: currentAssigneeId || user?.uid || "" }));
-              setIsAddOpen(true);
-            }}
+            onClick={openAddTaskModal}
             className="btn-primary h-9 py-0 px-4 text-xs font-bold flex items-center justify-center cursor-pointer"
           >
             <Plus className="mr-1.5 h-4 w-4" /> {getAddTaskBtnLabel()}
@@ -1783,15 +1796,7 @@ const openDeleteModal = (task: Task) => {
                       >
                         {column.id === "backlog" && (
                           <button
-                            onClick={() => {
-                              setAddingToStatus("backlog");
-                              setAssignMode("individual");
-                              setTeamMemberIds([]);
-                              setTeamHeadIds([]);
-                              setTeamLeaderId("");
-                              setNewTask(prev => ({ ...prev, assignedTo: currentAssigneeId || user?.uid || "" }));
-                              setIsAddOpen(true);
-                            }}
+                            onClick={openAddTaskModal}
                             className="w-full text-foreground/50 hover:text-foreground justify-start h-8 px-2.5 text-xs mb-3 rounded-xl transition-all font-bold border border-dashed border-border/60 hover:border-primary/50 flex items-center cursor-pointer bg-card/40 hover:bg-card truncate"
                           >
                             <Plus className="w-3.5 h-3.5 mr-1.5 text-primary shrink-0" />
@@ -1937,7 +1942,7 @@ const openDeleteModal = (task: Task) => {
       )}
 
       {/* ADD TASK MODAL */}
-      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+      <Dialog open={isAddOpen} onOpenChange={(o) => { if (!o) closeAddTaskModal(); }}>
         <DialogContent className="bg-card/95 border-border text-foreground sm:max-w-md backdrop-blur-md shadow-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add New Task</DialogTitle>
@@ -2135,7 +2140,7 @@ const openDeleteModal = (task: Task) => {
               </div>
             </div>
             <DialogFooter className="mt-6 border-t-0 pt-4">
-              <button type="button" onClick={() => setIsAddOpen(false)} className="px-4 py-2 text-sm font-bold text-foreground/70 hover:text-foreground transition-colors" disabled={isSubmitting}>Cancel</button>
+              <button type="button" onClick={closeAddTaskModal} className="px-4 py-2 text-sm font-bold text-foreground/70 hover:text-foreground transition-colors" disabled={isSubmitting}>Cancel</button>
               <button type="submit" disabled={isSubmitting || (isCSuiteOrAdmin && assignMode === "team" && (teamMemberIds.length === 0 || !teamLeaderId || !isEligibleLeader(employeesList.find(e => e.id === teamLeaderId))))} className="px-4 py-2 text-sm font-bold bg-primary hover:bg-primary text-foreground rounded-lg transition-colors flex items-center justify-center disabled:opacity-50">
                 {isSubmitting ? "Adding..." : "Add Task"}
               </button>
