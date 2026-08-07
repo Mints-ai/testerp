@@ -863,6 +863,13 @@ export default function TaskBoard() {
       return;
     }
 
+    // Validate subtask due date must not be in the past
+    const todayStr = new Date().toISOString().split("T")[0];
+    if (newSubtask.dueDate && newSubtask.dueDate < todayStr) {
+      setSubtaskDateError("Subtask due date cannot be before today.");
+      return;
+    }
+
     // FIX 2: Validate subtask due date must not exceed parent task due date
     if (newSubtask.dueDate && subtaskParent.dueDate) {
       if (newSubtask.dueDate > subtaskParent.dueDate) {
@@ -2204,6 +2211,7 @@ const openDeleteModal = (task: Task) => {
                 <Input
                   type="date"
                   value={newSubtask.dueDate}
+                  min={new Date().toISOString().split("T")[0]}
                   max={subtaskParent?.dueDate || undefined}
                   onChange={(e) => {
                     setSubtaskDateError("");
