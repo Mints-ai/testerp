@@ -257,12 +257,19 @@ export default function TaskBoard() {
   const [exitFocusTarget, setExitFocusTarget] = useState<Task | null>(null);
 
   const [nowTick, setNowTick] = useState(() => Date.now());
-
-  const activeTask = selectedTask ?
+  
+  /*const activeTask = selectedTask ?
     Object.values(tasks).flat().find(t => t.id === selectedTask.id) :
-    null;
-
+    null;*/ 
+    
   const [progressTasks, setProgressTasks] = useState<Task[]>([]);
+
+  const activeTask = selectedTask
+    ? (Object.values(tasks).flat().find(t => t.id === selectedTask.id)
+        || progressTasks.find(t => t.id === selectedTask.id)
+        || selectedTask)
+    : null;
+
   useEffect(() => {
     if (!isDetailsOpen || !activeTask?.isTeamTask) {
       setProgressTasks([]);
@@ -275,6 +282,20 @@ export default function TaskBoard() {
     return () => unsub();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDetailsOpen, activeTask?.id, activeTask?.isTeamTask]);
+
+  /*const [progressTasks, setProgressTasks] = useState<Task[]>([]);
+  useEffect(() => {
+    if (!isDetailsOpen || !activeTask?.isTeamTask) {
+      setProgressTasks([]);
+      return;
+    }
+    const q = query(collection(db, "tasks"), where("parentTaskId", "==", activeTask.id));
+    const unsub = onSnapshot(q, (snapshot) => {
+      setProgressTasks(snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Task[]);
+    });
+    return () => unsub();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDetailsOpen, activeTask?.id, activeTask?.isTeamTask]);*/
 
   const memberSubtaskStats = (employeeId: string) => {
     const mine = progressTasks.filter(t => t.assignedTo === employeeId);
@@ -1834,7 +1855,7 @@ const openDeleteModal = (task: Task) => {
                                         </Badge>
                                         {task.blocked && <span title="Blocked"><Lock className="w-3 h-3 text-foreground/30" /></span>}
                                       </div>
-                                      {(!locked || isCSuiteOrAdmin) && (
+                                      {(!locked || isCSuiteOrAdmin) && task.status !== "done" && (
                                         <button
                                           onClick={(e) => { e.stopPropagation(); openDeleteModal(task); }}
                                           className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-rose-500/20 text-rose-400 rounded cursor-pointer shrink-0"
