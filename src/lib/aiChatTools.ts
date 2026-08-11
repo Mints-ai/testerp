@@ -198,8 +198,30 @@ export async function getEmployeeDetails(session: ChatSession, employeeName?: st
         };
     }
 
-    if (!canAccess(session.role, "VIEW_ALL_EMPLOYEES")) {
-        return { error: "not_authorized" };
+    // Prefer resolving to the caller's own record first. If the given name
+    // could plausibly refer to the caller themselves (e.g. they typed their
+    // own name in third person, "tell me about Alex" when Alex is asking),
+    // treat it as a self-lookup immediately. This avoids accidentally
+    // matching a DIFFERENT employee whose name/email happens to share the
+    // same substring (e.g. "Alex" also partially matching "Alexandra" and
+    // getting resolved to that other person first).
+    const selfDoc = await adminDb.collection("employees").doc(session.uid).get();
+    if (selfDoc.exists) {
+        const selfData = { id: session.uid, ...(selfDoc.data() as Record<string, unknown>) } as Record<string, unknown>;
+        const selfMatches = findEmployee([selfData], employeeName);
+        if (selfMatches) {
+            const currentProjects = await getCurrentProjectsForEmployee(session.uid);
+            const deptInfo = formatDepartmentInfo(selfData);
+            return {
+                employeeId: (selfData.employeeId as string) || session.uid,
+                fullName: selfData.fullName,
+                jobTitle: selfData.jobTitle,
+                department: deptInfo.department,
+                departments: deptInfo.departments,
+                email: selfData.email,
+                currentProjects,
+            };
+        }
     }
 
     const snap = await adminDb
@@ -211,6 +233,12 @@ export async function getEmployeeDetails(session: ChatSession, employeeName?: st
     const match = findEmployee(employees, employeeName);
     if (!match) return { error: "not_found" };
     const matchId = (match as Record<string, unknown>).id as string;
+
+    // Resolved to someone other than the caller -- requires full access.
+    if (!canAccess(session.role, "VIEW_ALL_EMPLOYEES")) {
+        return { error: "not_authorized" };
+    }
+
     const currentProjects = await getCurrentProjectsForEmployee(matchId);
     const deptInfo = formatDepartmentInfo(match);
     return {
