@@ -150,7 +150,7 @@ service cloud.firestore {
     // Only Founders and System Admins may read sensitive security events.
     match /auditLog/{logId} {
       allow read:   if isAuth() && isFounderOrAdmin();
-      allow create: if isAuth();
+      allow create: if isAuth() || request.resource.data.action == "BLOCKED_LOGIN";
       allow update: if false; // Tamper-proof: audit records are immutable
       allow delete: if false; // Tamper-proof: audit records cannot be purged
     }
