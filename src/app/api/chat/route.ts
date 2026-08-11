@@ -20,12 +20,12 @@ You help employees look up their own details: employee ID, full name, job title,
 If the user has permission, you can also look up details for other employees.
 
 Rules you must always follow:
-- You do not have direct access to any database. You may only retrieve information by calling the tool provided to you.
+- You do not have direct access to any database. You may only retrieve information by calling the tools provided to you.
 - ALWAYS call getEmployeeDetails whenever the user asks about ANY employee detail — including employee ID, name, full name, who they are, job title, department, email, or projects. Never refuse to call the tool for these topics.
 - Never answer a question about employee data from your own knowledge or guesses -- always call the tool and wait for its result.
-- If a question is completely unrelated to employee details (e.g. math, weather, news), say so clearly.
-- When you receive a tool result, base your answer only on that result. If it contains an error, tell the user you can't provide that information.
 - ALWAYS call getProjectDetails whenever the user asks about ANY project detail — status, description, deadline, budget, milestones, team, client, or "what project(s) am I on". Never refuse to call the tool for these topics.
+- If the user's message is a short technical term, acronym, code name, or proper noun with no other context (for example "RBAC", "Phoenix", "Atlas"), treat it as a possible PROJECT NAME first and call getProjectDetails with that term as projectName. Do NOT interpret it as a general concept, abbreviation meaning, or dictionary definition -- always check whether it's one of our projects before assuming anything else. Only fall back to a general explanation if the tool result says the project was not found.
+- If the user's message is NOT about employee details or project details -- e.g. math problems, general knowledge questions, weather, news, or casual conversation -- do NOT call any tool at all. Do not guess which tool is closest; simply don't call a function.
 - When the user asks about "my project(s)" or "the project I'm working on", call getProjectDetails with NO arguments.
 - When the user asks to list all projects, call getProjectDetails with listAll: true.
 - When the user names a specific project, call getProjectDetails with that name as the projectName argument.
@@ -79,10 +79,11 @@ export async function POST(req: NextRequest) {
     // Pattern matching for named employee projects e.g., "projects of alex", "alex's projects", "what projects is alex on"
     const POSSESSIVE_PROJECT_RE = /\b([a-z0-9._%+-]+)'s\s+projects?\b/i;
     const PROJECTS_OF_RE = /\bprojects?\s+(?:of|for)\s+([a-z0-9._%+-]+(?:\s+[a-z0-9._%+-]+)?)\b/i;
-    const EMPLOYEE_WHO_IS_RE = /\b(?:who\s+is|details\s+of|about)\s+([a-z0-9._%+-]+(?:\s+[a-z0-9._%+-]+)?)\b/i;
+    const EMPLOYEE_WHO_IS_RE = /\b(?:who\s+is|details\s+of)\s+([a-z][a-z'-]+(?:\s+[a-z][a-z'-]+){0,2})\??\s*$/i;
 
     let toolResult: any = { error: "no_tool_matched" };
     let toolName: string | null = null;
+    let outOfScope = false;
 
     let matchName: string | null = null;
 
@@ -107,7 +108,12 @@ export async function POST(req: NextRequest) {
         toolName = "getEmployeeDetails";
         toolResult = await getEmployeeDetails(session, matchName.trim());
     } else {
-        // Path B: let LLM extract args and pick between BOTH tools
+        // Path B: let LLM extract args and pick between BOTH tools -- or
+        // decline entirely (tool_choice "auto") if the question isn't about
+        // employee/project data at all. This is what lets us give a genuine,
+        // consistent "that's out of scope" answer instead of the model
+        // sometimes answering off-topic questions from its own general
+        // knowledge (e.g. solving "2+2") just because a tool was forced.
         const first = await qwen.chat.completions.create({
             model: MODEL_NAME,
             temperature: 0,
@@ -116,7 +122,7 @@ export async function POST(req: NextRequest) {
                 { role: "user", content: message },
             ],
             tools: CHAT_TOOLS as any,
-            tool_choice: "required",
+            tool_choice: "auto",
         });
 
         const toolCall = first.choices[0].message.tool_calls?.[0];
@@ -129,7 +135,44 @@ export async function POST(req: NextRequest) {
                 toolName = "getProjectDetails";
                 toolResult = await getProjectDetails(session, args.projectName, args.listAll, args.employeeName);
             }
+        } else {
+            // Model chose not to call any tool -- outside this assistant's scope.
+            outOfScope = true;
         }
+    }
+
+    // --- Out-of-scope short-circuit ---
+    // Skip the tool-result answer stage entirely and stream back a fixed,
+    // consistent refusal instead of letting a second LLM call improvise one.
+    if (outOfScope) {
+        const fixedMessage =
+            "That's outside what I can help with here. I can only answer questions about employee and project information within Mints ERP.";
+        const encoder = new TextEncoder();
+        const readable = new ReadableStream({
+            start(controller) {
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token: fixedMessage })}\n\n`));
+                controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+                controller.close();
+                adminDb.collection("chat_audit_log").add({
+                    uid: session.uid,
+                    role: session.role,
+                    question: message,
+                    toolCalled: null,
+                    answer: fixedMessage,
+                    outcome: "out_of_scope",
+                    createdAt: new Date(),
+                }).catch((err) => {
+                    console.error("Audit log error:", err);
+                });
+            },
+        });
+        return new Response(readable, {
+            headers: {
+                "Content-Type": "text/event-stream",
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+            },
+        });
     }
 
 
@@ -148,10 +191,11 @@ export async function POST(req: NextRequest) {
                 content:
                     `You are the Mints ERP Employee Assistant. Use the provided ${recordLabel.toLowerCase()} to answer the user's question directly, accurately, and concisely. ` +
                     `Do NOT output JSON or raw field names. ` +
+                    `Do NOT use Markdown formatting of any kind -- no **bold**, no _italics_, no bullet dashes (-) or asterisks (*), no headers (#), no backticks. The chat UI displays plain text only, so Markdown symbols would show up literally to the user. Use plain sentences, or a simple numbered list ("1. ", "2. ") if listing multiple items, with line breaks between items instead of bullet symbols. ` +
                     `IMPORTANT — match the scope of the question:\n` +
                     `- If the user asks a simple/brief question (e.g. "what are my projects?", "list all employees", "who am I?"), respond with ONLY the most essential info: just names, titles, or a one-line summary per item. Do NOT include dates, status, milestones, budget, or other extra fields unless asked.\n` +
                     `- If the user explicitly asks for details, full info, or uses words like "details", "tell me more", "full info", "describe", "breakdown", "status of", "milestones", then include all relevant fields from the data.\n` +
-                    `- When listing multiple items, use a short numbered or bulleted list of names only, unless details were requested.\n` +
+                    `- Numbered lists ("1. ", "2. ") are ONLY for listing multiple SEPARATE items side by side — multiple employees, or multiple projects. When describing the details of a SINGLE employee or SINGLE project (its status, budget, dates, department, team, etc.), do NOT number those fields. Write them as plain flowing sentences, or one "Label: value" per line with no numbers. Numbering the individual fields of one item is wrong and must be avoided. The one exception: if a single project has multiple milestones and the user asked about milestones specifically, THAT milestone list may be numbered since each milestone is itself a distinct item — but the surrounding project fields (status, budget, dates) around it still should not be.\n` +
                     `If the data contains an error field, say you can't help with that request.`,
             },
             { role: "user", content: message },
