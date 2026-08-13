@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -21,7 +22,7 @@ import { downloadCSV } from "@/lib/exportUtils";
 const storage = getStorage();
 
 type TaskStatus = "backlog" | "in_progress" | "review" | "done";
-type TaskPriority = "low" | "normal" | "high" | "urgent";
+type TaskPriority = "Low" | "Normal" | "High" | "Urgent";
 
 interface TaskRemark {
   id: string;
@@ -45,19 +46,12 @@ interface FocusChecklistItem {
   done: boolean;
 }
 
-/** Live session state for Focus Mode. Persisted directly on the task document
- * so every connected client (assignee + anyone else viewing the board) sees
- * the same state through the existing realtime listeners. */
 interface FocusSession {
   startedBy: string;
   startedByName: string;
-  /** ISO timestamp the session was first created. */
   startedAt: string;
-  /** ISO timestamp of the most recent start/resume — used with `status` to
-   * compute the live elapsed time without writing every second. */
   resumedAt: string;
   status: "running" | "paused";
-  /** Banked seconds accumulated across previous running periods. */
   elapsedSeconds: number;
   checklist: FocusChecklistItem[];
   notes: string;
@@ -78,38 +72,19 @@ interface Task {
   createdAt: any;
   blocked?: boolean;
   remarks?: TaskRemark[];
-  /** ISO string set the moment the employee submits the task for review. */
   submittedAt?: string;
-  /** Feedback provided by admin when sending back for recheck. */
   feedback?: string | null;
   timeSpent?: string;
-  /** Strings are supported for existing tasks; new uploads use TaskAttachment. */
   attachments?: Array<TaskAttachment | string>;
-  /** Present while the assignee has an active or paused Focus Mode session on this task. */
   focusSession?: FocusSession | null;
-
-  // ---- Team Task fields -------------------------------------------------
-  /** True when this task was created by an Admin/C-Suite as a Team Task
-   * (i.e. assigned to a whole group rather than a single individual). */
   isTeamTask?: boolean;
-  /** Every employee id who is part of the team, including the Leader and
-   * any Co-Leaders. Used to notify the whole team and to restrict who a
-   * Leader is allowed to hand subtasks to. */
   teamMembers?: string[];
-  /** Employee ids with leadership power on this team task — the Leader plus
-   * any Co-Leaders. Exactly one of these is `teamLeaderId`. */
   teamHeads?: string[];
-  /** The single Leader for this team task. Only the Leader (or a Co-Leader,
-   * per teamHeads) may create/assign subtasks. */
   teamLeaderId?: string;
-
-  // ---- Subtask fields -----------------------------------------------------
-  /** Present when this task IS a subtask — points back at the parent Team Task. */
+  // Managers selected by Admin when the team task is created. They can monitor only.
+  monitorManagerIds?: string[];
   parentTaskId?: string;
-  /** Denormalized parent title, so subtask cards/mails can show
-   * "Main Task Title (Subtask Name)" without an extra lookup. */
   parentTaskTitle?: string;
-  /** Who (Leader/Co-Leader) created this subtask. */
   assignedBy?: string;
   assignedByName?: string;
 }
@@ -122,10 +97,10 @@ const COLUMNS: { id: TaskStatus; title: string }[] = [
 ];
 
 const PRIORITY_COLORS: Record<TaskPriority, string> = {
-  urgent: "bg-rose-500 shadow-[0_0_6px_rgba(239,68,68,0.6)]",
-  high: "bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.6)]",
-  normal: "bg-primary shadow-[0_0_6px_rgba(59,130,246,0.6)]",
-  low: "",
+  Urgent: "bg-rose-500 shadow-[0_0_6px_rgba(239,68,68,0.6)]",
+  High: "bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.6)]",
+  Normal: "bg-primary shadow-[0_0_6px_rgba(59,130,246,0.6)]",
+  Low: "",
 };
 
 const STATUS_META: Record<TaskStatus, { label: string; badgeClass: string; dotClass: string; icon: any }> = {
@@ -166,8 +141,6 @@ function StatusBadge({ status }: { status: TaskStatus }) {
   );
 }
 
-/** Live elapsed seconds for a session, computed from stored timestamps so we
- * never need to write to Firestore every second. */
 function getSessionElapsedSeconds(session: FocusSession, now: number) {
   if (session.status === "running") {
     const resumedAtMs = new Date(session.resumedAt).getTime();
@@ -176,7 +149,6 @@ function getSessionElapsedSeconds(session: FocusSession, now: number) {
   return session.elapsedSeconds;
 }
 
-/** Compact "12m" / "1h 4m" style duration, for card badges. */
 function formatFocusDuration(totalSeconds: number) {
   const mins = Math.floor(totalSeconds / 60);
   const hours = Math.floor(mins / 60);
@@ -186,7 +158,6 @@ function formatFocusDuration(totalSeconds: number) {
   return `${Math.max(0, Math.floor(totalSeconds))}s`;
 }
 
-/** Large "MM:SS" / "H:MM:SS" timer for the Focus Workspace. */
 function formatFocusTimer(totalSeconds: number) {
   const safeSeconds = Math.max(0, Math.floor(totalSeconds));
   const h = Math.floor(safeSeconds / 3600);
@@ -197,15 +168,20 @@ function formatFocusTimer(totalSeconds: number) {
   return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
 }
 
+//captilizing each first letter (Low, Normal, High, Urgent)
+function capitalizeWord(word: string) {
+  if (!word) return word;
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
 export default function TaskBoard() {
   const { user, role } = useAuth();
 
-  // Role Breakdown & Hierarchy Checks
   const userRole = (role || "").toLowerCase();
   const isCSuiteOrAdmin = ["admin", "founder", "c_suite", "system_admin"].includes(userRole);
+  const isManager = userRole === "manager";
   const isManagerOrSenior = ["senior_employee", "manager", "team_lead"].includes(userRole);
 
-  // Dynamic Button Label based on Role
   const getAddTaskBtnLabel = () => {
     if (isCSuiteOrAdmin) return "Assign Task to Employees";
     if (isManagerOrSenior) return "Assign task to Myself / Juniors";
@@ -220,88 +196,80 @@ export default function TaskBoard() {
   });
   const [loading, setLoading] = useState(true);
 
-  // Team / Mine Toggle is available for ALL roles
-  const [myTasksOnly, setMyTasksOnly] = useState(!isCSuiteOrAdmin);
+  const [myTasksOnly, setMyTasksOnly] = useState(!(isCSuiteOrAdmin || isManager));
   const [focusMode, setFocusMode] = useState(false);
-  const [employeeFilter, setEmployeeFilter] = useState("all");
+  const [employeeFilter, setEmployeeFilter] = useState("All Employees");
 
-  // Add Task Modal State
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [newTask, setNewTask] = useState({ title: "", description: "", priority: "normal" as TaskPriority, dueDate: "", assignedTo: "" });
+  const [newTask, setNewTask] = useState({ title: "", description: "", priority: "Normal" as TaskPriority, dueDate: "", assignedTo: "" });
   const [employeesByDept, setEmployeesByDept] = useState<Record<string, any[]>>({});
   const [employeesList, setEmployeesList] = useState<any[]>([]);
   const [addingToStatus, setAddingToStatus] = useState<TaskStatus>("backlog");
 
-  // ---- Team Task creation state (Admin/C-Suite only) ----------------------
-  /** "individual" -> the existing single-assignee flow. "team" -> assigns a
-   * whole group at once, with a Leader + optional Co-Leaders. */
   const [assignMode, setAssignMode] = useState<"individual" | "team">("individual");
   const [teamMemberIds, setTeamMemberIds] = useState<string[]>([]);
   const [teamHeadIds, setTeamHeadIds] = useState<string[]>([]);
   const [teamLeaderId, setTeamLeaderId] = useState<string>("");
+  const [monitorManagerIds, setMonitorManagerIds] = useState<string[]>([]);
 
-  // Selected Task details & Remarks state
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [newRemark, setNewRemark] = useState("");
   const [isSubmittingRemark, setIsSubmittingRemark] = useState(false);
   const [isUploadingAttachment, setIsUploadingAttachment] = useState(false);
   const [attachmentError, setAttachmentError] = useState("");
-  const [subtaskError, setSubtaskError] = useState("");
 
-  // Submit-for-Review confirmation dialog (Employee)
   const [isSubmitReviewOpen, setIsSubmitReviewOpen] = useState(false);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
-  // Recheck Modal State (Admin)
   const [isRecheckOpen, setIsRecheckOpen] = useState(false);
+  //new
+  const [deleteTarget, setDeleteTarget] = useState<Task | null>(null);
+  const [deleteReason, setDeleteReason] = useState("");
+  const [deleteError, setDeleteError] = useState(false);
+  const [isSubmittingDelete, setIsSubmittingDelete] = useState(false);
   const [recheckFeedback, setRecheckFeedback] = useState("");
   const [recheckError, setRecheckError] = useState(false);
   const [isSubmittingRecheck, setIsSubmittingRecheck] = useState(false);
 
-  // Inspect Modal State (Admin / Leader / Co-Leader) — read-only view of a
-  // submitted task's progress logs and attachments, with downloads, before
-  // deciding to Approve or Recheck.
   const [inspectTaskId, setInspectTaskId] = useState<string | null>(null);
 
   // ---- Add Subtask Modal State (Leader / Co-Leader only) -------------------
   const [isAddSubtaskOpen, setIsAddSubtaskOpen] = useState(false);
   const [subtaskParent, setSubtaskParent] = useState<Task | null>(null);
-  const [newSubtask, setNewSubtask] = useState({ title: "", description: "", priority: "normal" as TaskPriority, dueDate: "", assignedTo: "" });
+  const [newSubtask, setNewSubtask] = useState({ title: "", description: "", priority: "Normal" as TaskPriority, dueDate: "", assignedTo: "" });
   const [isSubmittingSubtask, setIsSubmittingSubtask] = useState(false);
+  // FIX 2: subtask date validation error state
+  const [subtaskDateError, setSubtaskDateError] = useState("");
 
-  // FOCUS MODE — Screen 1: single-select ticked task on the "today's focus" list
   const [selectedFocusTaskId, setSelectedFocusTaskId] = useState<string | null>(null);
 
-  // FOCUS MODE — Screen 2: Start Focus dialog
   const [isStartFocusOpen, setIsStartFocusOpen] = useState(false);
   const [focusDurationChoice, setFocusDurationChoice] = useState<"25" | "50" | "none">("25");
   const [focusStartNotes, setFocusStartNotes] = useState("");
   const [isStartingFocus, setIsStartingFocus] = useState(false);
 
-  // FOCUS MODE — Screen 3: full-takeover workspace
   const [focusWorkspaceTaskId, setFocusWorkspaceTaskId] = useState<string | null>(null);
   const [workspaceNotes, setWorkspaceNotes] = useState("");
   const [workspaceChecklist, setWorkspaceChecklist] = useState<FocusChecklistItem[]>([]);
   const [newChecklistText, setNewChecklistText] = useState("");
   const [exitFocusTarget, setExitFocusTarget] = useState<Task | null>(null);
 
-  // Ticks to keep the timer / card badges live. Fine-grained only while the
-  // full workspace is open; coarse otherwise so we're not re-rendering the
-  // whole board every second.
   const [nowTick, setNowTick] = useState(() => Date.now());
 
-  // Reactive lookup of active task to keep remarks/details modal real-time responsive
-  const activeTask = selectedTask ?
+  /*const activeTask = selectedTask ?
     Object.values(tasks).flat().find(t => t.id === selectedTask.id) :
-    null;
+    null;*/
 
-  /** Every subtask under the currently-open Team Task, fetched independently
-   * of "Mine"/"Team" and of whichever columns happen to be loaded — this is
-   * what powers the Progress panel below, so it must include teammates'
-   * subtasks even when the viewer's board is scoped to "Mine". */
   const [progressTasks, setProgressTasks] = useState<Task[]>([]);
+
+  const activeTask = selectedTask
+    ? (Object.values(tasks).flat().find(t => t.id === selectedTask.id)
+      || progressTasks.find(t => t.id === selectedTask.id)
+      || selectedTask)
+    : null;
+
   useEffect(() => {
     if (!isDetailsOpen || !activeTask?.isTeamTask) {
       setProgressTasks([]);
@@ -315,52 +283,46 @@ export default function TaskBoard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDetailsOpen, activeTask?.id, activeTask?.isTeamTask]);
 
-  /** Subtask completion count for one team member, from the live progressTasks feed. */
+  /*const [progressTasks, setProgressTasks] = useState<Task[]>([]);
+  useEffect(() => {
+    if (!isDetailsOpen || !activeTask?.isTeamTask) {
+      setProgressTasks([]);
+      return;
+    }
+    const q = query(collection(db, "tasks"), where("parentTaskId", "==", activeTask.id));
+    const unsub = onSnapshot(q, (snapshot) => {
+      setProgressTasks(snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Task[]);
+    });
+    return () => unsub();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDetailsOpen, activeTask?.id, activeTask?.isTeamTask]);*/
+
   const memberSubtaskStats = (employeeId: string) => {
     const mine = progressTasks.filter(t => t.assignedTo === employeeId);
     return { done: mine.filter(t => t.status === "done").length, total: mine.length };
   };
 
-  /** Aggregate completion across the whole Team Task — what a regular
-   * member sees when they aren't a Leader/Co-Leader. */
   const overallSubtaskStats = () => ({
     done: progressTasks.filter(t => t.status === "done").length,
     total: progressTasks.length,
   });
 
-  /** How much of the team's progress this viewer is allowed to see:
-   * - "full": Leader (and Admin) — every member, including Co-Leaders.
-   * - "employees": Co-Leader — every non-Head team member.
-   * - "overall": everyone else on the team — just the aggregate bar. */
   const getProgressScope = (task: Task): "full" | "employees" | "overall" | null => {
     if (!task.isTeamTask) return null;
-    if (isCSuiteOrAdmin || isTeamLeader(task)) return "full";
+    if (isCSuiteOrAdmin || isTeamLeader(task) || isMonitoringManager(task)) return "full";
     if (isTeamHead(task)) return "employees";
     if (task.teamMembers?.includes(currentAssigneeId || "")) return "overall";
     return null;
   };
 
-  // Task locking: ALL drag-and-drop is locked for non-admins.
-  // Employees MUST use the Start Task / Completed Task buttons to progress tasks.
   const isLocked = (t: Task) => !isCSuiteOrAdmin;
-  // A simulator may change `role` while keeping the signed-in admin in `user`.
-  // Prefer its explicit simulated identity when available; otherwise use the
-  // employee record for the selected role instead of silently assigning to the
-  // underlying system-admin account.
   const normaliseRole = (value?: string) => (value || "").toLowerCase().trim().replace(/[\s-]+/g, "_");
   const authenticatedEmployee = employeesList.find(emp => emp.id === user?.uid);
   const simulatedUserId = (user as any)?.simulatedUserId || (user as any)?.simulationUserId;
   const selectedRoleEmployee = employeesList.find(emp => normaliseRole(emp.role || emp.userRole) === userRole)
-    // Older employee documents may not have a role yet. The title fallback is
-    // intentionally limited to the simulated senior role so it cannot select
-    // an administrator as the senior employee.
     || (userRole === "senior_employee"
       ? employeesList.find(emp => !normaliseRole(emp.role || emp.userRole) && /\bsenior\b/i.test(emp.jobTitle || emp.designation || ""))
       : undefined);
-  // Real employees always resolve to their OWN auth identity — never to
-  // another employee's id, even if their employee doc's role field is
-  // stale or missing. The role-matching fallback is ONLY for an admin
-  // actively previewing another role via the simulator.
   const currentAssigneeId = simulatedUserId
     ? simulatedUserId
     : isCSuiteOrAdmin
@@ -368,170 +330,152 @@ export default function TaskBoard() {
       : (user?.uid);
   const isOwner = (t: Task) => !!currentAssigneeId && t.assignedTo === currentAssigneeId;
 
-  /** True when the current user is the Leader OR a Co-Leader on this Team
-   * Task. Used for progress-visibility scoping — NOT for subtask creation,
-   * which is Leader-only (see isTeamLeader below). */
+  const canAddRemark = (task: Task) => {
+    if (isCSuiteOrAdmin) return true;
+    // Main team task (no parentTaskId): only the Team Leader logs progress here,
+    // so there's one shared trail everyone on the team can read.
+    if (task.isTeamTask && !task.parentTaskId) return isTeamLeader(task);
+    // Subtasks and individual tasks: only the assignee (employee, co-leader, or
+    // self-assigning leader) can log progress on their own task.
+    return task.assignedTo === currentAssigneeId;
+  };
+  // isTeamHead: true for Leader AND Co-Leaders (anyone in teamHeads array)
   const isTeamHead = (t: Task) => !!t.isTeamTask && !!currentAssigneeId && !!t.teamHeads?.includes(currentAssigneeId);
-  /** Who the current user is allowed to hand a subtask to: the Leader can
-   * assign to anyone on the team. A Co-Leader can only assign to junior
-   * employees and to themself — never to the Leader or another Co-Leader. */
+  // isTeamLeader: true ONLY for the designated Leader (teamLeaderId match)
+  const isTeamLeader = (t: Task) => !!t.isTeamTask && !!currentAssigneeId && t.teamLeaderId === currentAssigneeId;
+
+  const isMonitoringManager = (task: Task) =>
+    isManager && !!currentAssigneeId && !!task.monitorManagerIds?.includes(currentAssigneeId);
+
+  const visibleRemarks = (task: Task) => {
+    const viewerId = currentAssigneeId || "";
+    const viewerIsLeader = task.teamLeaderId === viewerId;
+    const viewerIsCoLeader = !viewerIsLeader && !!task.teamHeads?.includes(viewerId);
+
+    return (task.remarks || []).filter(remark => {
+      // Admins and selected monitoring managers see the complete progress log.
+      if (isCSuiteOrAdmin || isMonitoringManager(task)) return true;
+      if (remark.authorId === viewerId) return true;
+
+      const authorIsLeader = remark.authorId === task.teamLeaderId;
+      const authorIsCoLeader = !authorIsLeader && !!task.teamHeads?.includes(remark.authorId);
+      const authorIsEmployee = !!task.teamMembers?.includes(remark.authorId) && !authorIsLeader && !authorIsCoLeader;
+
+      // The Leader's remarks are the shared progress trail — visible to the whole team.
+      if (authorIsLeader) return true;
+
+      if (viewerIsLeader) return authorIsEmployee || authorIsCoLeader;
+      if (viewerIsCoLeader) return authorIsEmployee;
+      return false;
+    });
+  };
+
+  // Admins and selected managers see one chronological timeline on a main team task.
+  const remarksForDisplay = (task: Task) => {
+    const includeSubtaskLogs = task.isTeamTask && !task.parentTaskId &&
+      (isCSuiteOrAdmin || isMonitoringManager(task));
+    const sourceTasks = includeSubtaskLogs ? [task, ...progressTasks] : [task];
+
+    return sourceTasks.flatMap(sourceTask => visibleRemarks(sourceTask).map(remark => ({
+      remark,
+      sourceTitle: sourceTask.id === task.id ? null : sourceTask.title,
+    }))).sort((a, b) =>
+      new Date(a.remark.createdAt).getTime() - new Date(b.remark.createdAt).getTime()
+    );
+  };
+
   const assignableSubtaskTargets = (parent: Task) => {
     const members = parent.teamMembers || [];
     if (isTeamLeader(parent)) return members;
+    // Co-Leader: can assign to self or non-head members only
     return members.filter(id => id === currentAssigneeId || !parent.teamHeads?.includes(id));
   };
 
-  /** Only the Leader may create/assign subtasks — Co-Leaders can review and
-   * inspect them, but cannot hand out new ones. */
-  const isTeamLeader = (t: Task) => !!t.isTeamTask && !!currentAssigneeId && t.teamLeaderId === currentAssigneeId;
-
-  /** A Team Leader must hold a Manager / Senior Employee / Team Lead role —
-   * Co-Leaders and regular members can be anyone on the team. */
   const isEligibleLeader = (emp: any) => ["senior_employee", "manager", "team_lead"].includes(normaliseRole(emp?.role || emp?.userRole));
 
-  /** True when a subtask was created AND kept by the Leader for himself —
-   * he assigned it to himself, so there's no one to evaluate it. Completing
-   * this kind of subtask skips Review entirely and goes straight to Done. */
+  const managers = useMemo(() => employeesList.filter(emp =>
+    normaliseRole(emp.role || emp.userRole) === "manager"
+  ), [employeesList]);
+
   const isSelfAssignedByLeader = (t: Task) => !!t.parentTaskId && !!t.assignedBy && t.assignedTo === t.assignedBy;
 
-  // Filter juniors for Senior Employees / Managers
   const juniorEmployees = useMemo(() => employeesList
     .filter(emp => {
       const employeeRole = normaliseRole(emp.role || emp.userRole);
       if (employeeRole) return employeeRole === "intern" || employeeRole === "employee";
-
-      // Compatibility for legacy employee records: keep unclassified regular
-      // staff, but never place a senior/manager/admin title in the junior list.
       const title = `${emp.jobTitle || ""} ${emp.designation || ""}`;
       return !/\b(senior|manager|lead|admin|founder|chief|director)\b/i.test(title);
     })
     .sort((a, b) => (a.fullName || "").localeCompare(b.fullName || "")), [employeesList]);
 
-  /** Every Team Task where the current user is a Head (Leader or Co-Leader),
-   * fetched independently of the "Mine"/"Team" toggle and of whatever the
-   * board's column listeners happen to have loaded. Leaders/Co-Leaders need
-   * this to review subtasks and see team progress even while "Mine" is on
-   * and the team task itself isn't assigned directly to them. */
   const [headedTeamTasks, setHeadedTeamTasks] = useState<Task[]>([]);
   useEffect(() => {
     if (!currentAssigneeId) return;
-    const q1 = query(collection(db, "tasks"), where("teamHeads", "array-contains", currentAssigneeId));
-    const q2 = query(collection(db, "tasks"), where("teamLeaderId", "==", currentAssigneeId));
-
-    let tasks1: Task[] = [];
-    let tasks2: Task[] = [];
-
-    const commit = () => {
-      const seen = new Set<string>();
-      const merged: Task[] = [];
-      [...tasks1, ...tasks2].forEach(t => {
-        if (!seen.has(t.id)) {
-          seen.add(t.id);
-          merged.push(t);
-        }
-      });
-      setHeadedTeamTasks(merged);
-    };
-
-    const unsub1 = onSnapshot(q1, (snapshot) => {
-      tasks1 = snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Task[];
-      commit();
+    const q = query(collection(db, "tasks"), where("teamHeads", "array-contains", currentAssigneeId));
+    const unsub = onSnapshot(q, (snapshot) => {
+      setHeadedTeamTasks(snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Task[]);
     });
-    const unsub2 = onSnapshot(q2, (snapshot) => {
-      tasks2 = snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Task[];
-      commit();
-    });
-
-    return () => {
-      unsub1();
-      unsub2();
-    };
+    return () => unsub();
   }, [currentAssigneeId]);
 
-  /** Resolves a Team Task by id from whatever source currently has it —
-   * the Head-scoped listener first (always fresh for Leaders/Co-Leaders),
-   * falling back to whatever the board's column listeners loaded. */
   const findTeamTaskById = useCallback((id?: string) => {
     if (!id) return null;
-    // Only look in headedTeamTasks — NOT in `tasks` state.
-    // Using `tasks` here creates a circular dependency:
-    //   tasks → findTeamTaskById → canReviewSubtask → canViewTask → useEffect → listeners reset → tasks flicker
     return headedTeamTasks.find(t => t.id === id) || null;
   }, [headedTeamTasks]);
-  /** True when the current user is the Leader or a Co-Leader of the Team
-   * Task this SUBTASK belongs to — i.e. allowed to Inspect/Approve/Recheck it. */
+
   const canReviewSubtask = useCallback((task: Task) => {
     if (!task.parentTaskId) return false;
     const parent = findTeamTaskById(task.parentTaskId);
     if (!parent) return false;
 
     const isCurrentUserLeader = parent.teamLeaderId === currentAssigneeId;
-    const isCurrentUserCoLeader =
-      !isCurrentUserLeader && !!parent.teamHeads?.includes(currentAssigneeId || "");
+    const isCurrentUserCoLeader = !isCurrentUserLeader && !!parent.teamHeads?.includes(currentAssigneeId || "");
 
-    // A task assigned TO a co-leader can ONLY be reviewed by a co-leader.
-    // A task assigned TO employee/intern team members can ONLY be reviewed by the team leader.
+    // A task assigned TO a co-leader can ONLY be reviewed by the team leader
     const isAssigneeCoLeader =
       parent.teamLeaderId !== task.assignedTo &&
       !!parent.teamHeads?.includes(task.assignedTo);
 
     if (isAssigneeCoLeader) {
-      return isCurrentUserCoLeader;
+      return isCurrentUserLeader;
     }
 
-    return isCurrentUserLeader;
+    return isCurrentUserLeader || isCurrentUserCoLeader;
   }, [findTeamTaskById, currentAssigneeId]);
 
-  /** Gate for the Inspect / Approve / Recheck controls on any task sitting
-   * in Review:
-   * - Subtasks: reviewed ONLY by the Leader (or, for employee/intern
-   *   subtasks, a Co-Leader) of the parent Team Task — never by Admin.
-   * - Main Team Task (the parent): reviewed ONLY by Admin — this is the
-   *   "final output" checkpoint, reached only once every subtask is Done.
-   * - Regular individual tasks: reviewed by Admin, as before. */
   const canReviewTask = (task: Task) => {
     if (task.status !== "review") return false;
     if (task.parentTaskId) return canReviewSubtask(task);
     return isCSuiteOrAdmin;
   };
 
-  // "Team" is a permitted visibility scope, never an unrestricted task feed.
   const canViewTask = useCallback((task: Task) => {
+    if (isCSuiteOrAdmin || isMonitoringManager(task)) return true;
     if (task.assignedTo === currentAssigneeId) return true;
-    // Subtasks are internal to a Team Task's leadership chain — Admin only
-    // needs to see the main Team Task (the final output), not each subtask.
-    // So subtask visibility is gated by Leader/Co-Leader status, not by
-    // being Admin.
     if (task.parentTaskId) return canReviewSubtask(task);
-    if (isCSuiteOrAdmin) return true;
     if (task.isTeamTask && task.teamMembers?.includes(currentAssigneeId || "")) return true;
     return isManagerOrSenior && juniorEmployees.some(employee => employee.id === task.assignedTo);
-  }, [currentAssigneeId, isCSuiteOrAdmin, isManagerOrSenior, juniorEmployees, canReviewSubtask]);
-  // The task (if any) currently open in the full Focus Workspace.
+  }, [currentAssigneeId, isCSuiteOrAdmin, isManagerOrSenior, juniorEmployees, canReviewSubtask, isManager, monitorManagerIds]);
+
   const focusWorkspaceTask = focusWorkspaceTaskId
     ? Object.values(tasks).flat().find(t => t.id === focusWorkspaceTaskId) || null
     : null;
 
-  // A user may only have one active/paused focus session at a time.
   const myFocusSessionTask = useMemo(
     () => Object.values(tasks).flat().find(t => t.focusSession && t.focusSession.startedBy === currentAssigneeId) || null,
     [tasks, currentAssigneeId]
   );
 
-  // Keep the live timer / card badges ticking. Fine-grained (1s) while the
-  // workspace is open, coarse (30s) otherwise — no Firestore writes needed.
   useEffect(() => {
     const intervalMs = focusWorkspaceTaskId ? 1000 : 30000;
     const id = setInterval(() => setNowTick(Date.now()), intervalMs);
     return () => clearInterval(id);
   }, [focusWorkspaceTaskId]);
 
-  // Screen 1 selection resets whenever the "today's focus" screen is entered/exited.
   useEffect(() => {
     setSelectedFocusTaskId(null);
   }, [focusMode]);
 
-  // Seed the workspace's local editable fields whenever a (different) task is opened.
   useEffect(() => {
     if (focusWorkspaceTask?.focusSession) {
       setWorkspaceNotes(focusWorkspaceTask.focusSession.notes || "");
@@ -540,7 +484,6 @@ export default function TaskBoard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [focusWorkspaceTaskId]);
 
-  // Debounced persistence of Quick Notes while the workspace is open.
   useEffect(() => {
     if (!focusWorkspaceTask?.focusSession) return;
     if (workspaceNotes === focusWorkspaceTask.focusSession.notes) return;
@@ -553,9 +496,6 @@ export default function TaskBoard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workspaceNotes, focusWorkspaceTaskId]);
 
-  /** Opens Screen 2, unless the user already has a live session — in which
-   * case we either jump straight back into it (same task) or block with a
-   * clear message (different task). */
   const openStartFocusDialog = (task: Task) => {
     const existing = task.focusSession;
     if (existing && existing.startedBy === currentAssigneeId) {
@@ -575,7 +515,6 @@ export default function TaskBoard() {
     setIsStartFocusOpen(true);
   };
 
-  /** Screen 2 confirm: creates the session record on the task doc and opens the workspace. */
   const handleConfirmStartFocus = async () => {
     const task = focusTasks.find(t => t.id === selectedFocusTaskId);
     if (!task || !user) return;
@@ -608,7 +547,6 @@ export default function TaskBoard() {
     }
   };
 
-  /** Reopens the workspace exactly where a paused (or still-running) session left off. */
   const resumeFocusSession = async (task: Task) => {
     if (!task.focusSession) return;
     try {
@@ -625,7 +563,6 @@ export default function TaskBoard() {
     }
   };
 
-  /** Pause: banks elapsed time, closes the workspace, returns to the normal board. */
   const handlePauseFocusSession = async (task: Task) => {
     if (!task.focusSession) return;
     try {
@@ -647,9 +584,6 @@ export default function TaskBoard() {
     }
   };
 
-  /** Complete Task: ends the session and hands off to the normal review flow
-   * — unless this is a Leader's own self-assigned subtask, which needs no
-   * evaluation and goes straight to Done. */
   const handleCompleteFocusTask = async (task: Task) => {
     try {
       const skipsReview = isSelfAssignedByLeader(task);
@@ -665,7 +599,6 @@ export default function TaskBoard() {
     }
   };
 
-  /** Exit Focus Mode: discards the session. Status stays In Progress. */
   const handleExitFocusSession = async (task: Task) => {
     try {
       await updateDoc(doc(db, "tasks", task.id), {
@@ -709,7 +642,7 @@ export default function TaskBoard() {
   const handleAddRemark = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !activeTask || !newRemark.trim()) return;
-    if (isLocked(activeTask)) return;
+    if (!canAddRemark(activeTask)) return;
 
     setIsSubmittingRemark(true);
     try {
@@ -775,9 +708,6 @@ export default function TaskBoard() {
     }
   };
 
-  /** Shared mail + notification + Discord ping for ONE recipient. Used both
-   * for normal single-assignee tasks, every member of a Team Task, and
-   * subtask assignees — so every notification path stays consistent. */
   const notifyAssignee = async (params: {
     assigneeId: string;
     assigneeEmp: any;
@@ -800,7 +730,7 @@ export default function TaskBoard() {
       receiverEmail: assigneeEmp?.email || "",
       subject,
       body,
-      priority: priority === "urgent" || priority === "high" ? "urgent" : "normal",
+      priority: priority === "Urgent" || priority === "High" ? "Urgent" : "Normal",
       readStatus: false,
       createdAt: serverTimestamp()
     });
@@ -828,11 +758,8 @@ export default function TaskBoard() {
     e.preventDefault();
     if (!user || !newTask.title.trim()) return;
 
-    // TEAM TASK creation (Admin/C-Suite only): assigns a whole group at once.
     if (isCSuiteOrAdmin && assignMode === "team") {
       if (teamMemberIds.length === 0) return;
-      // The Leader must be explicitly chosen AND hold a Manager/Senior
-      // Employee role — never silently fall back to a Co-Leader or member.
       const leaderId = teamLeaderId;
       const leaderEmp = employeesList.find(emp => emp.id === leaderId);
       if (!leaderId || !leaderEmp || !isEligibleLeader(leaderEmp)) return;
@@ -852,12 +779,13 @@ export default function TaskBoard() {
           blocked: false,
           isTeamTask: true,
           teamMembers: teamMemberIds,
-          teamHeads: Array.from(new Set([...teamHeadIds, leaderId])),
+          // FIX 1: Leader is ALWAYS included in teamHeads so the headedTeamTasks
+          // listener always finds their own team tasks. Co-leaders are added on top.
+          teamHeads: [...new Set([leaderId, ...teamHeadIds])],
           teamLeaderId: leaderId,
+          monitorManagerIds,
         });
 
-        // Every teammate (Leader, Co-Leaders, and regular members) gets the
-        // assignment mail/notification — not just the Leader.
         for (const memberId of teamMemberIds) {
           const memberEmp = employeesList.find(emp => emp.id === memberId);
           const roleTag = memberId === leaderId ? " (Team Leader)" : (teamHeadIds.includes(memberId) ? " (Co-Leader)" : "");
@@ -879,7 +807,8 @@ export default function TaskBoard() {
         setTeamMemberIds([]);
         setTeamHeadIds([]);
         setTeamLeaderId("");
-        setNewTask({ title: "", description: "", priority: "normal", dueDate: "", assignedTo: currentAssigneeId || user.uid });
+        setMonitorManagerIds([]);
+        setNewTask({ title: "", description: "", priority: "Normal", dueDate: "", assignedTo: currentAssigneeId || user.uid });
       } catch (error) {
         console.error("Error adding team task:", error);
       } finally {
@@ -888,7 +817,6 @@ export default function TaskBoard() {
       return;
     }
 
-    // INDIVIDUAL task creation (existing flow) — unchanged behavior.
     setIsSubmitting(true);
     try {
       let assigneeId = currentAssigneeId || user.uid;
@@ -932,36 +860,69 @@ export default function TaskBoard() {
       });
 
       setIsAddOpen(false);
-      setNewTask({ title: "", description: "", priority: "normal", dueDate: "", assignedTo: currentAssigneeId || user.uid });
+      setNewTask({ title: "", description: "", priority: "Normal", dueDate: "", assignedTo: currentAssigneeId || user.uid });
     } catch (error) {
       console.error("Error adding task:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
+  const openAddTaskModal = () => {
+    setAddingToStatus("backlog");
+    setAssignMode("individual");
+    setTeamMemberIds([]);
+    setTeamHeadIds([]);
+    setTeamLeaderId("");
+    setMonitorManagerIds([]);
+    setNewTask({ title: "", description: "", priority: "Normal", dueDate: "", assignedTo: currentAssigneeId || user?.uid || "" });
+    setIsAddOpen(true);
+  };
 
-  /** Opens the Add Subtask modal for a Leader/Co-Leader working a Team Task. */
+  const closeAddTaskModal = () => {
+    setIsAddOpen(false);
+    setAssignMode("individual");
+    setTeamMemberIds([]);
+    setTeamHeadIds([]);
+    setTeamLeaderId("");
+    setMonitorManagerIds([]);
+    setNewTask({ title: "", description: "", priority: "Normal", dueDate: "", assignedTo: currentAssigneeId || user?.uid || "" });
+  };
+
+
+  // FIX 2 (part): Reset subtaskDateError when opening the modal
   const openAddSubtaskModal = (parentTask: Task) => {
     setSubtaskParent(parentTask);
-    setNewSubtask({ title: "", description: "", priority: "normal", dueDate: "", assignedTo: "" });
-    setSubtaskError("");
+    setNewSubtask({ title: "", description: "", priority: "Normal", dueDate: "", assignedTo: "" });
+    setSubtaskDateError("");
     setIsAddSubtaskOpen(true);
   };
 
-  /** Creates a subtask under a Team Task and emails the assignee, whether
-   * they're an employee, an intern, or a Co-Leader — the mail always names
-   * the Leader (or Co-Leader) who assigned it, plus "Main Task (Subtask)". */
   const handleAddSubtask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !subtaskParent || !newSubtask.title.trim() || !newSubtask.assignedTo) return;
-    if (newSubtask.dueDate && subtaskParent.dueDate && newSubtask.dueDate > subtaskParent.dueDate) {
-      setSubtaskError(`Due date cannot exceed parent task's due date (${subtaskParent.dueDate})`);
-      return;
-    }
     if (!assignableSubtaskTargets(subtaskParent).includes(newSubtask.assignedTo)) {
       console.error("Blocked: not authorized to assign a subtask to this member.");
       return;
     }
+
+    // Validate subtask due date must not be in the past
+    const todayStr = new Date().toISOString().split("T")[0];
+    if (newSubtask.dueDate && newSubtask.dueDate < todayStr) {
+      setSubtaskDateError("Subtask due date cannot be before today.");
+      return;
+    }
+
+    // FIX 2: Validate subtask due date must not exceed parent task due date
+    if (newSubtask.dueDate && subtaskParent.dueDate) {
+      if (newSubtask.dueDate > subtaskParent.dueDate) {
+        setSubtaskDateError(
+          `Subtask due date cannot be later than the main task's due date (${subtaskParent.dueDate}).`
+        );
+        return;
+      }
+    }
+    setSubtaskDateError("");
+
     setIsSubmittingSubtask(true);
     try {
       await addDoc(collection(db, "tasks"), {
@@ -979,13 +940,16 @@ export default function TaskBoard() {
         parentTaskTitle: subtaskParent.title,
         assignedBy: currentAssigneeId || user.uid,
         assignedByName: user.fullName || user.displayName || "Team Leader",
+        // Carry visibility metadata to the child document for monitoring and remark filtering.
+        teamMembers: subtaskParent.teamMembers || [],
+        teamHeads: subtaskParent.teamHeads || [],
+        teamLeaderId: subtaskParent.teamLeaderId,
+        monitorManagerIds: subtaskParent.monitorManagerIds || [],
       });
 
       const assigneeEmp = employeesList.find(emp => emp.id === newSubtask.assignedTo);
       const assignerLabel = isTeamLeader(subtaskParent) ? "Leader" : "Co-Leader";
 
-      // Self-assigned subtasks are just the Leader logging his own work —
-      // no assignment mail needed since he's both assigner and assignee.
       if (newSubtask.assignedTo !== currentAssigneeId) {
         await notifyAssignee({
           assigneeId: newSubtask.assignedTo,
@@ -1009,19 +973,10 @@ export default function TaskBoard() {
     }
   };
 
-  /** Backlog -> In Progress. Start Task action strictly moves task to in_progress.
-   * An optimistic local-state update is applied first so the task appears in the
-   * In Progress column immediately — before the Firestore onSnapshot round-trip
-   * completes. The listener will overwrite this with canonical data once it fires. */
   const handleStartTask = async (taskId: string) => {
-    // ── Optimistic update ────────────────────────────────────────────────────
-    // Move the task from backlog to in_progress in local state right away.
-    // This prevents a race where the backlog listener removes the card but the
-    // in_progress listener hasn't fired yet (or is filtered out due to a
-    // transient currentAssigneeId / canViewTask reference change).
     setTasks(prev => {
       const task = prev.backlog.find(t => t.id === taskId);
-      if (!task) return prev; // already moved by a previous listener tick
+      if (!task) return prev;
       const updated: Task = { ...task, status: "in_progress" };
       return {
         ...prev,
@@ -1034,8 +989,6 @@ export default function TaskBoard() {
       setIsDetailsOpen(false);
     } catch (err) {
       console.error("Error starting task:", err);
-      // On error, revert the optimistic update — the Firestore listener
-      // will re-sync the correct state automatically.
       setTasks(prev => {
         const task = prev.in_progress.find(t => t.id === taskId);
         if (!task) return prev;
@@ -1048,14 +1001,12 @@ export default function TaskBoard() {
       });
     }
   };
-  /** Open Submit for Review modal */
+
   const openSubmitReviewConfirm = (task: Task) => {
     setSelectedTask(task);
     setIsSubmitReviewOpen(true);
   };
 
-  /** In Progress -> Review (or straight to Done for a Leader's own
-   * self-assigned subtask, which needs no evaluation). */
   const handleConfirmSubmitForReview = async () => {
     if (!activeTask) return;
     setIsSubmittingReview(true);
@@ -1064,8 +1015,6 @@ export default function TaskBoard() {
     const newStatus: TaskStatus = skipsReview ? "done" : "review";
     const submittedAt = new Date().toISOString();
 
-    // Optimistic: move card immediately so the employee sees it leave
-    // In Progress and land in Review (or Done for self-assigned leader subtasks).
     setTasks(prev => {
       const task = prev.in_progress.find(t => t.id === activeTask.id);
       if (!task) return prev;
@@ -1087,7 +1036,6 @@ export default function TaskBoard() {
       setIsDetailsOpen(false);
     } catch (err) {
       console.error("Error submitting task for review:", err);
-      // Revert
       setTasks(prev => {
         const task = prev[newStatus].find(t => t.id === activeTask.id);
         if (!task) return prev;
@@ -1102,11 +1050,7 @@ export default function TaskBoard() {
     }
   };
 
-  /** Approve -> Done (Admin / Leader / Co-Leader action).
-   * Optimistic update moves the card from Review → Done immediately so the
-   * reviewer doesn't see a blank gap while waiting for the Firestore round-trip. */
   const handleApproveTask = async (taskId: string) => {
-    // Optimistic: move card from Review → Done immediately.
     setTasks(prev => {
       const task = prev.review.find(t => t.id === taskId);
       if (!task) return prev;
@@ -1122,7 +1066,6 @@ export default function TaskBoard() {
       setIsDetailsOpen(false);
     } catch (err) {
       console.error("Error approving task:", err);
-      // Revert on failure — the Firestore listener will re-sync canonical state.
       setTasks(prev => {
         const task = prev.done.find(t => t.id === taskId);
         if (!task) return prev;
@@ -1134,8 +1077,7 @@ export default function TaskBoard() {
       });
     }
   };
-  /** REVIEW ACTION: Open Inspect Modal — read-only progress logs + attachments,
-   * for Admins and for Leaders/Co-Leaders reviewing their team's subtasks. */
+
   const openInspectModal = (task: Task) => {
     setInspectTaskId(task.id);
   };
@@ -1143,7 +1085,9 @@ export default function TaskBoard() {
     ? Object.values(tasks).flat().find(t => t.id === inspectTaskId) || progressTasks.find(t => t.id === inspectTaskId) || null
     : null;
 
-  /** ADMIN ACTION: Open Recheck Modal */
+  const activeRemarkEntries = activeTask ? remarksForDisplay(activeTask) : [];
+  const inspectRemarkEntries = inspectTask ? remarksForDisplay(inspectTask) : [];
+
   const openRecheckModal = (task: Task) => {
     setSelectedTask(task);
     setRecheckFeedback("");
@@ -1151,7 +1095,6 @@ export default function TaskBoard() {
     setIsRecheckOpen(true);
   };
 
-  /** ADMIN ACTION: Recheck -> Send back to In Progress with mandatory feedback */
   const handleConfirmRecheck = async () => {
     if (!activeTask) return;
     if (!recheckFeedback.trim()) {
@@ -1168,7 +1111,6 @@ export default function TaskBoard() {
       createdAt: new Date().toISOString()
     }];
 
-    // Optimistic: move card from Review → In Progress immediately
     setTasks(prev => {
       const task = prev.review.find(t => t.id === activeTask.id);
       if (!task) return prev;
@@ -1190,7 +1132,6 @@ export default function TaskBoard() {
       setIsDetailsOpen(false);
     } catch (err) {
       console.error("Error sending task back for recheck:", err);
-      // Revert
       setTasks(prev => {
         const task = prev.in_progress.find(t => t.id === activeTask.id);
         if (!task) return prev;
@@ -1228,13 +1169,7 @@ export default function TaskBoard() {
 
     const unsubscribes: any[] = [];
 
-    // IDs of parent team tasks the current user leads or co-leads.
-    // Used to pull in subtasks submitted by team members into the leader's
-    // Review / Done columns even while "Mine" mode is active.
-    const headedParentIds = headedTeamTasks.map(t => t.id);
-
     COLUMNS.forEach(col => {
-      // ── Primary query ──────────────────────────────────────────────────────
       const primaryQ = myTasksOnly
         ? query(
           collection(db, "tasks"),
@@ -1243,49 +1178,10 @@ export default function TaskBoard() {
         )
         : query(collection(db, "tasks"), where("status", "==", col.id));
 
-      // ── Secondary query (team-head view) ───────────────────────────────────
-      // For the Review and Done columns, leaders / co-leaders also need to see
-      // subtasks submitted by their team members so they can Approve / Recheck.
-      // Firestore `in` supports up to 30 values.
-      const needsSecondary =
-        myTasksOnly &&
-        (col.id === "review" || col.id === "done") &&
-        headedParentIds.length > 0;
-
-      const secondaryQ = needsSecondary
-        ? query(
-          collection(db, "tasks"),
-          where("status", "==", col.id),
-          where("parentTaskId", "in", headedParentIds.slice(0, 30))
-        )
-        : null;
-
-      // Mutable buckets shared between the two snapshot callbacks for this column.
-      let primaryTasks: Task[] = [];
-      let secondaryTasks: Task[] = [];
-
-      const commitColumn = () => {
-        // Merge, deduplicating by id (primary takes precedence).
-        const seen = new Set<string>();
-        const merged: Task[] = [];
-        [...primaryTasks, ...secondaryTasks].forEach(t => {
-          if (!seen.has(t.id)) { seen.add(t.id); merged.push(t); }
-        });
-
-        let columnTasks = merged;
-        if (!myTasksOnly) {
-          columnTasks = columnTasks.filter(canViewTask);
-        } else {
-          // In "Mine" mode, filter Review and Done columns to only show subtasks the user is authorized to review
-          if (col.id === "review" || col.id === "done") {
-            columnTasks = columnTasks.filter(t => {
-              if (t.assignedTo === (currentAssigneeId || user.uid)) return true;
-              if (t.parentTaskId) return canReviewSubtask(t);
-              return false;
-            });
-          }
-        }
-        if (employeeFilter !== "all" && isCSuiteOrAdmin && !myTasksOnly) {
+      const commitColumn = (primaryTasks: Task[]) => {
+        let columnTasks = primaryTasks;
+        if (!myTasksOnly) columnTasks = columnTasks.filter(canViewTask);
+        if (employeeFilter !== "All Employees" && isCSuiteOrAdmin && !myTasksOnly) {
           columnTasks = columnTasks.filter(t => t.assignedTo === employeeFilter);
         }
         columnTasks.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
@@ -1295,22 +1191,14 @@ export default function TaskBoard() {
       };
 
       const primaryUnsub = onSnapshot(primaryQ, snapshot => {
-        primaryTasks = snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Task[];
-        commitColumn();
+        const primaryTasks = snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Task[];
+        commitColumn(primaryTasks);
       });
       unsubscribes.push(primaryUnsub);
-
-      if (secondaryQ) {
-        const secondaryUnsub = onSnapshot(secondaryQ, snapshot => {
-          secondaryTasks = snapshot.docs.map(d => ({ id: d.id, ...d.data() })) as Task[];
-          commitColumn();
-        });
-        unsubscribes.push(secondaryUnsub);
-      }
     });
 
     return () => { unsubscribes.forEach(u => u()); };
-  }, [user, myTasksOnly, employeeFilter, isCSuiteOrAdmin, currentAssigneeId, canViewTask, headedTeamTasks]);
+  }, [user, myTasksOnly, employeeFilter, isCSuiteOrAdmin, currentAssigneeId, canViewTask]);
 
   const onDragEnd = async (result: DropResult) => {
     const { destination, source, draggableId } = result;
@@ -1321,8 +1209,6 @@ export default function TaskBoard() {
     const sourceStatus = source.droppableId as TaskStatus;
     const destStatus = destination.droppableId as TaskStatus;
 
-    // Drag-and-drop is fully disabled for non-admins — all task progression
-    // must happen via the Start Task / Completed Task buttons.
     if (!isCSuiteOrAdmin) return;
 
     const sourceTasks = Array.from(tasks[sourceStatus]);
@@ -1347,20 +1233,86 @@ export default function TaskBoard() {
     }
   };
 
-  const handleDeleteTask = async (taskId: string) => {
-    if (confirm("Are you sure you want to delete this task? This action cannot be undone.")) {
-      try {
-        await deleteDoc(doc(db, "tasks", taskId));
-      } catch (err) {
-        console.error("Error deleting task:", err);
+  /////
+
+  const openDeleteModal = (task: Task) => {
+    setDeleteTarget(task);
+    setDeleteReason("");
+    setDeleteError(false);
+  };
+
+  const handleConfirmDeleteTask = async () => {
+    if (!deleteTarget || !user) return;
+    if (!deleteReason.trim()) {
+      setDeleteError(true);
+      return;
+    }
+
+    setIsSubmittingDelete(true);
+    try {
+      const task = deleteTarget;
+      const recipientIds = new Set<string>();
+      let subtaskDocs: { id: string; assignedTo: string; title: string }[] = [];
+
+      if (task.isTeamTask) {
+        (task.teamMembers || []).forEach(id => recipientIds.add(id));
+        (task.teamHeads || []).forEach(id => recipientIds.add(id));
+        if (task.teamLeaderId) recipientIds.add(task.teamLeaderId);
+
+        // Pull every subtask under this main team task so they can be deleted too.
+        const subtaskSnapshot = await getDocs(
+          query(collection(db, "tasks"), where("parentTaskId", "==", task.id))
+        );
+        subtaskDocs = subtaskSnapshot.docs.map(d => ({
+          id: d.id,
+          assignedTo: (d.data() as any).assignedTo,
+          title: (d.data() as any).title,
+        }));
+        subtaskDocs.forEach(st => { if (st.assignedTo) recipientIds.add(st.assignedTo); });
+      } else if (task.parentTaskId) {
+        recipientIds.add(task.assignedTo);
+        (task.teamHeads || []).forEach(id => recipientIds.add(id));
+        if (task.teamLeaderId) recipientIds.add(task.teamLeaderId);
+      } else {
+        recipientIds.add(task.assignedTo);
       }
+      recipientIds.delete(user.uid);
+
+      for (const recipientId of recipientIds) {
+        const recipientEmp = employeesList.find(emp => emp.id === recipientId);
+        const mySubtask = subtaskDocs.find(st => st.assignedTo === recipientId);
+        const subtaskLine = mySubtask ? `\nYour Subtask: ${mySubtask.title} (also removed)\n` : "";
+        await notifyAssignee({
+          assigneeId: recipientId,
+          assigneeEmp: recipientEmp,
+          senderName: user.fullName || user.displayName || "Mints Task Manager",
+          senderEmail: user.email || "system@mintsglobal.com",
+          subject: `❌ Task Cancelled: ${task.title}`,
+          body: `Hello ${recipientEmp?.fullName || "Team Member"},\n\nThe following task has been cancelled/deleted by ${user.fullName || user.displayName || "Admin"}:\n\nTask: ${task.title}\nReason: ${deleteReason.trim()}\n${subtaskLine}\nPlease reach out if you have any questions.\n\nBest regards,\n${user.fullName || user.displayName || "Mints Project Management"}`,
+          priority: task.priority,
+          notificationTitle: "Task Cancelled",
+          notificationMessage: `${task.title} was cancelled by ${user.fullName || user.displayName || "Admin"}: ${deleteReason.trim()}`,
+        });
+      }
+
+      // Delete every subtask under this main team task before deleting the main task itself.
+      for (const st of subtaskDocs) {
+        await deleteDoc(doc(db, "tasks", st.id));
+      }
+
+      await deleteDoc(doc(db, "tasks", task.id));
+      setDeleteTarget(null);
+      setDeleteReason("");
+      setDeleteError(false);
+    } catch (err) {
+      console.error("Error deleting task:", err);
+    } finally {
+      setIsSubmittingDelete(false);
     }
   };
 
-  /** "YYYY-MM-DD" strings parse as UTC midnight in native Date, which can
-   * shift the calendar day depending on the viewer's timezone offset.
-   * Parse the components directly so "today"/"overdue" match the
-   * viewer's actual local date. */
+  ////
+
   const parseLocalDate = (dateString: string) => {
     const [year, month, day] = dateString.split("-").map(Number);
     return new Date(year, (month || 1) - 1, day || 1);
@@ -1379,23 +1331,21 @@ export default function TaskBoard() {
       date.getMonth() === today.getMonth() &&
       date.getFullYear() === today.getFullYear();
   };
+
   const focusTasks = [
     ...tasks.backlog,
     ...tasks.in_progress,
     ...tasks.review
   ].filter(t =>
-    (isToday(t.dueDate) || isOverdue(t.dueDate) || t.priority === "urgent") &&
+    (isToday(t.dueDate) || isOverdue(t.dueDate) || t.priority === "Urgent") &&
     t.assignedTo === (currentAssigneeId || user?.uid)
   )
     .sort((a, b) => {
-      if (a.priority === "urgent" && b.priority !== "urgent") return -1;
-      if (b.priority === "urgent" && a.priority !== "urgent") return 1;
+      if (a.priority === "Urgent" && b.priority !== "Urgent") return -1;
+      if (b.priority === "Urgent" && a.priority !== "Urgent") return 1;
       return 0;
     });
 
-  /** Renders on any card whose task has an active/paused focus session.
-   * The assignee gets Resume/Complete/Exit controls; everyone else gets a
-   * read-only status badge naming who is focusing and for how long. */
   const renderFocusCardBlock = (task: Task) => {
     if (!task.focusSession) return null;
     const session = task.focusSession;
@@ -1444,9 +1394,6 @@ export default function TaskBoard() {
     );
   };
 
-  /** Renders on any card belonging to a Team Task — a compact strip naming
-   * the Leader and member count, so the group nature of the task is visible
-   * at a glance without cluttering the existing card layout. */
   const renderTeamTaskBadge = (task: Task) => {
     if (!task.isTeamTask) return null;
     const leader = employeesList.find(e => e.id === task.teamLeaderId);
@@ -1458,8 +1405,6 @@ export default function TaskBoard() {
     );
   };
 
-  /** Renders on any subtask card — links it back to its parent Team Task in
-   * the "Main Task (Subtask)" format used throughout mails/notifications. */
   const renderSubtaskBadge = (task: Task) => {
     if (!task.parentTaskId) return null;
     return (
@@ -1477,6 +1422,7 @@ export default function TaskBoard() {
       ...t,
       assigneeName: employeesMap.get(t.assignedTo) || "Unassigned",
       statusLabel: STATUS_META[t.status].label,
+      priority: capitalizeWord(t.priority),
     }));
     downloadCSV(
       formatted,
@@ -1486,8 +1432,7 @@ export default function TaskBoard() {
     );
   };
 
-  // SCREEN 3 — FOCUS WORKSPACE (full takeover). Hides all normal board/nav UI
-  // for this view; only the timer, checklist, and quick notes are shown.
+  // SCREEN 3 — FOCUS WORKSPACE
   if (focusWorkspaceTask && focusWorkspaceTask.focusSession) {
     const session = focusWorkspaceTask.focusSession;
     const elapsedSeconds = getSessionElapsedSeconds(session, nowTick);
@@ -1501,7 +1446,6 @@ export default function TaskBoard() {
       <div className="flex flex-col h-[calc(100vh-8rem)] text-foreground">
         <div className="flex-1 border border-border rounded-2xl overflow-y-auto flex flex-col items-center p-6 sm:p-10">
           <div className="max-w-xl w-full">
-            {/* Header */}
             <div className="text-center mb-8">
               <span className="badge bg-primary/10 border border-primary/20 text-primary font-bold text-xs py-0.5 px-2.5 uppercase tracking-wider inline-flex items-center gap-1.5">
                 <Target className="w-3 h-3" /> Focus Mode
@@ -1509,12 +1453,11 @@ export default function TaskBoard() {
               <h1 className="text-lg font-extrabold text-foreground mt-3 leading-snug">{focusWorkspaceTask.title}</h1>
               <div className="flex items-center justify-center gap-2 mt-2">
                 <div className={`w-1.5 h-1.5 rounded-full ${PRIORITY_COLORS[focusWorkspaceTask.priority]}`} />
-                <span className="text-xs font-bold uppercase text-foreground/40">{focusWorkspaceTask.priority} Priority</span>
+                <span className="text-xs font-bold text-foreground/40">{capitalizeWord(focusWorkspaceTask.priority)} Priority</span>
                 <StatusBadge status={focusWorkspaceTask.status} />
               </div>
             </div>
 
-            {/* Live Timer */}
             <div className="text-center mb-6">
               <div className="text-5xl sm:text-6xl font-extrabold text-foreground tabular-nums tracking-tight">
                 {formatFocusTimer(elapsedSeconds)}
@@ -1524,7 +1467,6 @@ export default function TaskBoard() {
               )}
             </div>
 
-            {/* Today's Progress bar (visual only) */}
             <div className="mb-8">
               <div className="flex justify-between items-center mb-1.5 text-xs font-bold uppercase tracking-wider text-foreground/50">
                 <span>Today's Progress</span>
@@ -1535,7 +1477,6 @@ export default function TaskBoard() {
               </div>
             </div>
 
-            {/* Checklist */}
             <div className="mb-8 border border-border rounded-xl p-4">
               <h3 className="text-xs font-bold text-foreground/70 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                 <ListChecks className="w-3.5 h-3.5 text-primary" /> Checklist
@@ -1582,7 +1523,6 @@ export default function TaskBoard() {
               </div>
             </div>
 
-            {/* Quick Notes */}
             <div className="mb-8">
               <h3 className="text-xs font-bold text-foreground/70 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                 <StickyNote className="w-3.5 h-3.5 text-primary" /> Quick Notes
@@ -1595,7 +1535,6 @@ export default function TaskBoard() {
               />
             </div>
 
-            {/* Actions */}
             <div className="grid grid-cols-2 gap-3">
               <button
                 onClick={() => handlePauseFocusSession(focusWorkspaceTask)}
@@ -1619,7 +1558,6 @@ export default function TaskBoard() {
           </div>
         </div>
 
-        {/* EXIT FOCUS MODE CONFIRMATION */}
         <Dialog open={!!exitFocusTarget} onOpenChange={(o) => !o && setExitFocusTarget(null)}>
           <DialogContent className="bg-card/95 border-border text-foreground sm:max-w-sm backdrop-blur-md shadow-2xl">
             <DialogHeader>
@@ -1631,18 +1569,8 @@ export default function TaskBoard() {
               This session's progress will be discarded. The task will stay in In Progress, with no focus stats attached.
             </p>
             <DialogFooter className="mt-6 border-t-0 pt-2">
-              <button
-                type="button"
-                onClick={() => setExitFocusTarget(null)}
-                className="px-4 py-2 text-sm font-bold text-foreground/70 hover:text-foreground transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => exitFocusTarget && handleExitFocusSession(exitFocusTarget)}
-                className="px-4 py-2 text-sm font-bold bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors flex items-center justify-center gap-1.5"
-              >
+              <button type="button" onClick={() => setExitFocusTarget(null)} className="px-4 py-2 text-sm font-bold text-foreground/70 hover:text-foreground transition-colors">Cancel</button>
+              <button type="button" onClick={() => exitFocusTarget && handleExitFocusSession(exitFocusTarget)} className="px-4 py-2 text-sm font-bold bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors flex items-center justify-center gap-1.5">
                 <LogOut className="w-3.5 h-3.5" /> Exit Focus Mode
               </button>
             </DialogFooter>
@@ -1679,7 +1607,6 @@ export default function TaskBoard() {
             {focusMode ? "Exit Focus" : "Focus Mode"}
           </button>
 
-          {/* TEAM / MINE TOGGLE BUTTON — AVAILABLE FOR ALL ROLES */}
           {!focusMode && (
             <div className="flex items-center space-x-2 px-3.5 h-9 rounded-xl border border-border text-xs">
               <span className={myTasksOnly ? "text-foreground/40 font-bold" : "font-bold text-foreground"}>Team</span>
@@ -1693,21 +1620,15 @@ export default function TaskBoard() {
             </div>
           )}
 
-          {/* ADMIN ONLY: All Employee Filter Dropdown near Export CSV */}
           {isCSuiteOrAdmin && !focusMode && !myTasksOnly && (
-            <Select
-              value={employeeFilter}
-              onValueChange={(val) => setEmployeeFilter(val ?? "all")}
-            >
+            <Select value={employeeFilter} onValueChange={(val) => setEmployeeFilter(val ?? "all")}>
               <SelectTrigger className="h-9 w-44 border-border text-xs font-bold">
-                <SelectValue placeholder="All employees" />
+                <SelectValue placeholder="All Employees" />
               </SelectTrigger>
               <SelectContent className="bg-background border-border text-foreground text-xs">
-                <SelectItem value="all">All employees</SelectItem>
+                <SelectItem value="All Employees">All Employees</SelectItem>
                 {employeesList.map(emp => (
-                  <SelectItem key={emp.id} value={emp.id}>
-                    {emp.fullName}
-                  </SelectItem>
+                  <SelectItem key={emp.id} value={emp.id}>{emp.fullName}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -1722,15 +1643,7 @@ export default function TaskBoard() {
           </button>
 
           <button
-            onClick={() => {
-              setAddingToStatus("backlog");
-              setAssignMode("individual");
-              setTeamMemberIds([]);
-              setTeamHeadIds([]);
-              setTeamLeaderId("");
-              setNewTask(prev => ({ ...prev, assignedTo: currentAssigneeId || user?.uid || "" }));
-              setIsAddOpen(true);
-            }}
+            onClick={openAddTaskModal}
             className="btn-primary h-9 py-0 px-4 text-xs font-bold flex items-center justify-center cursor-pointer"
           >
             <Plus className="mr-1.5 h-4 w-4" /> {getAddTaskBtnLabel()}
@@ -1738,24 +1651,20 @@ export default function TaskBoard() {
         </div>
       </div>
 
-      {/* 4 STATS CARDS SECTION (C-Suite, Founder / Admin, System Admin) */}
+      {/* 4 STATS CARDS */}
       {isCSuiteOrAdmin && !focusMode && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-card border border-border rounded-xl p-4 flex flex-col justify-between shadow-sm">
             <div className="flex items-center gap-2 text-[10.5px] font-bold text-foreground/50 uppercase tracking-wider">
               <Clock className="w-3.5 h-3.5 text-blue-400" /> Active Tasks
             </div>
-            <div className="text-2xl font-extrabold text-foreground mt-2">
-              {tasks.backlog.length + tasks.in_progress.length}
-            </div>
+            <div className="text-2xl font-extrabold text-foreground mt-2">{tasks.backlog.length + tasks.in_progress.length}</div>
           </div>
           <div className="bg-card border border-border rounded-xl p-4 flex flex-col justify-between shadow-sm">
             <div className="flex items-center gap-2 text-[10.5px] font-bold text-foreground/50 uppercase tracking-wider">
               <MessageSquare className="w-3.5 h-3.5 text-amber-400" /> Awaiting Review
             </div>
-            <div className="text-2xl font-extrabold text-foreground mt-2">
-              {tasks.review.length}
-            </div>
+            <div className="text-2xl font-extrabold text-foreground mt-2">{tasks.review.length}</div>
           </div>
           <div className="bg-card border border-border rounded-xl p-4 flex flex-col justify-between shadow-sm">
             <div className="flex items-center gap-2 text-[10.5px] font-bold text-foreground/50 uppercase tracking-wider">
@@ -1769,9 +1678,7 @@ export default function TaskBoard() {
             <div className="flex items-center gap-2 text-[10.5px] font-bold text-foreground/50 uppercase tracking-wider">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Approved
             </div>
-            <div className="text-2xl font-extrabold text-foreground mt-2">
-              {tasks.done.length}
-            </div>
+            <div className="text-2xl font-extrabold text-foreground mt-2">{tasks.done.length}</div>
           </div>
         </div>
       )}
@@ -1790,7 +1697,7 @@ export default function TaskBoard() {
             <div className="max-w-2xl w-full">
               <div className="text-center mb-8">
                 <h2 className="text-base font-bold text-foreground">Your Focus for Today</h2>
-                <p className="text-xs text-foreground/40 mt-1">Tick a task, then start a focus session for it. Complete these {focusTasks.length} high-priority items.</p>
+                <p className="text-xs text-foreground/40 mt-1">Tick a task, then start a focus session for it. Complete these {focusTasks.length} High-priority items.</p>
               </div>
 
               <div className="space-y-4">
@@ -1799,43 +1706,29 @@ export default function TaskBoard() {
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12 border border-border border-dashed rounded-2xl">
                       <CheckSquare className="h-10 w-10 text-foreground/20 mx-auto mb-3" />
                       <h3 className="text-sm font-bold text-foreground/50 uppercase tracking-wider">All caught up!</h3>
-                      <p className="text-xs text-foreground/30 mt-1">You have no urgent tasks due today.</p>
+                      <p className="text-xs text-foreground/30 mt-1">You have no Urgent tasks due today.</p>
                     </motion.div>
                   ) : (
                     focusTasks.map((task) => {
                       const isTicked = selectedFocusTaskId === task.id;
                       return (
-                        <motion.div
-                          key={task.id}
-                          layout
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, scale: 0.95 }}
-                        >
+                        <motion.div key={task.id} layout initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}>
                           <Card
-                            onClick={() => {
-                              // Selecting a task for Focus Mode is a distinct action from
-                              // viewing its details — never open the details dialog here.
-                              setSelectedFocusTaskId(prev => (prev === task.id ? null : task.id));
-                            }}
+                            onClick={() => setSelectedFocusTaskId(prev => (prev === task.id ? null : task.id))}
                             className={cn("bg-card border border-border shadow-sm rounded-lg overflow-hidden relative group cursor-pointer hover:border-primary/30 transition-all",
-                              task.priority === "urgent" ? "border-rose-500/30" : "",
+                              task.priority === "Urgent" ? "border-rose-500/30" : "",
                               task.blocked ? "opacity-60" : "",
                               isTicked && "border-primary/60 bg-primary/5 ring-1 ring-primary/20"
                             )}
                           >
-                            {task.priority === "urgent" && !task.blocked && (
+                            {task.priority === "Urgent" && !task.blocked && (
                               <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-rose-500 animate-pulse shadow-[0_0_8px_rgba(244,63,94,0.5)]" />
                             )}
                             <CardContent className="p-5">
                               <div className="flex items-start gap-4">
-                                {/* Tick-style selection checkbox */}
                                 <button
                                   type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedFocusTaskId(prev => (prev === task.id ? null : task.id));
-                                  }}
+                                  onClick={(e) => { e.stopPropagation(); setSelectedFocusTaskId(prev => (prev === task.id ? null : task.id)); }}
                                   aria-pressed={isTicked}
                                   className={cn("mt-0.5 w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors cursor-pointer",
                                     isTicked ? "bg-primary border-primary" : "border-border hover:border-primary/50"
@@ -1846,20 +1739,12 @@ export default function TaskBoard() {
                                 <div className="flex-1">
                                   <div className="flex items-center justify-between mb-1.5">
                                     <div className="flex items-center gap-2">
-                                      <span className="badge border border-border text-foreground/50 text-xs font-bold py-0.5 uppercase tracking-wider">
-                                        {task.projectName || "Project"}
-                                      </span>
-                                      {task.priority === "urgent" && <span className="badge status-critical font-bold text-xs py-0.5 uppercase tracking-wider">Urgent</span>}
+                                      <span className="badge border border-border text-foreground/50 text-xs font-bold py-0.5 uppercase tracking-wider">{task.projectName || "Project"}</span>
+                                      {task.priority === "Urgent" && <span className="badge status-critical font-bold text-xs py-0.5 uppercase tracking-wider">Urgent</span>}
                                       {task.blocked && <span className="badge status-draft font-bold text-xs py-0.5 uppercase tracking-wider flex items-center gap-1"><Lock className="w-2.5 h-2.5" /> Blocked</span>}
                                       {task.status === "review" && <StatusBadge status="review" />}
                                     </div>
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleDeleteTask(task.id);
-                                      }}
-                                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-rose-500/20 text-rose-400 rounded cursor-pointer"
-                                    >
+                                    <button onClick={(e) => { e.stopPropagation(); openDeleteModal(task); }} className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-rose-500/20 text-rose-400 rounded cursor-pointer">
                                       <Trash2 className="w-3 h-3" />
                                     </button>
                                   </div>
@@ -1875,27 +1760,12 @@ export default function TaskBoard() {
                                             "border border-border text-foreground/50"
                                       )}>
                                         <Clock className="w-3 h-3" />
-                                        {isOverdue(task.dueDate)
-                                          ? "Overdue"
-                                          : isToday(task.dueDate)
-                                            ? "Due Today"
-                                            : new Date(task.dueDate).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                                        {isOverdue(task.dueDate) ? "Overdue" : isToday(task.dueDate) ? "Due Today" : new Date(task.dueDate).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
                                       </div>
                                     )}
                                     {task.status === "backlog" && isOwner(task) && !task.focusSession && (
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); handleStartTask(task.id); }}
-                                        className="ml-auto btn-ghost py-1 px-3 h-7 text-xs font-bold flex items-center gap-1 border-border text-foreground/70 hover:text-foreground cursor-pointer"
-                                      >
+                                      <button onClick={(e) => { e.stopPropagation(); handleStartTask(task.id); }} className="ml-auto btn-ghost py-1 px-3 h-7 text-xs font-bold flex items-center gap-1 border-border text-foreground/70 hover:text-foreground cursor-pointer">
                                         <Play className="w-2.5 h-2.5 fill-current text-accent" /> Start
-                                      </button>
-                                    )}
-                                    {task.status === "in_progress" && isOwner(task) && !task.focusSession && !task.isTeamTask && (
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); openSubmitReviewConfirm(task); }}
-                                        className="ml-auto btn-primary py-1 px-3 h-7 text-xs font-bold flex items-center gap-1 cursor-pointer"
-                                      >
-                                        <Send className="w-2.5 h-2.5" /> Completed Task
                                       </button>
                                     )}
                                   </div>
@@ -1913,15 +1783,11 @@ export default function TaskBoard() {
             </div>
           </div>
 
-          {/* Sticky Start Focus Mode footer */}
           <div className="shrink-0 border-t border-border p-4 flex justify-center bg-card/40">
             <button
               type="button"
               disabled={!selectedFocusTaskId}
-              onClick={() => {
-                const task = focusTasks.find(t => t.id === selectedFocusTaskId);
-                if (task) openStartFocusDialog(task);
-              }}
+              onClick={() => { const task = focusTasks.find(t => t.id === selectedFocusTaskId); if (task) openStartFocusDialog(task); }}
               className="btn-primary h-10 px-6 text-sm font-bold flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed max-w-2xl w-full"
             >
               <Target className="w-4 h-4" /> Start Focus Mode
@@ -1949,18 +1815,9 @@ export default function TaskBoard() {
                           snapshot.isDraggingOver ? "bg-primary/5 ring-1 ring-primary/10" : ""
                         )}
                       >
-                        {/* BACKLOG ONLY: Add Task Button dynamically styled for the user role */}
                         {column.id === "backlog" && (
                           <button
-                            onClick={() => {
-                              setAddingToStatus("backlog");
-                              setAssignMode("individual");
-                              setTeamMemberIds([]);
-                              setTeamHeadIds([]);
-                              setTeamLeaderId("");
-                              setNewTask(prev => ({ ...prev, assignedTo: currentAssigneeId || user?.uid || "" }));
-                              setIsAddOpen(true);
-                            }}
+                            onClick={openAddTaskModal}
                             className="w-full text-foreground/50 hover:text-foreground justify-start h-8 px-2.5 text-xs mb-3 rounded-xl transition-all font-bold border border-dashed border-border/60 hover:border-primary/50 flex items-center cursor-pointer bg-card/40 hover:bg-card truncate"
                           >
                             <Plus className="w-3.5 h-3.5 mr-1.5 text-primary shrink-0" />
@@ -1979,17 +1836,14 @@ export default function TaskBoard() {
                                   ref={provided.innerRef}
                                   {...provided.draggableProps}
                                   {...provided.dragHandleProps}
-                                  onClick={() => {
-                                    setSelectedTask(task);
-                                    setIsDetailsOpen(true);
-                                  }}
+                                  onClick={() => { setSelectedTask(task); setIsDetailsOpen(true); }}
                                   className={cn("mb-3 cursor-pointer border-border bg-card/80 hover:bg-card transition-all relative overflow-hidden group hover:border-primary/30",
                                     snapshot.isDragging ? 'shadow-xl ring-1 ring-primary/30 rotate-1 bg-blue-950/90' : 'shadow-sm',
-                                    task.priority === "urgent" && "border-rose-500/20",
+                                    task.priority === "Urgent" && "border-rose-500/20",
                                     locked && "cursor-default"
                                   )}
                                 >
-                                  {task.priority === "urgent" && (
+                                  {task.priority === "Urgent" && (
                                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-rose-500 animate-pulse shadow-[0_0_6px_rgba(239,68,68,0.5)]" />
                                   )}
                                   <CardContent className="p-3 pl-4">
@@ -2001,12 +1855,9 @@ export default function TaskBoard() {
                                         </Badge>
                                         {task.blocked && <span title="Blocked"><Lock className="w-3 h-3 text-foreground/30" /></span>}
                                       </div>
-                                      {(!locked || isCSuiteOrAdmin) && (
+                                      {(!locked || isCSuiteOrAdmin) && task.status !== "done" && (
                                         <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleDeleteTask(task.id);
-                                          }}
+                                          onClick={(e) => { e.stopPropagation(); openDeleteModal(task); }}
                                           className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-rose-500/20 text-rose-400 rounded cursor-pointer shrink-0"
                                         >
                                           <Trash2 className="w-3 h-3" />
@@ -2020,7 +1871,6 @@ export default function TaskBoard() {
                                     {renderTeamTaskBadge(task)}
                                     {renderSubtaskBadge(task)}
 
-                                    {/* Feedback Alert for Employee if sent back for recheck */}
                                     {task.feedback && task.status === "in_progress" && (
                                       <div className="mb-2 mt-2 p-1.5 rounded-lg bg-rose-950/40 border border-rose-500/30 text-[11px] text-rose-300 flex items-center gap-1.5 font-medium">
                                         <AlertTriangle className="w-3 h-3 shrink-0 text-rose-400" />
@@ -2035,7 +1885,6 @@ export default function TaskBoard() {
                                     <div className="flex items-center justify-between mt-auto pt-3 border-t border-border">
                                       <div className="flex items-center gap-2 text-foreground/40 text-xs font-bold">
                                         <span className="text-[11px] text-foreground/60">{assigneeName}</span>
-                                        {/* Hide remarks counter on backlog tasks */}
                                         {task.status !== "backlog" && task.remarks && task.remarks.length > 0 && (
                                           <div className="flex items-center gap-0.5 text-foreground/40">
                                             <MessageSquare className="w-3 h-3 text-primary" /> {task.remarks.length}
@@ -2062,20 +1911,13 @@ export default function TaskBoard() {
                                       </div>
                                     </div>
 
-                                    {/* Employee Actions */}
                                     {task.status === "backlog" && isOwner(task) && (
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); handleStartTask(task.id); }}
-                                        className="btn-ghost w-full mt-3 h-8 text-xs font-bold flex items-center justify-center gap-1.5 border-border text-foreground/70 hover:text-foreground cursor-pointer"
-                                      >
+                                      <button onClick={(e) => { e.stopPropagation(); handleStartTask(task.id); }} className="btn-ghost w-full mt-3 h-8 text-xs font-bold flex items-center justify-center gap-1.5 border-border text-foreground/70 hover:text-foreground cursor-pointer">
                                         <Play className="w-3 h-3 fill-current text-accent" /> Start Task
                                       </button>
                                     )}
                                     {task.status === "in_progress" && isOwner(task) && !task.focusSession && !task.isTeamTask && (
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); openSubmitReviewConfirm(task); }}
-                                        className="btn-primary w-full mt-3 h-8 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
-                                      >
+                                      <button onClick={(e) => { e.stopPropagation(); openSubmitReviewConfirm(task); }} className="btn-primary w-full mt-3 h-8 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer">
                                         <Send className="w-3 h-3" /> Completed Task
                                       </button>
                                     )}
@@ -2085,41 +1927,20 @@ export default function TaskBoard() {
                                       </p>
                                     )}
 
-                                    {/* Leader ONLY, and only once the team task is In Progress
-                                      (i.e. after the Leader clicks Start Task). Co-Leaders can
-                                      review subtasks but not create new ones. */}
                                     {isTeamLeader(task) && task.status === "in_progress" && (
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); openAddSubtaskModal(task); }}
-                                        className="btn-ghost w-full mt-3 h-8 text-xs font-bold flex items-center justify-center gap-1.5 border-border text-foreground/70 hover:text-foreground cursor-pointer"
-                                      >
+                                      <button onClick={(e) => { e.stopPropagation(); openAddSubtaskModal(task); }} className="btn-ghost w-full mt-3 h-8 text-xs font-bold flex items-center justify-center gap-1.5 border-border text-foreground/70 hover:text-foreground cursor-pointer">
                                         <UserPlus className="w-3 h-3" /> Add Subtask
                                       </button>
                                     )}
 
-                                    {/* FOCUS MODE — read-only badge for others, controls for the assignee */}
                                     {renderFocusCardBlock(task)}
 
-                                    {/* REVIEW ACTIONS (In Review Column) — Admin reviews everything;
-                                      Leaders/Co-Leaders review subtasks under teams they head. */}
                                     {canReviewTask(task) && (
-                                      <div className="grid grid-cols-3 gap-2 mt-3 pt-2 border-t border-border/40">
-                                        <button
-                                          onClick={(e) => { e.stopPropagation(); openInspectModal(task); }}
-                                          className="h-7 rounded-lg border border-border text-foreground/70 hover:bg-muted/60 text-xs font-bold flex items-center justify-center gap-1 cursor-pointer transition-colors"
-                                        >
-                                          <Eye className="w-3 h-3" /> Inspect
-                                        </button>
-                                        <button
-                                          onClick={(e) => { e.stopPropagation(); handleApproveTask(task.id); }}
-                                          className="h-7 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-bold flex items-center justify-center gap-1 cursor-pointer transition-colors"
-                                        >
+                                      <div className="grid grid-cols-2 gap-2 mt-3 pt-2 border-t border-border/40">
+                                        <button onClick={(e) => { e.stopPropagation(); handleApproveTask(task.id); }} className="h-7 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-bold flex items-center justify-center gap-1 cursor-pointer transition-colors">
                                           <CheckCircle2 className="w-3 h-3" /> Approve
                                         </button>
-                                        <button
-                                          onClick={(e) => { e.stopPropagation(); openRecheckModal(task); }}
-                                          className="h-7 rounded-lg border border-rose-500/40 text-rose-400 hover:bg-rose-500/10 text-xs font-bold flex items-center justify-center gap-1 cursor-pointer transition-colors"
-                                        >
+                                        <button onClick={(e) => { e.stopPropagation(); openRecheckModal(task); }} className="h-7 rounded-lg border border-rose-500/40 text-rose-400 hover:bg-rose-500/10 text-xs font-bold flex items-center justify-center gap-1 cursor-pointer transition-colors">
                                           <RotateCcw className="w-3 h-3" /> Recheck
                                         </button>
                                       </div>
@@ -2142,34 +1963,21 @@ export default function TaskBoard() {
       )}
 
       {/* ADD TASK MODAL */}
-      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+      <Dialog open={isAddOpen} onOpenChange={(o) => { if (!o) closeAddTaskModal(); }}>
         <DialogContent className="bg-card/95 border-border text-foreground sm:max-w-md backdrop-blur-md shadow-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add New Task</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleAddTask} className="space-y-4 mt-4">
 
-            {/* ADMIN/C-SUITE ONLY: Individual vs Team Task mode switch */}
             {isCSuiteOrAdmin && (
               <div className="space-y-2">
                 <label className="text-xs font-bold text-foreground/70 uppercase tracking-wider">Task Type</label>
                 <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setAssignMode("individual")}
-                    className={cn("h-9 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer",
-                      assignMode === "individual" ? "bg-primary border-primary text-foreground" : "border-border text-foreground/60 hover:bg-muted/60"
-                    )}
-                  >
+                  <button type="button" onClick={() => setAssignMode("individual")} className={cn("h-9 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer", assignMode === "individual" ? "bg-primary border-primary text-foreground" : "border-border text-foreground/60 hover:bg-muted/60")}>
                     <CheckSquare className="w-3.5 h-3.5" /> Individual
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setAssignMode("team")}
-                    className={cn("h-9 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer",
-                      assignMode === "team" ? "bg-primary border-primary text-foreground" : "border-border text-foreground/60 hover:bg-muted/60"
-                    )}
-                  >
+                  <button type="button" onClick={() => setAssignMode("team")} className={cn("h-9 rounded-lg border text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer", assignMode === "team" ? "bg-primary border-primary text-foreground" : "border-border text-foreground/60 hover:bg-muted/60")}>
                     <Users className="w-3.5 h-3.5" /> Team Task
                   </button>
                 </div>
@@ -2178,23 +1986,12 @@ export default function TaskBoard() {
 
             <div className="space-y-2">
               <label className="text-xs font-bold text-foreground/70 uppercase tracking-wider">Task Title</label>
-              <Input
-                required
-                placeholder="What needs to be done?"
-                value={newTask.title}
-                onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                className="border-border text-foreground placeholder:text-foreground/30"
-              />
+              <Input required placeholder="What needs to be done?" value={newTask.title} onChange={(e) => setNewTask({ ...newTask, title: e.target.value })} className="border-border text-foreground placeholder:text-foreground/30" />
             </div>
 
             <div className="space-y-2">
               <label className="text-xs font-bold text-foreground/70 uppercase tracking-wider">Description</label>
-              <Textarea
-                placeholder="Short description or details..."
-                value={newTask.description}
-                onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                className="border-border text-foreground placeholder:text-foreground/30 min-h-[70px]"
-              />
+              <Textarea placeholder="Short description or details..." value={newTask.description} onChange={(e) => setNewTask({ ...newTask, description: e.target.value })} className="border-border text-foreground placeholder:text-foreground/30 min-h-[70px]" />
             </div>
 
             {isCSuiteOrAdmin && assignMode === "team" ? (
@@ -2207,9 +2004,7 @@ export default function TaskBoard() {
                     {employeesList.map(emp => {
                       const checked = teamMemberIds.includes(emp.id);
                       return (
-                        <button
-                          type="button"
-                          key={emp.id}
+                        <button type="button" key={emp.id}
                           onClick={() => {
                             setTeamMemberIds(prev => checked ? prev.filter(id => id !== emp.id) : [...prev, emp.id]);
                             if (checked) {
@@ -2219,9 +2014,7 @@ export default function TaskBoard() {
                           }}
                           className="w-full flex items-center gap-2.5 text-left cursor-pointer group py-1"
                         >
-                          <span className={cn("w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors",
-                            checked ? "bg-primary border-primary" : "border-border group-hover:border-primary/50"
-                          )}>
+                          <span className={cn("w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors", checked ? "bg-primary border-primary" : "border-border group-hover:border-primary/50")}>
                             {checked && <Check className="w-2.5 h-2.5 text-foreground" />}
                           </span>
                           <span className="text-xs font-medium text-foreground/80">{emp.fullName} {emp.jobTitle ? `— ${emp.jobTitle}` : ""}</span>
@@ -2240,13 +2033,17 @@ export default function TaskBoard() {
                       {teamMemberIds.map(id => {
                         const emp = employeesList.find(e => e.id === id);
                         const isHead = teamHeadIds.includes(id);
+                        const isCurrentLeader = id === teamLeaderId;
                         return (
                           <button
                             type="button"
                             key={id}
+                            disabled={isCurrentLeader}
                             onClick={() => setTeamHeadIds(prev => isHead ? prev.filter(h => h !== id) : [...prev, id])}
+                            title={isCurrentLeader ? "This person is already the Team Leader" : undefined}
                             className={cn("px-2.5 h-7 rounded-lg border text-[11px] font-bold transition-colors cursor-pointer",
-                              isHead ? "bg-primary/10 border-primary/40 text-primary" : "border-border text-foreground/60 hover:bg-muted/60"
+                              isCurrentLeader ? "opacity-40 cursor-not-allowed border-border text-foreground/40" :
+                                isHead ? "bg-primary/10 border-primary/40 text-primary" : "border-border text-foreground/60 hover:bg-muted/60"
                             )}
                           >
                             {emp?.fullName || id}
@@ -2261,7 +2058,7 @@ export default function TaskBoard() {
                     {(() => {
                       const eligibleLeaderIds = teamMemberIds.filter(id => {
                         const emp = employeesList.find(e => e.id === id);
-                        return emp && isEligibleLeader(emp);
+                        return emp && isEligibleLeader(emp) && !teamHeadIds.includes(id);
                       });
                       if (eligibleLeaderIds.length === 0) {
                         return (
@@ -2271,7 +2068,7 @@ export default function TaskBoard() {
                         );
                       }
                       return (
-                        <Select value={teamLeaderId} onValueChange={(val) => setTeamLeaderId(val ?? "")}>
+                        <Select value={teamLeaderId} onValueChange={(val) => { setTeamLeaderId(val ?? ""); setTeamHeadIds(prev => prev.filter(id => id !== val)); }}>
                           <SelectTrigger className="w-full border-border text-foreground h-9">
                             <SelectValue placeholder="Select Team Leader" />
                           </SelectTrigger>
@@ -2284,6 +2081,25 @@ export default function TaskBoard() {
                         </Select>
                       );
                     })()}
+                    <div className="space-y-1.5 pt-3 border-t border-border/60 mt-3">
+                      <label className="text-xs font-bold text-foreground/70 uppercase tracking-wider flex items-center gap-1.5">
+                        <Eye className="w-3.5 h-3.5 text-primary" /> Monitoring Managers
+                      </label>
+                      <p className="text-[10px] text-foreground/45">Selected managers can view the complete team and subtask progress, but cannot edit, approve, or recheck it.</p>
+                      <div className="flex flex-wrap gap-2">
+                        {managers.map(manager => {
+                          const selected = monitorManagerIds.includes(manager.id);
+                          return (
+                            <button type="button" key={manager.id}
+                              onClick={() => setMonitorManagerIds(previous => selected ? previous.filter(id => id !== manager.id) : [...previous, manager.id])}
+                              className={cn("px-2.5 h-7 rounded-lg border text-[11px] font-bold transition-colors cursor-pointer", selected ? "bg-primary/10 border-primary/40 text-primary" : "border-border text-foreground/60 hover:bg-muted/60")}
+                            >
+                              {manager.fullName || manager.id}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                     <p className="text-[10px] text-foreground/45">Only Managers / Senior Employees can be Team Leader. Every selected member — Leader, Co-Leaders, and regular members — gets notified by mail.</p>
                   </div>
                 )}
@@ -2292,62 +2108,34 @@ export default function TaskBoard() {
               <div className="space-y-2">
                 <label className="text-xs font-bold text-foreground/70 uppercase tracking-wider">Assign To</label>
                 {isCSuiteOrAdmin ? (
-                  <Select
-                    value={newTask.assignedTo || currentAssigneeId || user?.uid || ""}
-                    onValueChange={(val) => setNewTask({ ...newTask, assignedTo: val ?? "" })}
-                  >
-                    <SelectTrigger className="w-full border-border text-foreground h-9">
-                      <SelectValue placeholder="Select Employee" />
-                    </SelectTrigger>
+                  <Select value={newTask.assignedTo || currentAssigneeId || user?.uid || ""} onValueChange={(val) => setNewTask({ ...newTask, assignedTo: val ?? "" })}>
+                    <SelectTrigger className="w-full border-border text-foreground h-9"><SelectValue placeholder="Select Employee" /></SelectTrigger>
                     <SelectContent className="bg-background border-border text-foreground max-h-60 overflow-y-auto">
                       <SelectItem value={currentAssigneeId || user?.uid || ""}>Assign to me</SelectItem>
                       {Object.entries(employeesByDept).map(([dept, emps]) => (
                         <SelectGroup key={dept}>
                           <SelectLabel className="font-bold text-primary">{dept}</SelectLabel>
-                          {emps.map(emp => (
-                            <SelectItem key={emp.id} value={emp.id}>
-                              {emp.fullName} {emp.jobTitle ? `- ${emp.jobTitle}` : ""}
-                            </SelectItem>
-                          ))}
+                          {emps.map(emp => <SelectItem key={emp.id} value={emp.id}>{emp.fullName} {emp.jobTitle ? `- ${emp.jobTitle}` : ""}</SelectItem>)}
                         </SelectGroup>
                       ))}
                     </SelectContent>
                   </Select>
                 ) : isManagerOrSenior ? (
-                  <Select
-                    value={newTask.assignedTo || currentAssigneeId || user?.uid || ""}
-                    onValueChange={(val) => setNewTask({ ...newTask, assignedTo: val ?? "" })}
-                  >
-                    <SelectTrigger className="w-full border-border text-foreground h-9">
-                      <SelectValue placeholder="Select Myself or Junior" />
-                    </SelectTrigger>
+                  <Select value={newTask.assignedTo || currentAssigneeId || user?.uid || ""} onValueChange={(val) => setNewTask({ ...newTask, assignedTo: val ?? "" })}>
+                    <SelectTrigger className="w-full border-border text-foreground h-9"><SelectValue placeholder="Select Myself or Junior" /></SelectTrigger>
                     <SelectContent className="bg-background border-border text-foreground max-h-60 overflow-y-auto">
-                      <SelectItem value={currentAssigneeId || user?.uid || ""}>
-                        Assign to me
-                      </SelectItem>
+                      <SelectItem value={currentAssigneeId || user?.uid || ""}>Assign to me</SelectItem>
                       <SelectGroup>
                         <SelectLabel className="font-bold text-primary">Junior Team Members</SelectLabel>
-                        {juniorEmployees.map(emp => (
-                          <SelectItem key={emp.id} value={emp.id}>
-                            {emp.fullName} {emp.jobTitle ? `- ${emp.jobTitle}` : ""}
-                          </SelectItem>
-                        ))}
+                        {juniorEmployees.map(emp => <SelectItem key={emp.id} value={emp.id}>{emp.fullName} {emp.jobTitle ? `- ${emp.jobTitle}` : ""}</SelectItem>)}
                       </SelectGroup>
                     </SelectContent>
                   </Select>
                 ) : (
-                  <Select
-                    value={currentAssigneeId || user?.uid || ""}
-                    disabled={true}
-                    onValueChange={(val) => setNewTask({ ...newTask, assignedTo: val as string })}
-                  >
-                    <SelectTrigger className="w-full border-border text-foreground h-9 bg-muted/30 cursor-not-allowed">
-                      <SelectValue placeholder="Assign to me" />
-                    </SelectTrigger>
+                  <Select value={currentAssigneeId || user?.uid || ""} disabled={true} onValueChange={(val) => setNewTask({ ...newTask, assignedTo: val as string })}>
+                    <SelectTrigger className="w-full border-border text-foreground h-9 bg-muted/30 cursor-not-allowed"><SelectValue placeholder="Assign to me" /></SelectTrigger>
                     <SelectContent className="bg-background border-border text-foreground">
-                      <SelectItem value={currentAssigneeId || user?.uid || ""}>
-                        Assign to me
-                      </SelectItem>
+                      <SelectItem value={currentAssigneeId || user?.uid || ""}>Assign to me</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
@@ -2357,46 +2145,24 @@ export default function TaskBoard() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-xs font-bold text-foreground/70 uppercase tracking-wider">Priority</label>
-                <Select
-                  value={newTask.priority}
-                  onValueChange={(val) => setNewTask({ ...newTask, priority: val as TaskPriority })}
-                >
-                  <SelectTrigger className="w-full border-border text-foreground h-9">
-                    <SelectValue placeholder="Priority" />
-                  </SelectTrigger>
+                <Select value={newTask.priority} onValueChange={(val) => setNewTask({ ...newTask, priority: val as TaskPriority })}>
+                  <SelectTrigger className="w-full border-border text-foreground h-9"><SelectValue placeholder="Priority" /></SelectTrigger>
                   <SelectContent className="bg-background border-border text-foreground">
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="normal">Normal</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="urgent">Urgent</SelectItem>
+                    <SelectItem value="Low">Low</SelectItem>
+                    <SelectItem value="Normal">Normal</SelectItem>
+                    <SelectItem value="High">High</SelectItem>
+                    <SelectItem value="Urgent">Urgent</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-foreground/70 uppercase tracking-wider">Due Date</label>
-                <Input
-                  type="date"
-                  value={newTask.dueDate}
-                  onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
-                  className="border-border text-foreground placeholder:text-foreground/30"
-                  style={{ colorScheme: "dark" }}
-                />
+                <Input type="date" value={newTask.dueDate} onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })} className="border-border text-foreground placeholder:text-foreground/30" style={{ colorScheme: "dark" }} />
               </div>
             </div>
             <DialogFooter className="mt-6 border-t-0 pt-4">
-              <button
-                type="button"
-                onClick={() => setIsAddOpen(false)}
-                className="px-4 py-2 text-sm font-bold text-foreground/70 hover:text-foreground transition-colors"
-                disabled={isSubmitting}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting || (isCSuiteOrAdmin && assignMode === "team" && (teamMemberIds.length === 0 || !teamLeaderId || !isEligibleLeader(employeesList.find(e => e.id === teamLeaderId))))}
-                className="px-4 py-2 text-sm font-bold bg-primary hover:bg-primary text-foreground rounded-lg transition-colors flex items-center justify-center disabled:opacity-50"
-              >
+              <button type="button" onClick={closeAddTaskModal} className="px-4 py-2 text-sm font-bold text-foreground/70 hover:text-foreground transition-colors" disabled={isSubmitting}>Cancel</button>
+              <button type="submit" disabled={isSubmitting || (isCSuiteOrAdmin && assignMode === "team" && (teamMemberIds.length === 0 || !teamLeaderId || !isEligibleLeader(employeesList.find(e => e.id === teamLeaderId))))} className="px-4 py-2 text-sm font-bold bg-primary hover:bg-primary text-foreground rounded-lg transition-colors flex items-center justify-center disabled:opacity-50">
                 {isSubmitting ? "Adding..." : "Add Task"}
               </button>
             </DialogFooter>
@@ -2419,34 +2185,18 @@ export default function TaskBoard() {
 
             <div className="space-y-2">
               <label className="text-xs font-bold text-foreground/70 uppercase tracking-wider">Subtask Title</label>
-              <Input
-                required
-                placeholder="What needs to be done?"
-                value={newSubtask.title}
-                onChange={(e) => setNewSubtask({ ...newSubtask, title: e.target.value })}
-                className="border-border text-foreground placeholder:text-foreground/30"
-              />
+              <Input required placeholder="What needs to be done?" value={newSubtask.title} onChange={(e) => setNewSubtask({ ...newSubtask, title: e.target.value })} className="border-border text-foreground placeholder:text-foreground/30" />
             </div>
 
             <div className="space-y-2">
               <label className="text-xs font-bold text-foreground/70 uppercase tracking-wider">Description</label>
-              <Textarea
-                placeholder="Short description or details..."
-                value={newSubtask.description}
-                onChange={(e) => setNewSubtask({ ...newSubtask, description: e.target.value })}
-                className="border-border text-foreground placeholder:text-foreground/30 min-h-[60px]"
-              />
+              <Textarea placeholder="Short description or details..." value={newSubtask.description} onChange={(e) => setNewSubtask({ ...newSubtask, description: e.target.value })} className="border-border text-foreground placeholder:text-foreground/30 min-h-[60px]" />
             </div>
 
             <div className="space-y-2">
               <label className="text-xs font-bold text-foreground/70 uppercase tracking-wider">Assign To</label>
-              <Select
-                value={newSubtask.assignedTo}
-                onValueChange={(val) => setNewSubtask({ ...newSubtask, assignedTo: val ?? "" })}
-              >
-                <SelectTrigger className="w-full border-border text-foreground h-9">
-                  <SelectValue placeholder="Select Team Member" />
-                </SelectTrigger>
+              <Select value={newSubtask.assignedTo} onValueChange={(val) => setNewSubtask({ ...newSubtask, assignedTo: val ?? "" })}>
+                <SelectTrigger className="w-full border-border text-foreground h-9"><SelectValue placeholder="Select Team Member" /></SelectTrigger>
                 <SelectContent className="bg-background border-border text-foreground max-h-60 overflow-y-auto">
                   {(subtaskParent ? assignableSubtaskTargets(subtaskParent) : []).map(id => {
                     const emp = employeesList.find(e => e.id === id);
@@ -2471,61 +2221,42 @@ export default function TaskBoard() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-xs font-bold text-foreground/70 uppercase tracking-wider">Priority</label>
-                <Select
-                  value={newSubtask.priority}
-                  onValueChange={(val) => setNewSubtask({ ...newSubtask, priority: val as TaskPriority })}
-                >
-                  <SelectTrigger className="w-full border-border text-foreground h-9">
-                    <SelectValue placeholder="Priority" />
-                  </SelectTrigger>
+                <Select value={newSubtask.priority} onValueChange={(val) => setNewSubtask({ ...newSubtask, priority: val as TaskPriority })}>
+                  <SelectTrigger className="w-full border-border text-foreground h-9"><SelectValue placeholder="Priority" /></SelectTrigger>
                   <SelectContent className="bg-background border-border text-foreground">
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="normal">Normal</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="urgent">Urgent</SelectItem>
+                    <SelectItem value="Low">Low</SelectItem>
+                    <SelectItem value="Normal">Normal</SelectItem>
+                    <SelectItem value="High">High</SelectItem>
+                    <SelectItem value="Urgent">Urgent</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+              {/* FIX 2: Due date input with max constraint + error display */}
               <div className="space-y-2">
                 <label className="text-xs font-bold text-foreground/70 uppercase tracking-wider">Due Date</label>
                 <Input
                   type="date"
                   value={newSubtask.dueDate}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setNewSubtask({ ...newSubtask, dueDate: val });
-                    if (subtaskParent?.dueDate && val > subtaskParent.dueDate) {
-                      setSubtaskError(`Due date cannot exceed parent task's due date (${subtaskParent.dueDate})`);
-                    } else {
-                      setSubtaskError("");
-                    }
-                  }}
+                  min={new Date().toISOString().split("T")[0]}
                   max={subtaskParent?.dueDate || undefined}
+                  onChange={(e) => {
+                    setSubtaskDateError("");
+                    setNewSubtask({ ...newSubtask, dueDate: e.target.value });
+                  }}
                   className="border-border text-foreground placeholder:text-foreground/30"
                   style={{ colorScheme: "dark" }}
                 />
+                {subtaskDateError && (
+                  <p className="text-[10px] font-medium text-rose-400 flex items-center gap-1 mt-1">
+                    <AlertTriangle className="w-3 h-3" /> {subtaskDateError}
+                  </p>
+                )}
               </div>
             </div>
-            {subtaskError && (
-              <p className="text-xs font-bold text-rose-400 flex items-center gap-1 mt-2">
-                <AlertTriangle className="w-3.5 h-3.5" /> {subtaskError}
-              </p>
-            )}
 
             <DialogFooter className="mt-6 border-t-0 pt-4">
-              <button
-                type="button"
-                onClick={() => setIsAddSubtaskOpen(false)}
-                className="px-4 py-2 text-sm font-bold text-foreground/70 hover:text-foreground transition-colors"
-                disabled={isSubmittingSubtask}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmittingSubtask || !newSubtask.assignedTo}
-                className="px-4 py-2 text-sm font-bold bg-primary hover:bg-primary text-foreground rounded-lg transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
-              >
+              <button type="button" onClick={() => setIsAddSubtaskOpen(false)} className="px-4 py-2 text-sm font-bold text-foreground/70 hover:text-foreground transition-colors" disabled={isSubmittingSubtask}>Cancel</button>
+              <button type="submit" disabled={isSubmittingSubtask || !newSubtask.assignedTo} className="px-4 py-2 text-sm font-bold bg-primary hover:bg-primary text-foreground rounded-lg transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50">
                 <UserPlus className="w-3.5 h-3.5" /> {isSubmittingSubtask ? "Assigning..." : "Assign Subtask"}
               </button>
             </DialogFooter>
@@ -2548,13 +2279,10 @@ export default function TaskBoard() {
                 {focusTasks.find(t => t.id === selectedFocusTaskId)?.title || "—"}
               </div>
             </div>
-
             <div className="space-y-2">
               <label className="text-xs font-bold text-foreground/70 uppercase tracking-wider">Choose Session Duration</label>
               <Select value={focusDurationChoice} onValueChange={(val) => setFocusDurationChoice(val as "25" | "50" | "none")}>
-                <SelectTrigger className="w-full border-border text-foreground h-9">
-                  <SelectValue placeholder="Duration" />
-                </SelectTrigger>
+                <SelectTrigger className="w-full border-border text-foreground h-9"><SelectValue placeholder="Duration" /></SelectTrigger>
                 <SelectContent className="bg-background border-border text-foreground">
                   <SelectItem value="25">25 Minutes</SelectItem>
                   <SelectItem value="50">50 Minutes</SelectItem>
@@ -2562,39 +2290,21 @@ export default function TaskBoard() {
                 </SelectContent>
               </Select>
             </div>
-
             <div className="space-y-2">
               <label className="text-xs font-bold text-foreground/70 uppercase tracking-wider">Optional Notes</label>
-              <Textarea
-                placeholder="Seed your Quick Notes for this session..."
-                value={focusStartNotes}
-                onChange={(e) => setFocusStartNotes(e.target.value)}
-                className="border-border text-foreground placeholder:text-foreground/30 min-h-[70px]"
-              />
+              <Textarea placeholder="Seed your Quick Notes for this session..." value={focusStartNotes} onChange={(e) => setFocusStartNotes(e.target.value)} className="border-border text-foreground placeholder:text-foreground/30 min-h-[70px]" />
             </div>
           </div>
           <DialogFooter className="mt-6 border-t-0 pt-4">
-            <button
-              type="button"
-              onClick={() => setIsStartFocusOpen(false)}
-              className="px-4 py-2 text-sm font-bold text-foreground/70 hover:text-foreground transition-colors"
-              disabled={isStartingFocus}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleConfirmStartFocus}
-              disabled={isStartingFocus || !selectedFocusTaskId}
-              className="px-4 py-2 text-sm font-bold bg-primary hover:bg-primary text-foreground rounded-lg transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
-            >
+            <button type="button" onClick={() => setIsStartFocusOpen(false)} className="px-4 py-2 text-sm font-bold text-foreground/70 hover:text-foreground transition-colors" disabled={isStartingFocus}>Cancel</button>
+            <button type="button" onClick={handleConfirmStartFocus} disabled={isStartingFocus || !selectedFocusTaskId} className="px-4 py-2 text-sm font-bold bg-primary hover:bg-primary text-foreground rounded-lg transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50">
               <Target className="w-3.5 h-3.5" /> {isStartingFocus ? "Starting..." : "Start Focus"}
             </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* EXIT FOCUS MODE CONFIRMATION (accessible from a paused card on the normal board) */}
+      {/* EXIT FOCUS MODE CONFIRMATION */}
       <Dialog open={!!exitFocusTarget} onOpenChange={(o) => !o && setExitFocusTarget(null)}>
         <DialogContent className="bg-card/95 border-border text-foreground sm:max-w-sm backdrop-blur-md shadow-2xl">
           <DialogHeader>
@@ -2602,77 +2312,51 @@ export default function TaskBoard() {
               <AlertTriangle className="w-4 h-4" /> Exit Focus Mode?
             </DialogTitle>
           </DialogHeader>
-          <p className="text-xs text-foreground/60 mt-2 leading-relaxed">
-            This session's progress will be discarded. The task will stay in In Progress, with no focus stats attached.
-          </p>
+          <p className="text-xs text-foreground/60 mt-2 leading-relaxed">This session's progress will be discarded. The task will stay in In Progress, with no focus stats attached.</p>
           <DialogFooter className="mt-6 border-t-0 pt-2">
-            <button
-              type="button"
-              onClick={() => setExitFocusTarget(null)}
-              className="px-4 py-2 text-sm font-bold text-foreground/70 hover:text-foreground transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={() => exitFocusTarget && handleExitFocusSession(exitFocusTarget)}
-              className="px-4 py-2 text-sm font-bold bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors flex items-center justify-center gap-1.5"
-            >
+            <button type="button" onClick={() => setExitFocusTarget(null)} className="px-4 py-2 text-sm font-bold text-foreground/70 hover:text-foreground transition-colors">Cancel</button>
+            <button type="button" onClick={() => exitFocusTarget && handleExitFocusSession(exitFocusTarget)} className="px-4 py-2 text-sm font-bold bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors flex items-center justify-center gap-1.5">
               <LogOut className="w-3.5 h-3.5" /> Exit Focus Mode
             </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* TASK DETAILS & REMARKS DRAWER (WITH BLUR BACKDROP) */}
+      {/* TASK DETAILS DRAWER */}
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
         <DialogContent className="bg-card/95 border-border text-foreground sm:max-w-lg backdrop-blur-md shadow-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <span className="badge border border-border text-foreground/50 text-xs font-bold py-0.5 uppercase tracking-wider">
-                {activeTask?.projectName || "General"}
-              </span>
+              <span className="badge border border-border text-foreground/50 text-xs font-bold py-0.5 uppercase tracking-wider">{activeTask?.projectName || "General"}</span>
               <div className={`w-1.5 h-1.5 rounded-full ${activeTask ? PRIORITY_COLORS[activeTask.priority] : ''}`} />
-              <span className="text-xs font-bold uppercase text-foreground/40">{activeTask?.priority} Priority</span>
+              <span className="text-xs font-bold text-foreground/40">{activeTask ? capitalizeWord(activeTask.priority) : ""} Priority</span>
               {activeTask && <StatusBadge status={activeTask.status} />}
             </div>
-            <DialogTitle className="text-base font-extrabold text-foreground leading-tight">
-              {activeTask?.title}
-            </DialogTitle>
+            <DialogTitle className="text-base font-extrabold text-foreground leading-tight">{activeTask?.title}</DialogTitle>
             {activeTask && renderTeamTaskBadge(activeTask)}
             {activeTask && renderSubtaskBadge(activeTask)}
           </DialogHeader>
 
           <div className="space-y-4 mt-3">
             {activeTask?.description && (
-              <div className="p-3 border border-border/80 bg-background/50 rounded-xl text-xs text-foreground/80 leading-relaxed">
-                {activeTask.description}
-              </div>
+              <div className="p-3 border border-border/80 bg-background/50 rounded-xl text-xs text-foreground/80 leading-relaxed">{activeTask.description}</div>
             )}
 
             <div className="grid grid-cols-3 gap-2 border border-border p-3 rounded-xl text-xs">
               <div>
                 <span className="text-foreground/40 block mb-0.5">Assigned To:</span>
-                <span className="font-bold text-foreground flex items-center gap-1">
-                  {activeTask ? (employeesList.find(e => e.id === activeTask.assignedTo)?.fullName || "Unassigned") : "Unassigned"}
-                </span>
+                <span className="font-bold text-foreground">{activeTask ? (employeesList.find(e => e.id === activeTask.assignedTo)?.fullName || "Unassigned") : "Unassigned"}</span>
               </div>
               <div>
                 <span className="text-foreground/40 block mb-0.5">Time Spent:</span>
-                <span className="font-bold text-foreground flex items-center gap-1">
-                  <Clock className="w-3 h-3 text-primary" />
-                  {activeTask?.timeSpent || "0h"}
-                </span>
+                <span className="font-bold text-foreground flex items-center gap-1"><Clock className="w-3 h-3 text-primary" />{activeTask?.timeSpent || "0h"}</span>
               </div>
               <div>
                 <span className="text-foreground/40 block mb-0.5">Due Date:</span>
-                <span className="font-bold text-foreground flex items-center gap-1">
-                  {activeTask?.dueDate ? new Date(activeTask.dueDate).toLocaleDateString() : "No deadline"}
-                </span>
+                <span className="font-bold text-foreground">{activeTask?.dueDate ? new Date(activeTask.dueDate).toLocaleDateString() : "No deadline"}</span>
               </div>
             </div>
 
-            {/* Team Task roster — visible to everyone who can open this task */}
             {activeTask?.isTeamTask && (
               <div className="border border-border rounded-xl p-3">
                 <h4 className="text-xs font-bold text-foreground/70 uppercase tracking-wider mb-2 flex items-center gap-1.5">
@@ -2694,8 +2378,6 @@ export default function TaskBoard() {
                   })}
                 </div>
 
-                {/* Progress — scoped per role: Leader/Admin see everyone,
-                    Co-Leader sees employees, everyone else sees the aggregate only. */}
                 {(() => {
                   const scope = getProgressScope(activeTask);
                   if (!scope) return null;
@@ -2743,15 +2425,9 @@ export default function TaskBoard() {
                             {memberSubtasks.length > 0 && (
                               <div className="mt-1.5 space-y-1">
                                 {memberSubtasks.map(st => (
-                                  <button
-                                    key={st.id}
-                                    type="button"
-                                    onClick={() => openInspectModal(st)}
-                                    className="w-full flex items-center justify-between gap-2 text-[10.5px] text-foreground/50 hover:text-foreground/80 py-0.5 cursor-pointer transition-colors"
-                                  >
-                                    <span className="truncate flex items-center gap-1">
-                                      <Eye className="w-2.5 h-2.5 shrink-0" /> {st.title}
-                                    </span>
+                                  <button key={st.id} type="button" onClick={() => openInspectModal(st)}
+                                    className="w-full flex items-center justify-between gap-2 text-[10.5px] text-foreground/50 hover:text-foreground/80 py-0.5 cursor-pointer transition-colors">
+                                    <span className="truncate flex items-center gap-1"><Eye className="w-2.5 h-2.5 shrink-0" /> {st.title}</span>
                                     <StatusBadge status={st.status} />
                                   </button>
                                 ))}
@@ -2764,28 +2440,20 @@ export default function TaskBoard() {
                   );
                 })()}
 
-                {/* Leader ONLY, and only once the team task is In Progress. */}
                 {isTeamLeader(activeTask) && activeTask.status === "in_progress" && (
-                  <button
-                    onClick={() => openAddSubtaskModal(activeTask)}
-                    className="btn-primary w-full h-9 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer mt-3"
-                  >
+                  <button onClick={() => openAddSubtaskModal(activeTask)} className="btn-primary w-full h-9 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer mt-3">
                     <UserPlus className="w-3.5 h-3.5" /> Add Subtask
                   </button>
                 )}
                 {isTeamLeader(activeTask) && activeTask.status !== "in_progress" && (
-                  <p className="text-[10px] text-foreground/45 mt-3">
-                    Click <span className="font-bold">Start Task</span> to move this team task to In Progress before assigning subtasks.
-                  </p>
+                  <p className="text-[10px] text-foreground/45 mt-3">Click <span className="font-bold">Start Task</span> to move this team task to In Progress before assigning subtasks.</p>
                 )}
               </div>
             )}
 
             {activeTask?.feedback && (
               <div className="border border-rose-500/40 bg-rose-950/40 rounded-xl p-3 text-xs text-rose-300 font-medium space-y-1">
-                <div className="flex items-center gap-1.5 font-bold text-rose-400">
-                  <AlertTriangle className="w-4 h-4" /> Sent Back for Recheck:
-                </div>
+                <div className="flex items-center gap-1.5 font-bold text-rose-400"><AlertTriangle className="w-4 h-4" /> Sent Back for Recheck:</div>
                 <p className="leading-relaxed pl-5">{activeTask.feedback}</p>
               </div>
             )}
@@ -2803,7 +2471,6 @@ export default function TaskBoard() {
               </div>
             )}
 
-            {/* Attachments — HIDDEN for Backlog */}
             {activeTask?.status !== "backlog" && (
               <div>
                 <h4 className="text-xs font-bold text-foreground/70 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
@@ -2816,32 +2483,18 @@ export default function TaskBoard() {
                       return (
                         <div key={`${attachment.name}-${i}`} className="flex items-center gap-2 text-foreground/80 py-1">
                           <Paperclip className="w-3 h-3 shrink-0 text-primary" />
-                          {attachment.url ? (
-                            <a href={attachment.url} target="_blank" rel="noreferrer" className="truncate text-primary hover:underline">
-                              {attachment.name}
-                            </a>
-                          ) : (
-                            <span className="truncate">{attachment.name}</span>
-                          )}
+                          {attachment.url ? <a href={attachment.url} target="_blank" rel="noreferrer" className="truncate text-primary hover:underline">{attachment.name}</a> : <span className="truncate">{attachment.name}</span>}
                         </div>
                       );
                     })
-                  ) : (
-                    "No attachments uploaded."
-                  )}
+                  ) : "No attachments uploaded."}
                 </div>
                 {activeTask?.status === "in_progress" && isOwner(activeTask) && (
                   <div className="mt-2">
                     <label className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded-lg border border-primary/40 px-3 text-xs font-bold text-primary transition-colors hover:bg-primary/10">
                       <Paperclip className="h-3.5 w-3.5" />
                       {isUploadingAttachment ? "Uploading…" : "Attach file"}
-                      <input
-                        type="file"
-                        className="sr-only"
-                        accept=".pdf,.docx,.xlsx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                        onChange={handleAttachmentUpload}
-                        disabled={isUploadingAttachment}
-                      />
+                      <input type="file" className="sr-only" accept=".pdf,.docx,.xlsx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" onChange={handleAttachmentUpload} disabled={isUploadingAttachment} />
                     </label>
                     <p className="mt-1.5 text-[10px] text-foreground/45">PDF, DOCX, or XLSX — up to 10 MB.</p>
                     {attachmentError && <p className="mt-1 text-[10px] font-medium text-rose-400">{attachmentError}</p>}
@@ -2850,24 +2503,22 @@ export default function TaskBoard() {
               </div>
             )}
 
-            {/* Remarks & Progress Log — HIDDEN for Backlog */}
             {activeTask?.status !== "backlog" && (
               <div>
                 <h3 className="text-xs font-bold text-foreground/70 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <MessageSquare className="w-3.5 h-3.5 text-primary" /> Remarks & Progress Logs ({activeTask?.remarks?.length || 0})
+                  <MessageSquare className="w-3.5 h-3.5 text-primary" /> Remarks & Progress Logs ({activeRemarkEntries.length})
                 </h3>
                 <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
-                  {!activeTask?.remarks || activeTask.remarks.length === 0 ? (
-                    <div className="text-center py-4 text-foreground/20 text-xs font-medium border border-border border-dashed rounded-xl">
-                      No remarks logged yet.
-                    </div>
+                  {activeRemarkEntries.length === 0 ? (
+                    <div className="text-center py-4 text-foreground/20 text-xs font-medium border border-border border-dashed rounded-xl">No remarks you can view yet.</div>
                   ) : (
-                    activeTask.remarks.map((remark) => (
-                      <div key={remark.id} className="border border-border p-2.5 rounded-xl">
+                    activeRemarkEntries.map(({ remark, sourceTitle }) => (
+                      <div key={`${sourceTitle || "main"}-${remark.id}`} className="border border-border p-2.5 rounded-xl">
                         <div className="flex justify-between items-center mb-1 text-xs font-bold uppercase">
                           <span className="text-primary">{remark.authorName}</span>
                           <span className="text-foreground/30 text-[10px]">{new Date(remark.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
+                        {sourceTitle && <p className="text-[10px] text-foreground/45 mb-1">Subtask: {sourceTitle}</p>}
                         <p className="text-xs text-foreground/80 leading-relaxed font-medium">{remark.text}</p>
                       </div>
                     ))
@@ -2876,45 +2527,27 @@ export default function TaskBoard() {
               </div>
             )}
 
-            {/* Add Remark Form — HIDDEN for Backlog & locked tasks */}
-            {activeTask && activeTask.status !== "backlog" && !isLocked(activeTask) && (
+            {activeTask && activeTask.status !== "backlog" && canAddRemark(activeTask) && (
               <form onSubmit={handleAddRemark} className="space-y-2 border-t border-border pt-3">
                 <label className="text-xs font-bold text-foreground/40 uppercase tracking-wider block">Add Progress Remark</label>
                 <div className="flex gap-2">
-                  <input
-                    required
-                    placeholder="Describe progress, blockers, or notes..."
-                    value={newRemark}
-                    onChange={(e) => setNewRemark(e.target.value)}
-                    className="flex-grow h-9 rounded-lg border border-border px-3 py-1 text-xs text-foreground placeholder:text-foreground/30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary"
-                  />
-                  <button
-                    type="submit"
-                    disabled={isSubmittingRemark || !newRemark.trim()}
-                    className="px-3 h-9 bg-primary hover:bg-primary disabled:opacity-50 text-foreground rounded-lg text-xs font-bold transition-colors cursor-pointer flex items-center justify-center"
-                  >
+                  <input required placeholder="Describe progress, blockers, or notes..." value={newRemark} onChange={(e) => setNewRemark(e.target.value)} className="flex-grow h-9 rounded-lg border border-border px-3 py-1 text-xs text-foreground placeholder:text-foreground/30 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary" />
+                  <button type="submit" disabled={isSubmittingRemark || !newRemark.trim()} className="px-3 h-9 bg-primary hover:bg-primary disabled:opacity-50 text-foreground rounded-lg text-xs font-bold transition-colors cursor-pointer flex items-center justify-center">
                     {isSubmittingRemark ? "..." : "Log"}
                   </button>
                 </div>
               </form>
             )}
 
-            {/* Employee Actions in Drawer */}
             {activeTask?.status === "backlog" && isOwner(activeTask) && (
-              <button
-                onClick={() => handleStartTask(activeTask.id)}
-                className="btn-primary w-full h-10 text-sm font-bold flex items-center justify-center gap-2 cursor-pointer mt-2"
-              >
+              <button onClick={() => handleStartTask(activeTask.id)} className="btn-primary w-full h-10 text-sm font-bold flex items-center justify-center gap-2 cursor-pointer mt-2">
                 <Play className="w-4 h-4 fill-current" /> Start Task
               </button>
             )}
             {activeTask?.status === "in_progress" && isOwner(activeTask) && !activeTask.focusSession && (
               activeTask.isTeamTask && !activeTask.parentTaskId ? (
                 (progressTasks.length === 0 || progressTasks.every(st => st.status === "done")) ? (
-                  <button
-                    onClick={() => openSubmitReviewConfirm(activeTask)}
-                    className="btn-primary w-full h-10 text-sm font-bold flex items-center justify-center gap-2 cursor-pointer mt-2"
-                  >
+                  <button onClick={() => openSubmitReviewConfirm(activeTask)} className="btn-primary w-full h-10 text-sm font-bold flex items-center justify-center gap-2 cursor-pointer mt-2">
                     <Send className="w-4 h-4" /> Submit Team Task
                   </button>
                 ) : (
@@ -2924,36 +2557,19 @@ export default function TaskBoard() {
                   </div>
                 )
               ) : (
-                <button
-                  onClick={() => openSubmitReviewConfirm(activeTask)}
-                  className="btn-primary w-full h-10 text-sm font-bold flex items-center justify-center gap-2 cursor-pointer mt-2"
-                >
+                <button onClick={() => openSubmitReviewConfirm(activeTask)} className="btn-primary w-full h-10 text-sm font-bold flex items-center justify-center gap-2 cursor-pointer mt-2">
                   <Send className="w-4 h-4" /> Completed Task
                 </button>
               )
             )}
             {activeTask && renderFocusCardBlock(activeTask)}
 
-            {/* Review Actions in Drawer — Admin reviews everything; Leaders/
-                Co-Leaders review subtasks under teams they head. */}
             {activeTask && canReviewTask(activeTask) && (
-              <div className="grid grid-cols-3 gap-3 mt-3 pt-2 border-t border-border">
-                <button
-                  onClick={() => openInspectModal(activeTask)}
-                  className="h-10 rounded-xl border border-border text-foreground/70 hover:bg-muted/60 text-sm font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
-                >
-                  <Eye className="w-4 h-4" /> Inspect
-                </button>
-                <button
-                  onClick={() => handleApproveTask(activeTask.id)}
-                  className="h-10 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-sm font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
-                >
+              <div className="grid grid-cols-2 gap-3 mt-3 pt-2 border-t border-border">
+                <button onClick={() => handleApproveTask(activeTask.id)} className="h-10 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-sm font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors">
                   <CheckCircle2 className="w-4 h-4" /> Approve Task
                 </button>
-                <button
-                  onClick={() => openRecheckModal(activeTask)}
-                  className="h-10 rounded-xl border border-rose-500/40 text-rose-400 hover:bg-rose-500/10 text-sm font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors"
-                >
+                <button onClick={() => openRecheckModal(activeTask)} className="h-10 rounded-xl border border-rose-500/40 text-rose-400 hover:bg-rose-500/10 text-sm font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors">
                   <RotateCcw className="w-4 h-4" /> Send for Recheck
                 </button>
               </div>
@@ -2962,7 +2578,7 @@ export default function TaskBoard() {
         </DialogContent>
       </Dialog>
 
-      {/* SUBMIT FOR REVIEW CONFIRMATION DIALOG (Employee) */}
+      {/* SUBMIT FOR REVIEW CONFIRMATION */}
       <Dialog open={isSubmitReviewOpen} onOpenChange={setIsSubmitReviewOpen}>
         <DialogContent className="bg-card/95 border-border text-foreground sm:max-w-sm backdrop-blur-md shadow-2xl">
           <DialogHeader>
@@ -2974,27 +2590,15 @@ export default function TaskBoard() {
               : <>Are you sure you want to mark <span className="font-bold text-foreground">{activeTask?.title}</span> as completed and submit it for review?</>}
           </p>
           <DialogFooter className="mt-6 border-t-0 pt-2">
-            <button
-              type="button"
-              onClick={() => setIsSubmitReviewOpen(false)}
-              className="px-4 py-2 text-sm font-bold text-foreground/70 hover:text-foreground transition-colors"
-              disabled={isSubmittingReview}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleConfirmSubmitForReview}
-              disabled={isSubmittingReview}
-              className="px-4 py-2 text-sm font-bold bg-primary hover:bg-primary text-foreground rounded-lg transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
-            >
+            <button type="button" onClick={() => setIsSubmitReviewOpen(false)} className="px-4 py-2 text-sm font-bold text-foreground/70 hover:text-foreground transition-colors" disabled={isSubmittingReview}>Cancel</button>
+            <button type="button" onClick={handleConfirmSubmitForReview} disabled={isSubmittingReview} className="px-4 py-2 text-sm font-bold bg-primary hover:bg-primary text-foreground rounded-lg transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50">
               <Send className="w-3.5 h-3.5" /> {isSubmittingReview ? "Submitting..." : (activeTask && isSelfAssignedByLeader(activeTask) ? "Mark Done" : "Submit Task")}
             </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* RECHECK MODAL (Admin) */}
+      {/* RECHECK MODAL */}
       <Dialog open={isRecheckOpen} onOpenChange={setIsRecheckOpen}>
         <DialogContent className="bg-card/95 border-border text-foreground sm:max-w-md backdrop-blur-md shadow-2xl">
           <DialogHeader>
@@ -3003,18 +2607,8 @@ export default function TaskBoard() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 mt-2">
-            <p className="text-xs text-foreground/60 leading-relaxed">
-              Let the employee know exactly what needs to be modified before resubmitting.
-            </p>
-            <Textarea
-              placeholder="Explain what needs to be changed or fixed..."
-              value={recheckFeedback}
-              onChange={(e) => {
-                setRecheckFeedback(e.target.value);
-                if (e.target.value.trim()) setRecheckError(false);
-              }}
-              className="border-border text-foreground placeholder:text-foreground/30 min-h-[100px] text-xs"
-            />
+            <p className="text-xs text-foreground/60 leading-relaxed">Let the employee know exactly what needs to be modified before resubmitting.</p>
+            <Textarea placeholder="Explain what needs to be changed or fixed..." value={recheckFeedback} onChange={(e) => { setRecheckFeedback(e.target.value); if (e.target.value.trim()) setRecheckError(false); }} className="border-border text-foreground placeholder:text-foreground/30 min-h-[100px] text-xs" />
             {recheckError && (
               <p className="text-xs text-rose-400 font-bold flex items-center gap-1">
                 <AlertTriangle className="w-3.5 h-3.5" /> Feedback is required — please describe what needs to change.
@@ -3022,28 +2616,51 @@ export default function TaskBoard() {
             )}
           </div>
           <DialogFooter className="mt-6 border-t-0 pt-2">
-            <button
-              type="button"
-              onClick={() => setIsRecheckOpen(false)}
-              className="px-4 py-2 text-sm font-bold text-foreground/70 hover:text-foreground transition-colors"
-              disabled={isSubmittingRecheck}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleConfirmRecheck}
-              disabled={isSubmittingRecheck}
-              className="px-4 py-2 text-sm font-bold bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50"
-            >
+            <button type="button" onClick={() => setIsRecheckOpen(false)} className="px-4 py-2 text-sm font-bold text-foreground/70 hover:text-foreground transition-colors" disabled={isSubmittingRecheck}>Cancel</button>
+            <button type="button" onClick={handleConfirmRecheck} disabled={isSubmittingRecheck} className="px-4 py-2 text-sm font-bold bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50">
               <RotateCcw className="w-3.5 h-3.5" /> {isSubmittingRecheck ? "Sending..." : "Send Back"}
             </button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* INSPECT MODAL (Admin / Leader / Co-Leader) — read-only progress
-          logs + attachments, with downloads, before Approve/Recheck. */}
+      {/* DELETE TASK MODAL */}
+      <Dialog open={!!deleteTarget} onOpenChange={(o) => { if (!o) { setDeleteTarget(null); setDeleteReason(""); setDeleteError(false); } }}>
+        <DialogContent className="bg-card/95 border-border text-foreground sm:max-w-md backdrop-blur-md shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-rose-400 flex items-center gap-2">
+              <Trash2 className="w-4 h-4" /> Delete Task
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 mt-2">
+            <p className="text-xs text-foreground/60 leading-relaxed">
+              Deleting <span className="font-bold text-foreground">{deleteTarget?.title}</span> is permanent and cannot be undone.
+              {deleteTarget?.isTeamTask
+                ? " All team members, the leader, and co-leaders will be notified by mail."
+                : " The assignee will be notified by mail."}
+            </p>
+            <Textarea
+              placeholder="Explain why this task is being cancelled or deleted..."
+              value={deleteReason}
+              onChange={(e) => { setDeleteReason(e.target.value); if (e.target.value.trim()) setDeleteError(false); }}
+              className="border-border text-foreground placeholder:text-foreground/30 min-h-[100px] text-xs"
+            />
+            {deleteError && (
+              <p className="text-xs text-rose-400 font-bold flex items-center gap-1">
+                <AlertTriangle className="w-3.5 h-3.5" /> A reason is required before deleting this task.
+              </p>
+            )}
+          </div>
+          <DialogFooter className="mt-6 border-t-0 pt-2">
+            <button type="button" onClick={() => { setDeleteTarget(null); setDeleteReason(""); setDeleteError(false); }} className="px-4 py-2 text-sm font-bold text-foreground/70 hover:text-foreground transition-colors" disabled={isSubmittingDelete}>Cancel</button>
+            <button type="button" onClick={handleConfirmDeleteTask} disabled={isSubmittingDelete} className="px-4 py-2 text-sm font-bold bg-rose-600 hover:bg-rose-700 text-white rounded-lg transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50">
+              <Trash2 className="w-3.5 h-3.5" /> {isSubmittingDelete ? "Deleting..." : "Delete Task"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* INSPECT MODAL */}
       <Dialog open={!!inspectTaskId} onOpenChange={(o) => !o && setInspectTaskId(null)}>
         <DialogContent className="bg-card/95 border-border text-foreground sm:max-w-lg backdrop-blur-md shadow-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
@@ -3054,9 +2671,7 @@ export default function TaskBoard() {
           <div className="space-y-4 mt-3">
             <div className="p-3 border border-border rounded-xl">
               <p className="text-sm font-extrabold text-foreground leading-snug">{inspectTask?.title}</p>
-              {inspectTask?.parentTaskTitle && (
-                <p className="text-[11px] text-foreground/50 mt-1">Subtask of {inspectTask.parentTaskTitle}</p>
-              )}
+              {inspectTask?.parentTaskTitle && <p className="text-[11px] text-foreground/50 mt-1">Subtask of {inspectTask.parentTaskTitle}</p>}
               <p className="text-[11px] text-foreground/50 mt-1">
                 Submitted by {employeesList.find(e => e.id === inspectTask?.assignedTo)?.fullName || "Employee"}
                 {inspectTask?.submittedAt ? ` · ${new Date(inspectTask.submittedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}` : ""}
@@ -3064,9 +2679,7 @@ export default function TaskBoard() {
             </div>
 
             {inspectTask?.description && (
-              <div className="p-3 border border-border/80 bg-background/50 rounded-xl text-xs text-foreground/80 leading-relaxed">
-                {inspectTask.description}
-              </div>
+              <div className="p-3 border border-border/80 bg-background/50 rounded-xl text-xs text-foreground/80 leading-relaxed">{inspectTask.description}</div>
             )}
 
             <div>
@@ -3080,38 +2693,29 @@ export default function TaskBoard() {
                     return (
                       <div key={`${attachment.name}-${i}`} className="flex items-center gap-2 text-foreground/80 py-1">
                         <Paperclip className="w-3 h-3 shrink-0 text-primary" />
-                        {attachment.url ? (
-                          <a href={attachment.url} download={attachment.name} target="_blank" rel="noreferrer" className="truncate text-primary hover:underline flex items-center gap-1">
-                            {attachment.name} <Download className="w-3 h-3" />
-                          </a>
-                        ) : (
-                          <span className="truncate">{attachment.name}</span>
-                        )}
+                        {attachment.url ? <a href={attachment.url} download={attachment.name} target="_blank" rel="noreferrer" className="truncate text-primary hover:underline flex items-center gap-1">{attachment.name} <Download className="w-3 h-3" /></a> : <span className="truncate">{attachment.name}</span>}
                       </div>
                     );
                   })
-                ) : (
-                  "No attachments uploaded."
-                )}
+                ) : "No attachments uploaded."}
               </div>
             </div>
 
             <div>
               <h4 className="text-xs font-bold text-foreground/70 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <MessageSquare className="w-3.5 h-3.5 text-primary" /> Progress Logs ({inspectTask?.remarks?.length || 0})
+                <MessageSquare className="w-3.5 h-3.5 text-primary" /> Progress Logs ({inspectRemarkEntries.length})
               </h4>
               <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                {!inspectTask?.remarks || inspectTask.remarks.length === 0 ? (
-                  <div className="text-center py-4 text-foreground/20 text-xs font-medium border border-border border-dashed rounded-xl">
-                    No remarks logged yet.
-                  </div>
+                {inspectRemarkEntries.length === 0 ? (
+                  <div className="text-center py-4 text-foreground/20 text-xs font-medium border border-border border-dashed rounded-xl">No remarks you can view yet.</div>
                 ) : (
-                  inspectTask.remarks.map((remark) => (
-                    <div key={remark.id} className="border border-border p-2.5 rounded-xl">
+                  inspectRemarkEntries.map(({ remark, sourceTitle }) => (
+                    <div key={`${sourceTitle || "main"}-${remark.id}`} className="border border-border p-2.5 rounded-xl">
                       <div className="flex justify-between items-center mb-1 text-xs font-bold uppercase">
                         <span className="text-primary">{remark.authorName}</span>
                         <span className="text-foreground/30 text-[10px]">{new Date(remark.createdAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                       </div>
+                      {sourceTitle && <p className="text-[10px] text-foreground/45 mb-1">Subtask: {sourceTitle}</p>}
                       <p className="text-xs text-foreground/80 leading-relaxed font-medium">{remark.text}</p>
                     </div>
                   ))
@@ -3120,27 +2724,13 @@ export default function TaskBoard() {
             </div>
           </div>
           <DialogFooter className="mt-6 border-t-0 pt-2">
-            <button
-              type="button"
-              onClick={() => setInspectTaskId(null)}
-              className="px-4 py-2 text-sm font-bold text-foreground/70 hover:text-foreground transition-colors"
-            >
-              Close
-            </button>
+            <button type="button" onClick={() => setInspectTaskId(null)} className="px-4 py-2 text-sm font-bold text-foreground/70 hover:text-foreground transition-colors">Close</button>
             {inspectTask && canReviewTask(inspectTask) && (
               <>
-                <button
-                  type="button"
-                  onClick={() => { openRecheckModal(inspectTask); setInspectTaskId(null); }}
-                  className="px-4 py-2 text-sm font-bold border border-rose-500/40 text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors flex items-center justify-center gap-1.5"
-                >
+                <button type="button" onClick={() => { openRecheckModal(inspectTask); setInspectTaskId(null); }} className="px-4 py-2 text-sm font-bold border border-rose-500/40 text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors flex items-center justify-center gap-1.5">
                   <RotateCcw className="w-3.5 h-3.5" /> Recheck
                 </button>
-                <button
-                  type="button"
-                  onClick={() => { handleApproveTask(inspectTask.id); setInspectTaskId(null); }}
-                  className="px-4 py-2 text-sm font-bold bg-emerald-500 hover:bg-emerald-600 text-slate-950 rounded-lg transition-colors flex items-center justify-center gap-1.5"
-                >
+                <button type="button" onClick={() => { handleApproveTask(inspectTask.id); setInspectTaskId(null); }} className="px-4 py-2 text-sm font-bold bg-emerald-500 hover:bg-emerald-600 text-slate-950 rounded-lg transition-colors flex items-center justify-center gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5" /> Approve
                 </button>
               </>
