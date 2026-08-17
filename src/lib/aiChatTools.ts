@@ -65,6 +65,32 @@ export const CHAT_TOOLS = [
             },
         },
     },
+    {
+        type: "function",
+        function: {
+            name: "getLeaveDetails",
+            description:
+                "Get leave/time-off details: leave balance (annual/sick days remaining and used), and leave request history (type, dates, days, status, reason). Defaults to the requester's own leave record if no name is given.",
+            parameters: {
+                type: "object",
+                properties: {
+                    employeeName: {
+                        type: "string",
+                        description: "Full/partial name, email, or employee ID of the person whose leave you want. Omit to mean 'myself'.",
+                    },
+                    listAll: {
+                        type: "boolean",
+                        description: "Set to true if the user is asking for leave records of ALL employees, not one specific person.",
+                    },
+                    statusFilter: {
+                        type: "string",
+                        enum: ["pending", "approved", "rejected"],
+                        description: "Optional: only include leave requests with this status.",
+                    },
+                },
+            },
+        },
+    },
 
 ] as const;
 
@@ -386,4 +412,98 @@ export async function getProjectDetails(
     }
 
     return buildFullProjectDetails(match, session.role);
+}
+
+// ---------------------------------------------------------------------------
+// Tool: leave details
+// - No name given -> defaults to the caller's own leave balance + history, always allowed.
+// - A name given -> looking up someone else requires APPROVE_LEAVE.
+// - listAll -> requires APPROVE_LEAVE.
+// ---------------------------------------------------------------------------
+async function buildLeaveSummary(uid: string, statusFilter?: string) {
+    const currentYear = new Date().getFullYear();
+    const balanceDoc = await adminDb.collection("leaveBalances").doc(`${uid}_${currentYear}`).get();
+    const balance = balanceDoc.exists ? balanceDoc.data() : { totalAnnual: 20, usedAnnual: 0, usedSick: 0 };
+
+    let leavesQuery = adminDb.collection("leaves").where("employeeId", "==", uid) as FirebaseFirestore.Query;
+    if (statusFilter) {
+        leavesQuery = leavesQuery.where("status", "==", statusFilter);
+    }
+    const leavesSnap = await leavesQuery.get();
+    const history = leavesSnap.docs.map((d) => {
+        const l = d.data();
+        return {
+            leaveType: l.leaveType,
+            startDate: l.startDate,
+            endDate: l.endDate,
+            daysCount: l.daysCount,
+            status: l.status,
+            reason: l.reason || null,
+        };
+    });
+
+    return {
+        annualBalance: {
+            total: balance?.totalAnnual ?? 20,
+            used: balance?.usedAnnual ?? 0,
+            remaining: (balance?.totalAnnual ?? 20) - (balance?.usedAnnual ?? 0),
+        },
+        sickLeaveUsed: balance?.usedSick ?? 0,
+        leaveHistory: history,
+    };
+}
+
+export async function getLeaveDetails(
+    session: ChatSession,
+    employeeName?: string,
+    listAll?: boolean,
+    statusFilter?: string
+) {
+    const hasFullAccess = canAccess(session.role, "APPROVE_LEAVE");
+
+    if (listAll) {
+        if (!hasFullAccess) return { error: "not_authorized" };
+        let leavesQuery = adminDb.collection("leaves") as FirebaseFirestore.Query;
+        if (statusFilter) {
+            leavesQuery = leavesQuery.where("status", "==", statusFilter);
+        }
+        const snap = await leavesQuery.get();
+        return snap.docs.map((d) => {
+            const l = d.data();
+            return {
+                employeeName: l.employeeName,
+                leaveType: l.leaveType,
+                startDate: l.startDate,
+                endDate: l.endDate,
+                daysCount: l.daysCount,
+                status: l.status,
+            };
+        });
+    }
+
+    if (!employeeName) {
+        return buildLeaveSummary(session.uid, statusFilter);
+    }
+
+    // Prefer resolving to the caller's own record first (same pattern as
+    // getEmployeeDetails -- avoids misidentifying the caller as someone else
+    // with a similar name).
+    const selfDoc = await adminDb.collection("employees").doc(session.uid).get();
+    if (selfDoc.exists) {
+        const selfData = { id: session.uid, ...(selfDoc.data() as Record<string, unknown>) } as Record<string, unknown>;
+        const selfMatches = findEmployee([selfData], employeeName);
+        if (selfMatches) {
+            return buildLeaveSummary(session.uid, statusFilter);
+        }
+    }
+
+    if (!hasFullAccess) return { error: "not_authorized" };
+
+    const empSnap = await adminDb.collection("employees").where("isActive", "==", true).get();
+    const employees = empSnap.docs.map((d) => ({ id: d.id, ...(d.data() as Record<string, unknown>) })) as Record<string, unknown>[];
+    const match = findEmployee(employees, employeeName);
+    if (!match) return { error: "not_found" };
+    const matchId = (match as Record<string, unknown>).id as string;
+
+    return buildLeaveSummary(matchId, statusFilter);
 }
