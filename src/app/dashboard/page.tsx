@@ -57,28 +57,50 @@ export default function DashboardHome() {
         const { collection, query, where, getDocs } = await import("firebase/firestore");
         
         // 2. Open Tasks
-        const tasksSnap = await getDocs(collection(db, "tasks"));
-        const taskCount = tasksSnap.docs.filter(doc => doc.data().status !== "completed").length;
+        try {
+          const tasksSnap = await getDocs(collection(db, "tasks"));
+          const taskCount = tasksSnap.docs.filter(doc => doc.data().status !== "completed").length;
+          setStats(prev => ({ ...prev, openTasks: taskCount }));
+        } catch (e) {
+          console.warn("Could not load tasks stats:", e);
+        }
         
         // 3. Active Projects Count
-        const projectsSnap = await getDocs(query(collection(db, "projects")));
-        const projectCount = projectsSnap.size;
+        try {
+          const projectsSnap = await getDocs(query(collection(db, "projects")));
+          setStats(prev => ({ ...prev, activeProjects: projectsSnap.size }));
+        } catch (e) {
+          console.warn("Could not load projects stats:", e);
+        }
         
-        // 4. Pending Leaves List & Count
-        const leavesSnap = await getDocs(query(collection(db, "leaves"), where("status", "==", "pending")));
-        const leaveCount = leavesSnap.size;
-        const approvals = leavesSnap.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        
-        setStats(prev => ({
-          ...prev,
-          openTasks: taskCount,
-          activeProjects: projectCount,
-          pendingLeaves: leaveCount,
-          pendingApprovals: approvals
-        }));
+        // 4. Pending Leaves List & Count (Executive / Manager vs Employee)
+        try {
+          if (isExecutive) {
+            const leavesSnap = await getDocs(query(collection(db, "leaves"), where("status", "==", "pending")));
+            const approvals = leavesSnap.docs.map(doc => ({
+              id: doc.id,
+              ...doc.data()
+            }));
+            setStats(prev => ({
+              ...prev,
+              pendingLeaves: leavesSnap.size,
+              pendingApprovals: approvals
+            }));
+          } else {
+            const userLeavesSnap = await getDocs(query(
+              collection(db, "leaves"),
+              where("employeeId", "==", user.uid),
+              where("status", "==", "pending")
+            ));
+            setStats(prev => ({
+              ...prev,
+              pendingLeaves: userLeavesSnap.size,
+              pendingApprovals: []
+            }));
+          }
+        } catch (e) {
+          console.warn("Could not load leaves stats:", e);
+        }
       } catch (err) {
         console.error("Error loading dashboard stats:", err);
       } finally {
@@ -125,7 +147,7 @@ export default function DashboardHome() {
       unsubShoutouts();
       unsubEmployees();
     };
-  }, [user]);
+  }, [user, isExecutive]);
 
   const handleAction = async (id: string, newStatus: "approved" | "rejected") => {
     try {
